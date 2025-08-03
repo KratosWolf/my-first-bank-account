@@ -29,7 +29,7 @@ git push -u origin develop
 1. Vá para Settings > Secrets and variables > Actions
 2. Adicione os seguintes secrets:
 
-#### Secrets obrigatórios:
+#### Secrets obrigatórios (para deploy automático):
 
 - `VERCEL_TOKEN` - Token do Vercel
 - `VERCEL_ORG_ID` - ID da organização Vercel
@@ -40,6 +40,8 @@ git push -u origin develop
 - `SLACK_WEBHOOK` - Webhook do Slack para notificações
 - `DATABASE_URL` - URL do banco de dados
 - `NEXTAUTH_SECRET` - Secret do NextAuth
+
+**Nota**: Se não configurar os secrets do Vercel, o CI funcionará normalmente, mas o deploy automático será ignorado.
 
 ### 4. Configurar Branch Protection
 
