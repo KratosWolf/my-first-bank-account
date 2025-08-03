@@ -63,6 +63,8 @@ git push -u origin develop
 
 ### 6. Configurar Vercel
 
+#### Opção 1: Deploy Automático (Recomendado)
+
 ```bash
 # Login no Vercel
 npx vercel login
@@ -73,6 +75,18 @@ npx vercel
 # Configurar projeto
 npx vercel --prod
 ```
+
+#### Opção 2: Deploy Manual
+
+1. Vá para Actions no GitHub
+2. Execute o workflow "Simple Deploy"
+3. Siga as instruções fornecidas
+
+#### Opção 3: Vercel Dashboard
+
+1. Acesse [vercel.com](https://vercel.com)
+2. Conecte seu repositório GitHub
+3. Configure automaticamente
 
 ### 7. Verificar configuração
 

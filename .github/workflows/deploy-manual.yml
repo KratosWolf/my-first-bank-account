@@ -13,7 +13,23 @@ on:
         - production
 
 jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      has-vercel-secrets: ${{ steps.check.outputs.has-secrets }}
+    steps:
+      - name: Check if Vercel secrets are configured
+        id: check
+        run: |
+          if [[ "${{ secrets.VERCEL_TOKEN }}" != "" && "${{ secrets.VERCEL_ORG_ID }}" != "" && "${{ secrets.VERCEL_PROJECT_ID }}" != "" ]]; then
+            echo "has-secrets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-secrets=false" >> $GITHUB_OUTPUT
+          fi
+
   deploy:
+    needs: [check-secrets]
+    if: ${{ needs.check-secrets.outputs.has-vercel-secrets == 'true' }}
     runs-on: ubuntu-latest
     
     steps:
@@ -52,4 +68,16 @@ jobs:
         status: success
         channel: '#deployments'
         webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        message: '${{ github.event.inputs.environment }} deployment successful! 🚀' 
+        message: '${{ github.event.inputs.environment }} deployment successful! 🚀'
+
+  skip-deploy:
+    needs: [check-secrets]
+    if: ${{ needs.check-secrets.outputs.has-vercel-secrets == 'false' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Skip deployment
+        run: |
+          echo "Cannot deploy - Vercel secrets not configured"
+          echo "Please configure VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID secrets"
+          exit 1 

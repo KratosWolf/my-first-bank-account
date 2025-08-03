@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -68,7 +68,4 @@ jobs:
     - name: Run CodeQL Analysis
       uses: github/codeql-action/analyze@v2
       with:
-        languages: javascript
-
-  # Deploy jobs serão movidos para um workflow separado
-  # para evitar avisos de secrets não configurados 
+        languages: javascript 
