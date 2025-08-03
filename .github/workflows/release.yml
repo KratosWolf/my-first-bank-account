@@ -7,7 +7,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    if: ${{ !contains(github.event.head_commit.message, 'skip ci') }}
     
     steps:
     - name: Checkout code
@@ -32,17 +32,16 @@ jobs:
       run: npm run build
     
     - name: Semantic Release
+      id: semantic
       uses: cycjimmy/semantic-release-action@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       with:
         semantic_version: 19
         extra_plugins: |
           @semantic-release/changelog
           @semantic-release/release-notes-generator
           @semantic-release/git
-          @semantic-release/npm
           [
             "@semantic-release/git",
             {
@@ -53,7 +52,7 @@ jobs:
     
     - name: Create GitHub Release
       uses: actions/create-release@v1
-      if: steps.semantic.outputs.new_release_published == 'true'
+      if: ${{ steps.semantic.outputs.new_release_published == 'true' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:

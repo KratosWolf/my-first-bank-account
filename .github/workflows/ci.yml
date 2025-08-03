@@ -73,7 +73,7 @@ jobs:
   deploy-staging:
     needs: [test, security]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: ${{ github.ref == 'refs/heads/develop' }}
     
     steps:
     - name: Checkout code
@@ -91,7 +91,7 @@ jobs:
   deploy-production:
     needs: [test, security]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' }}
     
     steps:
     - name: Checkout code
@@ -109,7 +109,7 @@ jobs:
     
     - name: Notify deployment success
       uses: 8398a7/action-slack@v3
-      if: success()
+      if: ${{ success() }}
       with:
         status: success
         channel: '#deployments'
