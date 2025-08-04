@@ -35,7 +35,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "conventional-changelog-conventionalcommits": "^6",
+    "conventional-changelog-conventionalcommits": "^9",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "husky": "^8",
