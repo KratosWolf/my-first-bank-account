@@ -37,7 +37,7 @@ export default function DashboardPage() {
       await logout();
       toast.success('Logout realizado com sucesso! 👋');
       router.push('/login');
-    } catch (error) {
+    } catch {
       toast.error('Erro ao fazer logout.');
     }
   };

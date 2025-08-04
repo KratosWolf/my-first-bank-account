@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { PiggyBank, Shield, Users, Sparkles, Star, Heart, Zap } from 'lucide-react';
+import { PiggyBank, Shield, Users, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
