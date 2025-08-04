@@ -15,6 +15,26 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if Firebase is properly configured
+    const isFirebaseConfigured =
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== 'demo-key';
+
+    if (!isFirebaseConfigured) {
+      // Mock user for development
+      const mockUser: User = {
+        id: 'demo-user',
+        email: 'demo@example.com',
+        name: 'Usuário Demo',
+        role: 'parent',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      setUser(mockUser);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
       setFirebaseUser(firebaseUser);
 
@@ -49,6 +69,25 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = async () => {
+    // Check if Firebase is properly configured
+    const isFirebaseConfigured =
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== 'demo-key';
+
+    if (!isFirebaseConfigured) {
+      // Mock sign in for development
+      const mockUser: User = {
+        id: 'demo-user',
+        email: 'demo@example.com',
+        name: 'Usuário Demo',
+        role: 'parent',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      setUser(mockUser);
+      return Promise.resolve();
+    }
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       return result;
@@ -59,6 +98,17 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    // Check if Firebase is properly configured
+    const isFirebaseConfigured =
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== 'demo-key';
+
+    if (!isFirebaseConfigured) {
+      // Mock logout for development
+      setUser(null);
+      return;
+    }
+
     try {
       await signOut(auth);
     } catch (error) {
@@ -69,6 +119,18 @@ export function useAuth() {
 
   const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
+
+    // Check if Firebase is properly configured
+    const isFirebaseConfigured =
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== 'demo-key';
+
+    if (!isFirebaseConfigured) {
+      // Mock update for development
+      const updatedUser = { ...user, ...updates, updatedAt: new Date() };
+      setUser(updatedUser);
+      return;
+    }
 
     try {
       const updatedUser = { ...user, ...updates, updatedAt: new Date() };
