@@ -2,6 +2,7 @@
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +26,12 @@ export default function DashboardPage() {
   const { user, logout } = useAuthContext();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -36,7 +43,6 @@ export default function DashboardPage() {
   };
 
   if (!user) {
-    router.push('/login');
     return null;
   }
 
