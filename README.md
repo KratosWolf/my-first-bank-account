@@ -1,10 +1,10 @@
-# 🚀 My Next.js App
+# 🏦 My First Bank Account
 
 [![CI/CD Pipeline](https://github.com/username/my-nextjs-app/actions/workflows/ci.yml/badge.svg)](https://github.com/username/my-nextjs-app/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/username/my-nextjs-app/branch/main/graph/badge.svg)](https://codecov.io/gh/username/my-nextjs-app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern, production-ready Next.js application with TypeScript, Tailwind CSS, and comprehensive DevOps setup.
+A modern banking application with TypeScript, Tailwind CSS, and comprehensive DevOps setup. Manage your first bank account with security and ease.
 
 ## 🎯 Table of Contents
 
@@ -20,6 +20,7 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
 
 ## ✨ Features
 
+- 🏦 **Banking Features** - Account management, transactions, balance
 - 🎨 **Next.js 14** with App Router
 - 🔒 **TypeScript** for type safety
 - 🎨 **Tailwind CSS** for styling
@@ -34,6 +35,7 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - **Framework**: Next.js 14
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
@@ -42,13 +44,16 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
 - **Fonts**: Inter
 
 ### Backend
+
 - **Runtime**: Node.js
 - **Database**: PostgreSQL (Neon)
 - **Authentication**: NextAuth.js
 - **ORM**: Native SQL with Neon SDK
 - **Validation**: Zod
+- **Banking API**: Secure transaction processing
 
 ### DevOps
+
 - **Deployment**: Vercel
 - **CI/CD**: GitHub Actions
 - **Monitoring**: Vercel Analytics
@@ -58,6 +63,7 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18.0 or later
 - npm or yarn
 - Git
@@ -65,22 +71,26 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
-   git clone https://github.com/username/my-nextjs-app.git
-   cd my-nextjs-app
+   git clone https://github.com/username/my-first-bank-account.git
+   cd my-first-bank-account
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    ```
-   
+
    Edit `.env.local` with your configuration:
+
    ```env
    DATABASE_URL=your_database_url_here
    NEXTAUTH_SECRET=your_nextauth_secret_here
@@ -88,12 +98,14 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
    ```
 
 4. **Set up the database**
+
    ```bash
    npm run db:migrate
    npm run db:seed
    ```
 
 5. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -120,6 +132,7 @@ A modern, production-ready Next.js application with TypeScript, Tailwind CSS, an
 ### Code Style
 
 This project uses:
+
 - **ESLint** for code linting
 - **Prettier** for code formatting
 - **Husky** for Git hooks
@@ -128,17 +141,20 @@ This project uses:
 ### Git Workflow
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feature/amazing-feature
    ```
 
 2. **Make your changes**
+
    ```bash
    git add .
    git commit -m "feat: add amazing feature"
    ```
 
 3. **Push to the branch**
+
    ```bash
    git push origin feature/amazing-feature
    ```
@@ -195,6 +211,7 @@ tests/
 ### Automatic Deployment
 
 The project automatically deploys to Vercel:
+
 - **Staging**: Push to `develop` branch
 - **Production**: Push to `main` branch
 
@@ -259,4 +276,4 @@ If you have any questions or need help, please:
 
 ---
 
-Made with ❤️ by [Your Name](https://github.com/username)
+Made with ❤️ by [Tiago Fernandes](https://github.com/tiagofernandes)
