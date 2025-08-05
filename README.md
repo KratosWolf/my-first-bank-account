@@ -1,7 +1,7 @@
 # 🏦 My First Bank Account
 
-[![CI/CD Pipeline](https://github.com/username/my-nextjs-app/actions/workflows/ci.yml/badge.svg)](https://github.com/username/my-nextjs-app/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/username/my-nextjs-app/branch/main/graph/badge.svg)](https://codecov.io/gh/username/my-nextjs-app)
+[![CI/CD Pipeline](https://github.com/KratosWolf/my-first-bank-account/actions/workflows/ci.yml/badge.svg)](https://github.com/KratosWolf/my-first-bank-account/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/KratosWolf/my-first-bank-account/branch/main/graph/badge.svg)](https://codecov.io/gh/KratosWolf/my-first-bank-account)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern banking application with TypeScript, Tailwind CSS, and comprehensive DevOps setup. Manage your first bank account with security and ease.
