@@ -1,0 +1,36 @@
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import {
+  getFirestore,
+  enableNetwork,
+  disableNetwork,
+} from 'firebase/firestore';
+
+// Configuração temporária para desenvolvimento
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-key',
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'demo.firebaseapp.com',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-project',
+  storageBucket:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo.appspot.com',
+  messagingSenderId:
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || 'demo-app-id',
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and get a reference to the service
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+
+// Initialize Cloud Firestore and get a reference to the service
+export const db = getFirestore(app);
+
+// Enable/disable network for offline support
+export const enableFirestoreNetwork = () => enableNetwork(db);
+export const disableFirestoreNetwork = () => disableNetwork(db);
+
+export default app;

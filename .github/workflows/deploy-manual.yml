@@ -29,7 +29,7 @@ jobs:
 
   deploy:
     needs: [check-secrets]
-    if: ${{ needs.check-secrets.outputs.has-vercel-secrets == 'true' }}
+    if: needs.check-secrets.outputs.has-vercel-secrets == 'true'
     runs-on: ubuntu-latest
     
     steps:
@@ -62,7 +62,7 @@ jobs:
         alias-domains: ${{ github.event.inputs.environment == 'production' && 'myapp.com' || 'staging.myapp.com' }}
     
     - name: Notify deployment
-      if: ${{ success() }}
+      if: success()
       uses: 8398a7/action-slack@v3
       with:
         status: success
@@ -72,7 +72,7 @@ jobs:
 
   skip-deploy:
     needs: [check-secrets]
-    if: ${{ needs.check-secrets.outputs.has-vercel-secrets == 'false' }}
+    if: needs.check-secrets.outputs.has-vercel-secrets == 'false'
     runs-on: ubuntu-latest
     
     steps:

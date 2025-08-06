@@ -1,38 +1,38 @@
-# 🏦 My First Bank Account
+# 🚀 My Next.js App
 
-[![CI/CD Pipeline](https://github.com/username/my-nextjs-app/actions/workflows/ci.yml/badge.svg)](https://github.com/username/my-nextjs-app/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/username/my-nextjs-app/branch/main/graph/badge.svg)](https://codecov.io/gh/username/my-nextjs-app)
+[![CI/CD Pipeline](https://github.com/KratosWolf/my-nextjs-app/actions/workflows/ci.yml/badge.svg)](https://github.com/KratosWolf/my-nextjs-app/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/KratosWolf/my-nextjs-app/branch/main/graph/badge.svg)](https://codecov.io/gh/KratosWolf/my-nextjs-app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern banking application with TypeScript, Tailwind CSS, and comprehensive DevOps setup. Manage your first bank account with security and ease.
+A modern, production-ready Next.js application with TypeScript, Tailwind CSS, and comprehensive DevOps setup.
 
-## 🎯 Table of Contents
+## 📋 Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-- [Development](#-development)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Documentation](#-documentation)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## ✨ Features
 
-- 🏦 **Banking Features** - Account management, transactions, balance
-- 🎨 **Next.js 14** with App Router
-- 🔒 **TypeScript** for type safety
+- ⚡ **Next.js 14** with App Router
+- 🔷 **TypeScript** for type safety
 - 🎨 **Tailwind CSS** for styling
-- 🧪 **Jest & Testing Library** for testing
+- 🔐 **Stack Auth** for authentication
+- 📊 **Neon Database** for data storage
 - 🚀 **Vercel** for deployment
+- 🧪 **Jest & Testing Library** for testing
+- 📱 **Responsive Design** mobile-first
+- 🔍 **SEO Optimized** with meta tags
+- 📈 **Analytics** with Vercel Analytics
+- 🛡️ **Security** with security headers
 - 🔄 **CI/CD** with GitHub Actions
-- 📦 **Semantic Release** for versioning
-- 🔧 **Husky & lint-staged** for Git hooks
-- 📊 **Code Coverage** reporting
-- 🔒 **Security** with CodeQL analysis
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
 ### Frontend
 
@@ -47,10 +47,9 @@ A modern banking application with TypeScript, Tailwind CSS, and comprehensive De
 
 - **Runtime**: Node.js
 - **Database**: PostgreSQL (Neon)
-- **Authentication**: NextAuth.js
+- **Authentication**: Stack Auth
 - **ORM**: Native SQL with Neon SDK
 - **Validation**: Zod
-- **Banking API**: Secure transaction processing
 
 ### DevOps
 
@@ -73,8 +72,8 @@ A modern banking application with TypeScript, Tailwind CSS, and comprehensive De
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/username/my-first-bank-account.git
-   cd my-first-bank-account
+   git clone https://github.com/KratosWolf/my-nextjs-app.git
+   cd my-nextjs-app
    ```
 
 2. **Install dependencies**
@@ -92,8 +91,8 @@ A modern banking application with TypeScript, Tailwind CSS, and comprehensive De
    Edit `.env.local` with your configuration:
 
    ```env
-   DATABASE_URL=your_database_url_here
-   NEXTAUTH_SECRET=your_nextauth_secret_here
+   DATABASE_URL=your_neon_database_url
+   NEXTAUTH_SECRET=your_nextauth_secret
    NEXTAUTH_URL=http://localhost:3000
    ```
 
@@ -113,7 +112,7 @@ A modern banking application with TypeScript, Tailwind CSS, and comprehensive De
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🧪 Development
+## 💻 Development
 
 ### Available Scripts
 
@@ -125,9 +124,9 @@ A modern banking application with TypeScript, Tailwind CSS, and comprehensive De
 - `npm run type-check` - Run TypeScript compiler
 - `npm run test` - Run tests
 - `npm run test:watch` - Run tests in watch mode
-- `npm run test:ci` - Run tests for CI
 - `npm run test:coverage` - Run tests with coverage
-- `npm run test:e2e` - Run E2E tests
+- `npm run db:migrate` - Run database migrations
+- `npm run db:seed` - Seed database with sample data
 
 ### Code Style
 
@@ -136,7 +135,7 @@ This project uses:
 - **ESLint** for code linting
 - **Prettier** for code formatting
 - **Husky** for Git hooks
-- **lint-staged** for staged files
+- **lint-staged** for staged files linting
 
 ### Git Workflow
 
@@ -170,7 +169,7 @@ This project follows [Conventional Commits](https://conventionalcommits.org/):
 - `docs:` - Documentation changes
 - `style:` - Code style changes
 - `refactor:` - Code refactoring
-- `test:` - Test changes
+- `test:` - Testing changes
 - `chore:` - Build process or auxiliary tool changes
 
 ## 🧪 Testing
@@ -184,9 +183,6 @@ npm run test
 # Run tests in watch mode
 npm run test:watch
 
-# Run tests for CI
-npm run test:ci
-
 # Run tests with coverage
 npm run test:coverage
 
@@ -199,7 +195,7 @@ npm run test:e2e
 ```
 tests/
 ├── __mocks__/          # Mock files
-├── components/          # Component tests
+├── components/         # Component tests
 ├── pages/              # Page tests
 ├── utils/              # Utility tests
 ├── e2e/                # End-to-end tests
@@ -210,7 +206,7 @@ tests/
 
 ### Automatic Deployment
 
-The project automatically deploys to Vercel:
+The project automatically deploys to Vercel when:
 
 - **Staging**: Push to `develop` branch
 - **Production**: Push to `main` branch
@@ -218,23 +214,22 @@ The project automatically deploys to Vercel:
 ### Manual Deployment
 
 ```bash
-# Deploy to production
-npm run deploy
+# Deploy to Vercel
+vercel --prod
 
-# Or use the script
-./scripts/deploy.sh
+# Deploy to staging
+vercel
 ```
 
 ### Environment Variables
 
 Make sure to configure these environment variables in Vercel:
 
-- `DATABASE_URL` - Database connection string
-- `NEXTAUTH_SECRET` - NextAuth secret
-- `NEXTAUTH_URL` - NextAuth URL
-- `VERCEL_TOKEN` - Vercel API token
-- `VERCEL_ORG_ID` - Vercel organization ID
-- `VERCEL_PROJECT_ID` - Vercel project ID
+```env
+DATABASE_URL=your_production_database_url
+NEXTAUTH_SECRET=your_production_secret
+NEXTAUTH_URL=https://your-domain.vercel.app
+```
 
 ## 📚 Documentation
 
@@ -250,10 +245,11 @@ Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTIN
 ### Development Setup
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create your feature branch
+3. Make your changes
+4. Add tests for your changes
+5. Run the test suite
+6. Submit a pull request
 
 ## 📄 License
 
@@ -276,4 +272,4 @@ If you have any questions or need help, please:
 
 ---
 
-Made with ❤️ by [Tiago Fernandes](https://github.com/tiagofernandes)
+Made with ❤️ by [Tiago Fernandes](https://github.com/KratosWolf)

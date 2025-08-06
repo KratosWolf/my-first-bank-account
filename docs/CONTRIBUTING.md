@@ -1,20 +1,30 @@
-# 🤝 Contributing Guide
+# Contributing Guide
 
-Thank you for your interest in contributing to our project! This document provides guidelines and information for contributors.
+## 🤝 Welcome Contributors!
+
+Thank you for your interest in contributing to this project! This guide will help you get started.
 
 ## 📋 Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Making Changes](#making-changes)
-- [Testing](#testing)
+- [Development Process](#development-process)
 - [Pull Request Process](#pull-request-process)
-- [Release Process](#release-process)
+- [Coding Standards](#coding-standards)
+- [Testing](#testing)
+- [Documentation](#documentation)
 
 ## 📜 Code of Conduct
 
 This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code.
+
+### Our Standards
+
+- Use welcoming and inclusive language
+- Be respectful of differing viewpoints and experiences
+- Gracefully accept constructive criticism
+- Focus on what is best for the community
+- Show empathy towards other community members
 
 ## 🚀 Getting Started
 
@@ -23,125 +33,112 @@ This project and everyone participating in it is governed by our Code of Conduct
 - Node.js 18.0 or later
 - npm or yarn
 - Git
+- GitHub account
 
-### Fork and Clone
+### Setup
 
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/your-username/my-nextjs-app.git
+   git clone https://github.com/yourusername/my-nextjs-app.git
    cd my-nextjs-app
    ```
-
-### Development Setup
-
-1. **Install dependencies**
+3. Add upstream remote:
    ```bash
-   npm install
+   git remote add upstream https://github.com/KratosWolf/my-nextjs-app.git
    ```
-
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
-
-3. **Run the setup script**
+4. Run the setup script:
    ```bash
    ./scripts/setup.sh
    ```
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
+## 🔄 Development Process
 
-## 🛠 Development Setup
+### Branching Strategy
 
-### Git Configuration
+- `main` - Production-ready code
+- `develop` - Development branch
+- `feature/*` - Feature branches
+- `fix/*` - Bug fix branches
+- `hotfix/*` - Emergency fixes
 
-Configure your Git user information:
+### Workflow
 
-```bash
-git config user.name "Your Name"
-git config user.email "your.email@example.com"
-```
+1. Create a new branch:
 
-### Branch Naming Convention
-
-Use the following branch naming convention:
-
-- `feature/description` - For new features
-- `fix/description` - For bug fixes
-- `docs/description` - For documentation changes
-- `refactor/description` - For code refactoring
-- `test/description` - For test-related changes
-
-### Commit Message Convention
-
-Follow [Conventional Commits](https://conventionalcommits.org/):
-
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-Types:
-- `feat` - New feature
-- `fix` - Bug fix
-- `docs` - Documentation changes
-- `style` - Code style changes
-- `refactor` - Code refactoring
-- `test` - Test changes
-- `chore` - Build process or auxiliary tool changes
-
-Examples:
-```bash
-git commit -m "feat: add user authentication"
-git commit -m "fix: resolve navigation issue"
-git commit -m "docs: update API documentation"
-```
-
-## 🔧 Making Changes
-
-### Before Making Changes
-
-1. **Update your fork**
-   ```bash
-   git fetch origin
-   git checkout main
-   git pull origin main
-   ```
-
-2. **Create a feature branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-### During Development
+2. Make your changes and commit:
 
-1. **Make your changes**
-2. **Write tests** for new functionality
-3. **Update documentation** if needed
-4. **Run tests** to ensure everything works
    ```bash
-   npm run test:ci
+   git add .
+   git commit -m "feat: add your feature description"
    ```
+
+3. Push to your fork:
+
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+4. Create a Pull Request
+
+## 📝 Pull Request Process
+
+1. Ensure your PR description clearly describes the problem and solution
+2. Include the relevant issue number if applicable
+3. Update the README.md with details of changes if needed
+4. Ensure all tests pass
+5. Request review from maintainers
+
+### PR Template
+
+Use our PR template to ensure all necessary information is included:
+
+- Description of changes
+- Type of change (bug fix, feature, etc.)
+- Testing performed
+- Screenshots (if applicable)
+- Checklist completion
+
+## 🎨 Coding Standards
+
+### TypeScript
+
+- Use TypeScript for all new code
+- Define proper types and interfaces
+- Avoid `any` type unless absolutely necessary
 
 ### Code Style
 
-- Follow the existing code style
-- Use ESLint and Prettier
-- Write meaningful commit messages
+- Follow ESLint and Prettier configurations
+- Use meaningful variable and function names
+- Write self-documenting code
 - Add comments for complex logic
 
-### Testing
+### Commit Messages
 
-- Write unit tests for new features
-- Ensure all tests pass
-- Maintain or improve test coverage
+Follow [Conventional Commits](https://conventionalcommits.org/):
+
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+Types:
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `style`: Formatting
+- `refactor`: Code refactoring
+- `test`: Adding tests
+- `chore`: Maintenance
 
 ## 🧪 Testing
 
@@ -154,9 +151,6 @@ npm run test
 # Run tests in watch mode
 npm run test:watch
 
-# Run tests for CI
-npm run test:ci
-
 # Run tests with coverage
 npm run test:coverage
 
@@ -166,120 +160,92 @@ npm run test:e2e
 
 ### Writing Tests
 
-- Test files should be named `*.test.ts` or `*.test.tsx`
-- Place test files next to the source files
+- Write tests for all new features
+- Maintain or improve code coverage
 - Use descriptive test names
 - Follow AAA pattern (Arrange, Act, Assert)
 
-Example:
-```typescript
-describe('UserComponent', () => {
-  it('should render user information correctly', () => {
-    // Arrange
-    const user = { name: 'John', email: 'john@example.com' }
-    
-    // Act
-    render(<UserComponent user={user} />)
-    
-    // Assert
-    expect(screen.getByText('John')).toBeInTheDocument()
-    expect(screen.getByText('john@example.com')).toBeInTheDocument()
-  })
-})
-```
+### Test Types
 
-## 🔄 Pull Request Process
+1. **Unit Tests**: Test individual components/functions
+2. **Integration Tests**: Test component interactions
+3. **E2E Tests**: Test complete user workflows
 
-### Before Submitting
+## 📚 Documentation
 
-1. **Ensure tests pass**
-   ```bash
-   npm run test:ci
-   npm run build
-   ```
+### Code Documentation
 
-2. **Check code style**
-   ```bash
-   npm run lint
-   npm run type-check
-   ```
+- Document all public APIs
+- Use JSDoc for function documentation
+- Include examples in documentation
+- Keep README.md updated
 
-3. **Update documentation** if needed
+### API Documentation
 
-### Creating a Pull Request
+- Document all API endpoints
+- Include request/response examples
+- Document error cases
+- Use OpenAPI/Swagger when applicable
 
-1. **Push your branch**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+## 🐛 Bug Reports
 
-2. **Create a Pull Request**
-   - Use the provided template
-   - Fill in all required sections
-   - Add screenshots if applicable
-   - Link related issues
+When filing a bug report, please include:
 
-3. **Wait for review**
-   - Address review comments
-   - Make requested changes
-   - Update the PR as needed
+1. Clear description of the issue
+2. Steps to reproduce
+3. Expected behavior
+4. Actual behavior
+5. Environment details
+6. Screenshots if applicable
 
-### PR Checklist
+## 💡 Feature Requests
 
-- [ ] Code follows project style guidelines
-- [ ] Self-review of code completed
-- [ ] Code is commented, especially in hard-to-understand areas
-- [ ] Corresponding changes to documentation made
-- [ ] Changes generate no new warnings
-- [ ] Tests added that prove fix is effective or feature works
-- [ ] New and existing unit tests pass locally
-- [ ] Any dependent changes have been merged and published
+When requesting a feature:
+
+1. Describe the problem you're solving
+2. Explain the proposed solution
+3. Consider alternative solutions
+4. Provide use cases
+5. Consider implementation complexity
+
+## 🔍 Code Review Guidelines
+
+### For Authors
+
+- Keep PRs small and focused
+- Write clear descriptions
+- Respond to feedback promptly
+- Test thoroughly before submitting
+
+### For Reviewers
+
+- Be constructive and respectful
+- Focus on code, not the person
+- Explain the "why" behind suggestions
+- Approve when ready, request changes when needed
 
 ## 🚀 Release Process
 
-### Semantic Versioning
+1. Features are merged to `develop`
+2. Release candidates are tested
+3. Stable releases are merged to `main`
+4. Semantic versioning is used
+5. Releases are automated via GitHub Actions
 
-This project follows [Semantic Versioning](https://semver.org/):
+## 🆘 Getting Help
 
-- **MAJOR** version for incompatible API changes
-- **MINOR** version for backwards-compatible functionality
-- **PATCH** version for backwards-compatible bug fixes
+- Check existing issues and discussions
+- Join our Discord community
+- Email maintainers for sensitive issues
+- Use GitHub Discussions for questions
 
-### Release Process
+## 📞 Contact
 
-1. **Merge to main branch**
-2. **Automatic release** via GitHub Actions
-3. **Deploy to production** via Vercel
-4. **Create GitHub release** with changelog
+- GitHub Issues: Bug reports and feature requests
+- GitHub Discussions: General questions and ideas
+- Email: support@example.com
+- Discord: [Join our server](https://discord.gg/example)
 
-### Release Notes
+---
 
-Release notes are automatically generated based on commit messages:
-
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `BREAKING CHANGE:` - Breaking changes
-- `docs:` - Documentation updates
-- `style:` - Code style changes
-- `refactor:` - Code refactoring
-- `test:` - Test changes
-- `chore:` - Build process changes
-
-## 📞 Getting Help
-
-If you need help:
-
-- **Open an issue** for bugs or feature requests
-- **Join our Discord** for community support
-- **Email us** for direct support
-
-## 🙏 Recognition
-
-Contributors will be recognized in:
-
-- Project README
-- Release notes
-- Contributors page
-- GitHub contributors list
-
-Thank you for contributing! 🎉 
+Thank you for contributing! 🎉
