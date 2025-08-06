@@ -1,9 +1,9 @@
 {
-  "name": "my-first-bank-account",
+  "name": "my-nextjs-app",
   "version": "0.0.0-development",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,12 +11,11 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:ci": "jest --ci --coverage --watchAll=false",
     "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
     "test:e2e": "playwright test",
     "prepare": "husky install",
-    "deploy": "vercel --prod",
-    "deploy:preview": "vercel"
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
     "@firebase/auth": "^1.11.0",
@@ -73,7 +72,17 @@
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
       "@semantic-release/npm",
-      "@semantic-release/git"
+      "@semantic-release/github",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
     ]
   },
   "lint-staged": {

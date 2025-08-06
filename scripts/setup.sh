@@ -5,40 +5,40 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
-# Verify Node.js
+# Verificar Node.js
 if ! command -v node &> /dev/null; then
     echo "❌ Node.js is required but not installed."
     exit 1
 fi
 
-# Verify npm
+# Verificar npm
 if ! command -v npm &> /dev/null; then
     echo "❌ npm is required but not installed."
     exit 1
 fi
 
-# Install dependencies
+# Instalar dependências
 echo "📦 Installing dependencies..."
 npm ci
 
-# Configure environment variables
+# Configurar environment variables
 if [ ! -f ".env.local" ]; then
     echo "📝 Creating .env.local from template..."
     cp .env.example .env.local
-    echo "✅ Please update .env.local with your configuration"
+    echo "⚠️  Please update .env.local with your configuration"
 fi
 
-# Setup Git hooks
-echo "🔧 Setting up Git hooks..."
+# Configurar Husky
+echo "🪝 Setting up Git hooks..."
 npm run prepare
 
-# Test build
+# Verificar build
 echo "🔨 Testing build..."
 npm run build
 
-# Execute tests
+# Executar testes
 echo "🧪 Running tests..."
 npm run test:ci
 
 echo "✅ Setup completed successfully!"
-echo "🎯 Run 'npm run dev' to start development server" 
+echo "🎉 Run 'npm run dev' to start development server"
