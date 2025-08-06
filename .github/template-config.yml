@@ -1,0 +1,42 @@
+# Template configuration for GitHub template repository
+name: "Next.js DevOps Template"
+description: "Complete Next.js template with professional DevOps setup, CI/CD, and automated deployments"
+topics:
+  - nextjs
+  - typescript
+  - devops
+  - cicd
+  - github-actions
+  - vercel
+  - template
+  - automation
+  - semantic-release
+  - jest
+  - tailwindcss
+  - eslint
+  - prettier
+  - husky
+  - lint-staged
+
+# Files to exclude from template
+exclude:
+  - ".env"
+  - ".env.local"
+  - ".vercel"
+  - "node_modules"
+  - ".next"
+  - "build"
+  - "dist"
+  - "coverage"
+  - "*.log"
+  - ".DS_Store"
+
+# Template metadata
+template:
+  repository_name_pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+  default_branch: "main"
+  delete_branch_on_merge: true
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
