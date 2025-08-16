@@ -332,8 +332,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Export function to get family challenges
-export function getFamilyChallenges(parentId: string) {
+// Helper function to get family challenges
+function getFamilyChallenges(parentId: string) {
   initializeChallenges(parentId);
   return familyChallenges.get(parentId);
 }
