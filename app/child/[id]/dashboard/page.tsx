@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { HybridStorage } from '@/lib/storage/hybrid-storage';
 
 interface ChildDashboardData {
   child: {
@@ -176,7 +177,7 @@ export default function ChildDashboard() {
     }
   }, [childId]);
 
-  // Listen for storage changes to update dashboard in real-time
+  // Listen for storage changes and set up real-time sync
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key?.includes(`child-${childId}`) || e.type === 'storage') {
@@ -197,10 +198,44 @@ export default function ChildDashboard() {
       }
     };
 
-    // Listen for storage events from other tabs/windows
+    // Set up real-time synchronization
+    const setupRealtimeSync = async () => {
+      const { family } = await HybridStorage.getOrCreateFamily();
+      const familyId = localStorage.getItem('current_family_id') || 'local-family';
+      
+      console.log('🔄 Child: Setting up real-time sync for family:', familyId);
+      
+      // Subscribe to family changes (especially for this child)
+      const unsubscribe = HybridStorage.subscribeToFamilyChanges(familyId, (payload) => {
+        console.log('📡 Child: Real-time update received:', payload);
+        
+        // Check if the update is relevant to this child
+        const isRelevant = !payload.key || payload.key.includes(`child-${childId}-`);
+        
+        if (isRelevant) {
+          console.log('🔄 Child: Refreshing dashboard due to real-time update...');
+          setHasUpdates(true); // Show "Novidades!" button
+          
+          // Auto-refresh after a short delay
+          setTimeout(() => {
+            fetchDashboardData();
+          }, 1000);
+        }
+      });
+      
+      return unsubscribe;
+    };
+
+    // Set up real-time sync
+    let unsubscribe: (() => void) | null = null;
+    setupRealtimeSync().then((unsub) => {
+      unsubscribe = unsub;
+    });
+
+    // Listen for storage events from other tabs/windows (backup)
     window.addEventListener('storage', handleStorageChange);
     
-    // Listen for custom balance update events
+    // Listen for custom balance update events (backup)
     window.addEventListener('balanceUpdated', handleBalanceUpdate);
     
     // Also refresh when component becomes visible again
@@ -213,6 +248,9 @@ export default function ChildDashboard() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('balanceUpdated', handleBalanceUpdate);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -222,70 +260,38 @@ export default function ChildDashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Load custom goals and requests from localStorage
-      const savedGoals = JSON.parse(localStorage.getItem(`child-${childId}-goals`) || '[]');
-      const savedRequests = JSON.parse(localStorage.getItem(`child-${childId}-requests`) || '[]');
-      const savedTransactions = JSON.parse(localStorage.getItem(`child-${childId}-transactions`) || '[]');
+      console.log('🔄 Loading dashboard data with HybridStorage...');
       
-      // Load and validate request/transaction data
-      const validRequests = savedRequests.filter((req: any) => req && req.id);
+      // Initialize family if needed
+      await HybridStorage.getOrCreateFamily();
+      
+      // Load data using HybridStorage (Supabase + localStorage fallback)
+      const savedGoals = await HybridStorage.getGoals(childId as string);
+      const savedRequests = await HybridStorage.getRequests(childId as string);
+      const savedTransactions = await HybridStorage.getTransactions(childId as string);
+      
+      console.log('📊 Loaded data:', { 
+        goals: savedGoals.length, 
+        requests: savedRequests.length, 
+        transactions: savedTransactions.length 
+      });
+      
+      // Validate data
+      const validRequests = savedRequests.filter((req: any) => req && (req.id || req.amount));
       const validTransactions = savedTransactions.filter((txn: any) => txn && txn.amount !== undefined);
       
-      // Mock base transactions
-      const baseTransactions = [
-        {
-          id: 1,
-          type: 'allowance',
-          amount: 25,
-          description: 'Mesada da semana',
-          timestamp: '2024-08-12T10:00:00Z',
-          balanceAfter: 0 // Will be calculated
-        },
-        {
-          id: 2,
-          type: 'purchase',
-          amount: -12.50,
-          description: 'Lanche na escola',
-          timestamp: '2024-08-11T14:30:00Z',
-          balanceAfter: 0 // Will be calculated
-        },
-        {
-          id: 3,
-          type: 'allowance',
-          amount: 25,
-          description: 'Mesada da semana passada',
-          timestamp: '2024-08-05T10:00:00Z',
-          balanceAfter: 0 // Will be calculated
-        },
-        {
-          id: 4,
-          type: 'bonus',
-          amount: 5,
-          description: 'Bônus por ajudar em casa',
-          timestamp: '2024-08-03T18:00:00Z',
-          balanceAfter: 0 // Will be calculated
-        },
-        {
-          id: 5,
-          type: 'allowance',
-          amount: 50,
-          description: 'Mesada inicial',
-          timestamp: '2024-08-01T10:00:00Z',
-          balanceAfter: 0 // Will be calculated
-        }
-      ];
-
-      // Combine all transactions and sort by date
-      const allTransactions = [...baseTransactions, ...validTransactions]
-        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      // Sort transactions by date
+      const allTransactions = validTransactions
+        .sort((a, b) => new Date(a.timestamp || a.created_at).getTime() - new Date(b.timestamp || b.created_at).getTime());
 
       // Calculate running balance
       let runningBalance = 0;
       
-      const transactionsWithBalance = allTransactions.map((transaction) => {
+      const transactionsWithBalance = allTransactions.map((transaction, index) => {
         runningBalance += transaction.amount;
         return {
           ...transaction,
+          id: transaction.id || `txn-${Date.now()}-${index}`, // Ensure unique ID
           balanceAfter: runningBalance
         };
       });
@@ -310,27 +316,36 @@ export default function ChildDashboard() {
           progressPercent: 68
         },
         goals: [
-          ...savedGoals,
-          {
-            id: 1,
-            name: 'Nintendo Switch',
-            description: 'Quero comprar um Nintendo Switch para jogar com meus amigos',
-            targetAmount: 300,
-            currentAmount: 125,
-            progressPercent: 42,
-            icon: '🎮',
-            isCompleted: false
-          },
-          {
-            id: 2,
-            name: 'Bicicleta Nova',
-            description: 'Uma bicicleta para andar no parque',
-            targetAmount: 150,
-            currentAmount: 89,
-            progressPercent: 59,
-            icon: '🚲',
-            isCompleted: false
-          }
+          ...savedGoals.map((goal: any) => ({
+            ...goal,
+            targetAmount: goal.target_amount || goal.targetAmount,
+            currentAmount: goal.current_amount || goal.currentAmount,
+            progressPercent: Math.round(((goal.current_amount || goal.currentAmount || 0) / (goal.target_amount || goal.targetAmount || 1)) * 100),
+            isCompleted: goal.is_completed || goal.isCompleted || false
+          })),
+          // Add default goals if none exist
+          ...(savedGoals.length === 0 ? [
+            {
+              id: 1,
+              name: 'Nintendo Switch',
+              description: 'Quero comprar um Nintendo Switch para jogar com meus amigos',
+              targetAmount: 300,
+              currentAmount: 125,
+              progressPercent: 42,
+              icon: '🎮',
+              isCompleted: false
+            },
+            {
+              id: 2,
+              name: 'Bicicleta Nova',
+              description: 'Uma bicicleta para andar no parque',
+              targetAmount: 150,
+              currentAmount: 89,
+              progressPercent: 59,
+              icon: '🚲',
+              isCompleted: false
+            }
+          ] : [])
         ],
         recentTransactions: transactionsWithBalance.slice(-5).reverse(),
         pendingRequests: validRequests
@@ -375,6 +390,24 @@ export default function ChildDashboard() {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const createTestRequest = async () => {
+    console.log('🧪 Creating test purchase request...');
+    const testRequest = {
+      id: Date.now(),
+      type: 'purchase',
+      amount: 25.50,
+      description: 'Lanche na escola - hambúrguer',
+      category: 'food',
+      status: 'pending',
+      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+    
+    await HybridStorage.addRequest(childId as string, testRequest);
+    console.log('✅ Test request created!');
+    fetchDashboardData(); // Refresh immediately
   };
 
   if (loading) {
@@ -431,6 +464,12 @@ export default function ChildDashboard() {
               }}
             >
               {hasUpdates ? '✨ Novidades!' : '🔄 Atualizar'}
+            </button>
+            <button 
+              onClick={createTestRequest} 
+              style={{...btnStyle, borderColor: '#16a34a', color: '#16a34a'}}
+            >
+              🧪 Teste
             </button>
             <button onClick={handleLogout} style={btnStyle}>
               Sair

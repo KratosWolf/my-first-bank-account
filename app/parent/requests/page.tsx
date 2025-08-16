@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { HybridStorage } from '@/lib/storage/hybrid-storage';
 
 interface PurchaseRequest {
   id: number;
@@ -89,38 +90,66 @@ export default function ParentRequestsPage() {
 
   useEffect(() => {
     fetchRequests();
+    
+    // Set up real-time synchronization for new requests
+    const setupRealtimeSync = async () => {
+      const { family } = await HybridStorage.getOrCreateFamily();
+      const familyId = localStorage.getItem('current_family_id') || 'local-family';
+      
+      console.log('🔄 Requests: Setting up real-time sync for family:', familyId);
+      
+      // Subscribe to family requests changes
+      const unsubscribe = HybridStorage.subscribeToFamilyRequests(familyId, (payload) => {
+        console.log('📡 Requests: Real-time update received:', payload);
+        
+        // Refresh requests list when changes occur
+        setTimeout(() => {
+          console.log('🔄 Refreshing requests due to real-time update...');
+          fetchRequests();
+        }, 500);
+      });
+      
+      return unsubscribe;
+    };
+    
+    // Set up real-time sync
+    let unsubscribe: (() => void) | null = null;
+    setupRealtimeSync().then((unsub) => {
+      unsubscribe = unsub;
+    });
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const fetchRequests = async () => {
     try {
-      // Load requests from all children
-      const allRequests: PurchaseRequest[] = [];
+      console.log('🔄 Loading family requests with HybridStorage...');
       
-      // Dynamically find all child IDs that have requests in localStorage
-      const allKeys = Object.keys(localStorage);
-      const childRequestsKeys = allKeys.filter(key => key.match(/^child-(\d+)-requests$/));
+      // Initialize family if needed
+      await HybridStorage.getOrCreateFamily();
       
-      console.log('Found child request keys:', childRequestsKeys);
+      // Get all family requests using HybridStorage
+      const allRequests = await HybridStorage.getAllFamilyRequests();
       
-      childRequestsKeys.forEach(key => {
-        const match = key.match(/^child-(\d+)-requests$/);
-        if (match) {
-          const childId = match[1];
-          const childRequests = JSON.parse(localStorage.getItem(key) || '[]');
-          const childRequestsWithId = childRequests.map((req: any) => ({
-            ...req,
-            childId: parseInt(childId),
-            childName: `Criança ${childId}`
-          }));
-          console.log(`${key}: ${childRequests.length} total requests`);
-          allRequests.push(...childRequestsWithId);
-        }
-      });
+      // Add child names and ensure proper formatting
+      const requestsWithMetadata = allRequests.map((req: any) => ({
+        ...req,
+        childId: req.childId || req.user_id || 1,
+        childName: `Criança ${req.childId || req.user_id || 1}`,
+        timestamp: req.timestamp || req.created_at || new Date().toISOString()
+      }));
       
       // Sort by timestamp (newest first)
-      allRequests.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      requestsWithMetadata.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
       
-      setRequests(allRequests);
+      console.log('📋 Loaded requests:', requestsWithMetadata.length);
+      setRequests(requestsWithMetadata);
     } catch (error) {
       console.error('Fetch requests error:', error);
       setError('Erro ao carregar pedidos');
@@ -141,112 +170,19 @@ export default function ParentRequestsPage() {
 
     setProcessing(true);
     try {
-      // Update request status in localStorage
-      const childId = selectedRequest.childId;
-      const childRequests = JSON.parse(localStorage.getItem(`child-${childId}-requests`) || '[]');
-      
-      console.log('Processing request:', selectedRequest);
-      console.log('Child requests before update:', childRequests);
-      
-      const updatedRequests = childRequests.map((req: PurchaseRequest) => {
-        if (req.id === selectedRequest.id) {
-          console.log(`Updating request ${req.id} from ${req.status} to ${actionType}`);
-          return {
-            ...req,
-            status: actionType === 'approve' ? 'approved' : 'rejected',
-            parentComment: comment.trim(),
-            processedAt: new Date().toISOString()
-          };
-        }
-        return req;
-      });
-      
-      console.log('Child requests after update:', updatedRequests);
-      
-      localStorage.setItem(`child-${childId}-requests`, JSON.stringify(updatedRequests));
-      console.log('Updated requests saved to localStorage');
-      
-      // Verify the save worked
-      const verifyRequests = JSON.parse(localStorage.getItem(`child-${childId}-requests`) || '[]');
-      console.log('Verification - requests in localStorage:', verifyRequests);
-      
-      // Force storage event to notify other tabs/components
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: `child-${childId}-requests`,
-        newValue: JSON.stringify(updatedRequests)
-      }));
-      
-      // If approved, create transaction
-      console.log('🔍 Checking if should create transaction:', {
-        actionType: actionType,
-        isApprove: actionType === 'approve',
-        actionTypeType: typeof actionType
-      });
+      const childId = selectedRequest.childId?.toString() || '1';
+      console.log(`📝 Processing ${actionType} for request ${selectedRequest.id} from child ${childId}`);
       
       if (actionType === 'approve') {
-        const isAdvance = selectedRequest.type === 'advance' || selectedRequest.isAdvance;
-        
-        console.log('💰 Creating transaction for approved request:', {
-          requestId: selectedRequest.id,
-          requestType: selectedRequest.type,
-          requestAmount: selectedRequest.amount,
-          isAdvance: isAdvance,
-          description: selectedRequest.description
-        });
-        
-        const newTransaction = {
-          id: Date.now() + Math.random(), // Ensure unique ID
-          type: isAdvance ? 'advance_approved' : 'purchase_approved',
-          amount: isAdvance ? selectedRequest.amount : -selectedRequest.amount, // Advance adds money, purchase deducts
-          description: isAdvance 
-            ? `Empréstimo aprovado: R$ ${selectedRequest.amount.toFixed(2)}` 
-            : `Compra aprovada: ${selectedRequest.description}`,
-          timestamp: new Date().toISOString(),
-          isDebt: isAdvance // Mark as debt to be deducted later
-        };
-        
-        console.log('💳 New transaction created:', newTransaction);
-        
-        const existingTransactions = JSON.parse(localStorage.getItem(`child-${childId}-transactions`) || '[]');
-        console.log('💾 Existing transactions before adding new one:', existingTransactions);
-        
-        existingTransactions.push(newTransaction);
-        localStorage.setItem(`child-${childId}-transactions`, JSON.stringify(existingTransactions));
-        
-        console.log('💾 Updated transactions saved to localStorage:', existingTransactions);
-        
-        // Verify the save worked
-        const verifyTransactions = JSON.parse(localStorage.getItem(`child-${childId}-transactions`) || '[]');
-        console.log('✅ Verification - transactions in localStorage:', verifyTransactions);
-        
-        // Force storage event to notify other tabs
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: `child-${childId}-transactions`,
-          newValue: JSON.stringify(existingTransactions),
-          oldValue: JSON.stringify(existingTransactions.slice(0, -1))
-        }));
-        
-        // Also dispatch a custom event
-        window.dispatchEvent(new CustomEvent('balanceUpdated', {
-          detail: { childId, newBalance: 'recalculate' }
-        }));
-        
-        console.log('📡 Storage event dispatched for transactions');
-        
-        // If it's an advance, also create a debt record
-        if (isAdvance) {
-          const existingDebts = JSON.parse(localStorage.getItem(`child-${childId}-debts`) || '[]');
-          const newDebt = {
-            id: Date.now(),
-            amount: selectedRequest.amount,
-            description: selectedRequest.description,
-            createdAt: new Date().toISOString(),
-            status: 'pending'
-          };
-          existingDebts.push(newDebt);
-          localStorage.setItem(`child-${childId}-debts`, JSON.stringify(existingDebts));
-        }
+        await HybridStorage.approveRequest(childId, selectedRequest.id.toString(), 'parent', comment.trim());
+        console.log('✅ Request approved via HybridStorage');
+      } else {
+        await HybridStorage.rejectRequest(childId, selectedRequest.id.toString(), 'parent', comment.trim());
+        console.log('❌ Request rejected via HybridStorage');
       }
+      
+      // Trigger sync to notify other tabs/components
+      await HybridStorage.triggerSync();
       
       await fetchRequests(); // Refresh the list
       setShowDialog(false);

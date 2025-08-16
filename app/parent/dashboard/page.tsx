@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { HybridStorage } from '@/lib/storage/hybrid-storage';
 
 interface FamilyStats {
   totalChildren: number;
@@ -168,13 +169,45 @@ export default function ParentDashboardPage() {
   useEffect(() => {
     fetchDashboardData();
     
-    // Set up auto-refresh every 5 seconds to catch new requests
-    const interval = setInterval(() => {
-      console.log('🔄 Auto-refreshing parent dashboard...');
-      fetchDashboardData();
-    }, 5000);
+    // Set up real-time synchronization
+    const setupRealtimeSync = async () => {
+      const { family } = await HybridStorage.getOrCreateFamily();
+      const familyId = localStorage.getItem('current_family_id') || 'local-family';
+      
+      console.log('🔄 Setting up real-time sync for family:', familyId);
+      
+      // Subscribe to family changes (requests and transactions)
+      const unsubscribe = HybridStorage.subscribeToFamilyChanges(familyId, (payload) => {
+        console.log('📡 Real-time update received:', payload);
+        
+        // Refresh dashboard when changes occur
+        setTimeout(() => {
+          console.log('🔄 Refreshing dashboard due to real-time update...');
+          fetchDashboardData();
+        }, 500); // Small delay to ensure data is written
+      });
+      
+      return unsubscribe;
+    };
     
-    return () => clearInterval(interval);
+    // Set up sync and keep fallback polling at a slower rate
+    let unsubscribe: (() => void) | null = null;
+    setupRealtimeSync().then((unsub) => {
+      unsubscribe = unsub;
+    });
+    
+    // Fallback polling every 30 seconds (reduced from 5 seconds since we have real-time)
+    const interval = setInterval(() => {
+      console.log('🔄 Fallback refresh parent dashboard...');
+      fetchDashboardData();
+    }, 30000);
+    
+    return () => {
+      clearInterval(interval);
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Listen for changes in requests to update pending count
@@ -204,147 +237,88 @@ export default function ParentDashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      // Calculate pending requests from localStorage (same as requests page)
+      console.log('🔄 Loading parent dashboard data with HybridStorage...');
+      
+      // Initialize family if needed
+      const { family } = await HybridStorage.getOrCreateFamily();
+      
+      // Get family ID for Supabase queries
+      const familyId = localStorage.getItem('current_family_id');
+      
       let totalPendingRequests = 0;
-      
-      // Dynamically find all child IDs that have data in localStorage
-      const allKeys = Object.keys(localStorage);
-      const childRequestsKeys = allKeys.filter(key => key.match(/^child-\d+-requests$/));
-      
-      console.log('Found child request keys:', childRequestsKeys);
-      
-      childRequestsKeys.forEach(key => {
-        const childRequests = JSON.parse(localStorage.getItem(key) || '[]');
-        console.log(`${key} - Raw data:`, childRequests);
-        
-        // Debug each request
-        childRequests.forEach((req: any, index: number) => {
-          console.log(`  Request ${index}:`, {
-            id: req.id,
-            status: req.status,
-            description: req.description,
-            amount: req.amount
-          });
-        });
-        
-        const pendingCount = childRequests.filter((req: any) => req.status === 'pending').length;
-        const allStatuses = childRequests.map((req: any) => req.status);
-        console.log(`${key}: ${pendingCount} pending requests out of ${childRequests.length} total`);
-        console.log(`  All statuses: [${allStatuses.join(', ')}]`);
-        totalPendingRequests += pendingCount;
-      });
-      
-      console.log('Total pending requests:', totalPendingRequests);
-      
-      // Force update if there are pending requests but we're showing 0
-      if (totalPendingRequests > 0) {
-        console.log('🚨 Found pending requests! Updating dashboard...');
-      } else {
-        console.log('ℹ️ No pending requests found');
-        
-        // DEBUG: Check if we should create test data
-        if (childRequestsKeys.length === 0) {
-          console.log('🔧 No child request keys found. This might be normal if no requests were created yet.');
-        }
-      }
-
-      // Calculate real family stats from children's localStorage data
       let totalSavings = 0;
       let totalSpent = 0;
-      let totalPoints = 0;
-      let totalBadges = 0;
-      let activeGoals = 0;
       let totalChildren = 0;
-
-      // Get all child IDs that have data
+      let activeGoals = 0;
+      
+      // Dynamically find all child IDs (hybrid approach)
+      const allKeys = Object.keys(localStorage);
       const childIds = [...new Set([
-        ...childRequestsKeys.map(key => key.match(/^child-(\d+)-/)?.[1]).filter(Boolean),
+        ...allKeys.filter(key => key.match(/^child-\d+-requests$/)).map(key => key.match(/^child-(\d+)-/)?.[1]).filter(Boolean),
         ...allKeys.filter(key => key.match(/^child-\d+-transactions$/)).map(key => key.match(/^child-(\d+)-/)?.[1]).filter(Boolean),
         ...allKeys.filter(key => key.match(/^child-\d+-goals$/)).map(key => key.match(/^child-(\d+)-/)?.[1]).filter(Boolean)
       ])];
-
-      console.log('Found child IDs with data:', childIds);
-
-      childIds.forEach(childId => {
+      
+      console.log('📊 Found children IDs:', childIds);
+      
+      // Calculate stats for each child using HybridStorage
+      const childrenData = [];
+      
+      for (const childId of childIds) {
         totalChildren++;
         
-        // Calculate balance for this child
-        const childTransactions = JSON.parse(localStorage.getItem(`child-${childId}-transactions`) || '[]');
-        const baseTransactions = [
-          { amount: 25, timestamp: '2024-08-12T10:00:00Z' },
-          { amount: -12.50, timestamp: '2024-08-11T14:30:00Z' },
-          { amount: 25, timestamp: '2024-08-05T10:00:00Z' },
-          { amount: 5, timestamp: '2024-08-03T18:00:00Z' },
-          { amount: 50, timestamp: '2024-08-01T10:00:00Z' }
-        ];
+        // Get data using HybridStorage
+        const childTransactions = await HybridStorage.getTransactions(childId);
+        const childRequests = await HybridStorage.getRequests(childId);
+        const childGoals = await HybridStorage.getGoals(childId);
         
-        const allTransactions = [...baseTransactions, ...childTransactions];
-        const childBalance = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+        // Calculate balance
+        const childBalance = childTransactions.reduce((sum, txn) => sum + (txn.amount || 0), 0);
         totalSavings += childBalance;
         
         // Calculate spending (negative transactions)
-        const childSpent = allTransactions
-          .filter(t => t.amount < 0)
-          .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        const childSpent = childTransactions
+          .filter(t => (t.amount || 0) < 0)
+          .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
         totalSpent += childSpent;
         
-        // Goals
-        const childGoals = JSON.parse(localStorage.getItem(`child-${childId}-goals`) || '[]');
+        // Count pending requests
+        const pendingCount = childRequests.filter((req: any) => req.status === 'pending').length;
+        totalPendingRequests += pendingCount;
+        
+        // Count active goals
         activeGoals += childGoals.length;
         
-        // Mock points and badges based on level/activity
-        totalPoints += 340; // Mock for now
-        totalBadges += 2; // Mock for now
+        // Add child data
+        childrenData.push({
+          id: childId,
+          name: `Criança ${childId}`,
+          balance: childBalance,
+          spent: childSpent,
+          goals: childGoals.length,
+          pendingRequests: pendingCount,
+          level: Math.floor(Math.max(childBalance, 0) / 25) + 1,
+          points: 340 // Mock for now
+        });
         
-        console.log(`Child ${childId}: Balance R$ ${childBalance.toFixed(2)}, Spent R$ ${childSpent.toFixed(2)}, Goals: ${childGoals.length}`);
-      });
+        console.log(`📈 Child ${childId}: Balance R$ ${childBalance.toFixed(2)}, Pending: ${pendingCount}, Goals: ${childGoals.length}`);
+      }
 
-      // If no children data found, use basic defaults
+      // If no children data found, add defaults
       if (totalChildren === 0) {
         totalChildren = 1;
         totalSavings = 92.50; // Default for demo child
         totalSpent = 45.50;
-        totalPoints = 340;
-        totalBadges = 2;
         activeGoals = 2;
       }
 
-      console.log(`Family totals: Children: ${totalChildren}, Savings: R$ ${totalSavings.toFixed(2)}, Spent: R$ ${totalSpent.toFixed(2)}`);
+      // Mock badges and points for family stats
+      const totalPoints = totalChildren * 340;
+      const totalBadges = totalChildren * 2;
 
-      // Individual children data for detailed view
-      const childrenData = childIds.map(childId => {
-        const childTransactions = JSON.parse(localStorage.getItem(`child-${childId}-transactions`) || '[]');
-        const baseTransactions = [
-          { amount: 25, timestamp: '2024-08-12T10:00:00Z' },
-          { amount: -12.50, timestamp: '2024-08-11T14:30:00Z' },
-          { amount: 25, timestamp: '2024-08-05T10:00:00Z' },
-          { amount: 5, timestamp: '2024-08-03T18:00:00Z' },
-          { amount: 50, timestamp: '2024-08-01T10:00:00Z' }
-        ];
-        
-        const allTransactions = [...baseTransactions, ...childTransactions];
-        const balance = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-        const spent = allTransactions
-          .filter(t => t.amount < 0)
-          .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-        
-        const goals = JSON.parse(localStorage.getItem(`child-${childId}-goals`) || '[]');
-        const requests = JSON.parse(localStorage.getItem(`child-${childId}-requests`) || '[]');
-        const pendingRequests = requests.filter((req: any) => req.status === 'pending').length;
-        
-        return {
-          id: childId,
-          name: `Criança ${childId}`,
-          balance,
-          spent,
-          goals: goals.length,
-          pendingRequests,
-          level: Math.floor(balance / 25) + 1, // Simple level calculation
-          points: 340 // Mock for now
-        };
-      });
+      console.log(`👨‍👩‍👧‍👦 Family totals: Children: ${totalChildren}, Savings: R$ ${totalSavings.toFixed(2)}, Pending: ${totalPendingRequests}`);
 
-      // Real dashboard data calculated from localStorage
+      // Create final dashboard data
       const mockData = {
         familyStats: {
           totalChildren,
@@ -360,7 +334,7 @@ export default function ParentDashboardPage() {
       
       setDashboardData(mockData);
     } catch (error) {
-      console.error('Dashboard fetch error:', error);
+      console.error('Parent dashboard fetch error:', error);
       setError('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
