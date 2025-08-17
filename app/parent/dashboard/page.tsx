@@ -426,6 +426,9 @@ export default function ParentDashboardPage() {
           </div>
           <div style={buttonsStyle}>
             <button onClick={fetchDashboardData} style={{...btnStyle, border: '1px solid #2563eb', color: '#2563eb'}}>🔄 Atualizar</button>
+            <Link href="/analytics" style={{...btnStyle, border: '1px solid #059669', color: '#059669'}}>📊 Analytics</Link>
+            <Link href="/gamification" style={{...btnStyle, border: '1px solid #7c3aed', color: '#7c3aed'}}>🏆 Conquistas</Link>
+            <Link href="/challenges" style={{...btnStyle, border: '1px solid #dc2626', color: '#dc2626'}}>🎮 Desafios</Link>
             <button onClick={createTestRequests} style={{...btnStyle, border: '1px solid #16a34a', color: '#16a34a'}}>🧪 Teste</button>
             <Link href="/parent/themes" style={btnStyle}>🎨 Temas</Link>
             <Link href="/parent/settings" style={btnStyle}>⚙️ Config</Link>

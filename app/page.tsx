@@ -119,12 +119,47 @@ export default function Home() {
             <Link href="/auth/signin" style={primaryBtnStyle}>
               🔐 Entrar no Sistema
             </Link>
-            <Link href="/api/health" style={outlineBtnStyle}>
-              📊 Status da API
+            <div style={{display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '1rem'}}>
+              <Link href="/analytics" style={outlineBtnStyle}>
+                📊 Relatórios Educativos
+              </Link>
+              <Link href="/gamification" style={outlineBtnStyle}>
+                🏆 Conquistas & Badges
+              </Link>
+              <Link href="/challenges" style={outlineBtnStyle}>
+                🎮 Desafios Familiares
+              </Link>
+            </div>
+            <Link href="/api/health" style={{...outlineBtnStyle, fontSize: '0.875rem', padding: '0.5rem 1rem', marginTop: '1rem'}}>
+              📡 Status da API
             </Link>
           </div>
 
           <div style={gridStyle}>
+            <div style={cardStyle}>
+              <div style={cardEmojiStyle}>📊</div>
+              <h3 style={cardTitleStyle}>Relatórios Educativos</h3>
+              <p style={cardTextStyle}>
+                Gráficos visuais e insights para entender padrões de gastos e poupança
+              </p>
+            </div>
+            
+            <div style={cardStyle}>
+              <div style={cardEmojiStyle}>🏆</div>
+              <h3 style={cardTitleStyle}>Sistema de Conquistas</h3>
+              <p style={cardTextStyle}>
+                Badges, níveis e recompensas que tornam a educação financeira divertida
+              </p>
+            </div>
+            
+            <div style={cardStyle}>
+              <div style={cardEmojiStyle}>🎮</div>
+              <h3 style={cardTitleStyle}>Desafios Familiares</h3>
+              <p style={cardTextStyle}>
+                Competições semanais e metas colaborativas para toda a família
+              </p>
+            </div>
+            
             <div style={cardStyle}>
               <div style={cardEmojiStyle}>👶</div>
               <h3 style={cardTitleStyle}>Para as Crianças</h3>
@@ -142,10 +177,10 @@ export default function Home() {
             </div>
             
             <div style={cardStyle}>
-              <div style={cardEmojiStyle}>🏆</div>
-              <h3 style={cardTitleStyle}>Gamificação</h3>
+              <div style={cardEmojiStyle}>☁️</div>
+              <h3 style={cardTitleStyle}>Sincronização em Tempo Real</h3>
               <p style={cardTextStyle}>
-                Níveis, badges e recompensas para incentivar bons hábitos
+                Dados sincronizados na nuvem com acesso de qualquer dispositivo
               </p>
             </div>
           </div>

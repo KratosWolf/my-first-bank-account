@@ -477,6 +477,93 @@ export default function ChildDashboard() {
           </div>
         </div>
 
+        {/* Educational Features Navigation */}
+        <div style={{...cardStyle, border: '2px solid #3b82f6', background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)', marginBottom: '1rem'}}>
+          <h3 style={{fontSize: '1.125rem', fontWeight: 'bold', color: '#1e40af', marginBottom: '1rem', textAlign: 'center'}}>
+            🎓 Recursos Educativos
+          </h3>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem'}}>
+            <button 
+              onClick={() => router.push('/analytics')}
+              style={{
+                padding: '1rem',
+                border: '1px solid #059669',
+                borderRadius: '0.5rem',
+                background: 'white',
+                color: '#059669',
+                textDecoration: 'none',
+                fontWeight: '600',
+                cursor: 'pointer',
+                textAlign: 'center',
+                fontSize: '0.875rem',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#059669';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.color = '#059669';
+              }}
+            >
+              📊 Relatórios
+            </button>
+            <button 
+              onClick={() => router.push('/gamification')}
+              style={{
+                padding: '1rem',
+                border: '1px solid #7c3aed',
+                borderRadius: '0.5rem',
+                background: 'white',
+                color: '#7c3aed',
+                textDecoration: 'none',
+                fontWeight: '600',
+                cursor: 'pointer',
+                textAlign: 'center',
+                fontSize: '0.875rem',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#7c3aed';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.color = '#7c3aed';
+              }}
+            >
+              🏆 Conquistas
+            </button>
+            <button 
+              onClick={() => router.push('/challenges')}
+              style={{
+                padding: '1rem',
+                border: '1px solid #dc2626',
+                borderRadius: '0.5rem',
+                background: 'white',
+                color: '#dc2626',
+                textDecoration: 'none',
+                fontWeight: '600',
+                cursor: 'pointer',
+                textAlign: 'center',
+                fontSize: '0.875rem',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#dc2626';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.color = '#dc2626';
+              }}
+            >
+              🎮 Desafios
+            </button>
+          </div>
+        </div>
+
         {/* Balance + Recent Transactions Card */}
         <div style={{...cardStyle, border: '2px solid #e9d5ff', background: 'linear-gradient(90deg, #fdf4ff, #fce7f3)'}}>
           <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
