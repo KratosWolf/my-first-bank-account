@@ -78,6 +78,17 @@ export default function SignInPage() {
 
         <button
           type="button"
+          className={styles.button}
+          style={{ background: '#4285f4', color: 'white', border: 'none', marginBottom: '1rem' }}
+          onClick={() => {
+            window.location.href = '/api/auth/signin/google';
+          }}
+        >
+          🔐 Entrar com Google
+        </button>
+
+        <button
+          type="button"
           className={`${styles.button} ${styles.buttonOutline}`}
           style={{ background: 'white', color: '#374151', border: '1px solid #d1d5db' }}
           onClick={() => {

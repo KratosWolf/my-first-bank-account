@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from "@/auth"
 import { TempAuthService } from '@/lib/auth/temp-auth';
 
 export async function middleware(request: NextRequest) {
@@ -17,6 +18,15 @@ export async function middleware(request: NextRequest) {
 
   // Check authentication for protected routes
   if (pathname.startsWith('/parent') || pathname.startsWith('/child')) {
+    // First check NextAuth session
+    const session = await auth()
+    
+    if (session?.user) {
+      // User authenticated with Google OAuth
+      return NextResponse.next();
+    }
+    
+    // Fallback to existing demo auth system
     const sessionToken = request.cookies.get('session')?.value;
 
     if (!sessionToken) {

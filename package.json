@@ -67,6 +67,7 @@
     "helmet": "^7.0.0",
     "lucide-react": "^0.539.0",
     "next": "^15.4.6",
+    "next-auth": "^5.0.0-beta.29",
     "postgres": "^3.4.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
