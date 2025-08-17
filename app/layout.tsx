@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import Providers from '@/components/Providers'
 // import PWAInstaller from '@/components/PWAInstaller'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -90,10 +91,12 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${inter.className}`} style={{ fontSmoothing: 'antialiased', WebkitFontSmoothing: 'antialiased' }} suppressHydrationWarning>
-        <div style={{ minHeight: '100vh', background: '#ffffff' }}>
-          {children}
-          {/* <PWAInstaller /> */}
-        </div>
+        <Providers>
+          <div style={{ minHeight: '100vh', background: '#ffffff' }}>
+            {children}
+            {/* <PWAInstaller /> */}
+          </div>
+        </Providers>
       </body>
     </html>
   )

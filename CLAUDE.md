@@ -32,9 +32,10 @@ Adicionar Google OAuth à aplicação My First Bank Account que já está funcio
 - [x] ~~Identificar commit exato da versão estável~~ ✅ Produção em https://my-first-bank-account.vercel.app
 - [x] ~~**DESCOBERTA**: Google OAuth JÁ ESTÁ IMPLEMENTADO na produção!~~ ✅
 - [x] ~~Verificar se variáveis OAuth estão configuradas no Vercel~~ ✅ **CONFIGURADAS!**
-- [ ] **Testar se o Google OAuth da produção funciona agora** 🔥
-- [ ] Documentar diferenças entre local vs produção
-- [ ] Resolver erro de build no deploy (módulo stack-auth não encontrado)
+- [ ] **ESTRATÉGIA**: Usar versão básica estável + adicionar apenas Google OAuth
+- [ ] Identificar que versão está na produção estável (só landing page)
+- [ ] Adicionar Google OAuth à versão estável existente
+- [ ] **PROBLEMA**: Versão completa tem conflitos de database no build do Vercel
 
 ## 🚨 Problemas Conhecidos
 - ~~Produção retornando 401~~ ✅ RESOLVIDO - produção funciona perfeitamente

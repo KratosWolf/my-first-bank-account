@@ -117,7 +117,7 @@ export default function Home() {
           
           <div style={buttonsStyle}>
             <Link href="/auth/signin" style={primaryBtnStyle}>
-              🔐 Entrar no Sistema
+              🔐 Entrar com Google
             </Link>
             <div style={{display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '1rem'}}>
               <Link href="/analytics" style={outlineBtnStyle}>
