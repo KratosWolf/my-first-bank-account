@@ -14,6 +14,7 @@ interface Child {
   points: number;
   avatar: string;
   createdAt: string;
+  parentId: string;
 }
 
 export default function DashboardPage() {
@@ -34,20 +35,21 @@ export default function DashboardPage() {
   }, [session, status, router]);
 
   const loadChildren = () => {
-    // Por enquanto, dados mock - depois será localStorage
-    const mockChildren: Child[] = [
-      {
-        id: '1',
-        name: 'Ana',
-        pin: '1234',
-        balance: 25.50,
-        level: 3,
-        points: 1250,
-        avatar: '👧',
-        createdAt: new Date().toISOString()
+    if (!session?.user?.id) return;
+    
+    try {
+      const saved = localStorage.getItem('banco-familia-children');
+      if (saved) {
+        const allChildren = JSON.parse(saved);
+        const userChildren = allChildren.filter((c: Child) => c.parentId === session.user.id);
+        setChildren(userChildren);
+      } else {
+        setChildren([]);
       }
-    ];
-    setChildren(mockChildren);
+    } catch (error) {
+      console.error('Error loading children:', error);
+      setChildren([]);
+    }
   };
 
   const handleSaveChild = async (childData: { name: string; pin: string; avatar: string }) => {
@@ -75,8 +77,7 @@ export default function DashboardPage() {
       return;
     }
 
-    // Simular salvamento
-    setTimeout(() => {
+    try {
       const newChild: Child = {
         id: `child_${Date.now()}`,
         name: childData.name.trim(),
@@ -85,13 +86,25 @@ export default function DashboardPage() {
         level: 1,
         points: 0,
         avatar: childData.avatar,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        parentId: session?.user?.id || ''
       };
       
+      // Salvar no localStorage
+      const saved = localStorage.getItem('banco-familia-children');
+      const allChildren = saved ? JSON.parse(saved) : [];
+      allChildren.push(newChild);
+      localStorage.setItem('banco-familia-children', JSON.stringify(allChildren));
+      
+      // Atualizar estado
       setChildren([...children, newChild]);
       setShowAddChild(false);
+    } catch (error) {
+      console.error('Error saving child:', error);
+      setFormErrors({ general: 'Erro ao salvar criança. Tente novamente.' });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   if (status === 'loading') {
