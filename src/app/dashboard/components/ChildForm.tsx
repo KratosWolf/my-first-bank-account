@@ -2,20 +2,39 @@
 
 import { useState } from 'react';
 
+interface Child {
+  id: string;
+  name: string;
+  pin: string;
+  balance: number;
+  level: number;
+  points: number;
+  avatar: string;
+  createdAt: string;
+  parentId: string;
+}
+
 interface ChildFormProps {
   onSave: (data: { name: string; pin: string; avatar: string }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   errors?: { [key: string]: string };
+  editingChild?: Child | null;
 }
 
 const AVATARS = ['👧', '👦', '🧒', '👶', '🐱', '🐶', '🦊', '🐼'];
 
-export default function ChildForm({ onSave, onCancel, isSubmitting, errors }: ChildFormProps) {
+export default function ChildForm({
+  onSave,
+  onCancel,
+  isSubmitting,
+  errors,
+  editingChild,
+}: ChildFormProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    pin: '',
-    avatar: '👧'
+    name: editingChild?.name || '',
+    pin: editingChild?.pin || '',
+    avatar: editingChild?.avatar || '👧',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,9 +46,9 @@ export default function ChildForm({ onSave, onCancel, isSubmitting, errors }: Ch
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Adicionar Nova Criança
+          {editingChild ? 'Editar Criança' : 'Adicionar Nova Criança'}
         </h3>
-        
+
         {errors?.general && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {errors.general}
@@ -44,14 +63,16 @@ export default function ChildForm({ onSave, onCancel, isSubmitting, errors }: Ch
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors?.name ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Digite o nome..."
               maxLength={50}
             />
-            {errors?.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors?.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -61,14 +82,21 @@ export default function ChildForm({ onSave, onCancel, isSubmitting, errors }: Ch
             <input
               type="password"
               value={formData.pin}
-              onChange={(e) => setFormData({...formData, pin: e.target.value.replace(/\D/g, '')})}
+              onChange={e =>
+                setFormData({
+                  ...formData,
+                  pin: e.target.value.replace(/\D/g, ''),
+                })
+              }
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest ${
                 errors?.pin ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="0000"
               maxLength={4}
             />
-            {errors?.pin && <p className="text-red-500 text-sm mt-1">{errors.pin}</p>}
+            {errors?.pin && (
+              <p className="text-red-500 text-sm mt-1">{errors.pin}</p>
+            )}
           </div>
 
           <div className="mb-6">
@@ -80,9 +108,11 @@ export default function ChildForm({ onSave, onCancel, isSubmitting, errors }: Ch
                 <button
                   key={avatar}
                   type="button"
-                  onClick={() => setFormData({...formData, avatar})}
+                  onClick={() => setFormData({ ...formData, avatar })}
                   className={`p-3 text-2xl rounded-lg border-2 hover:bg-gray-50 ${
-                    formData.avatar === avatar ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    formData.avatar === avatar
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200'
                   }`}
                 >
                   {avatar}
