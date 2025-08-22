@@ -1,0 +1,22 @@
+{
+  "name": "My First Bank Account - Banco Infantil",
+  "short_name": "Banco Kids",
+  "description": "Aplicativo de educação financeira para crianças e famílias",
+  "theme_color": "#6366f1",
+  "background_color": "#f8fafc",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "id": "my-first-bank-account",
+  "categories": ["education", "finance", "kids"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
