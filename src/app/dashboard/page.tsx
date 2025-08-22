@@ -3,8 +3,8 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import ChildForm from './components/ChildForm';
 
-// Tipos para o sistema
 interface Child {
   id: string;
   name: string;
@@ -12,18 +12,17 @@ interface Child {
   balance: number;
   level: number;
   points: number;
-  avatar?: string;
+  avatar: string;
   createdAt: string;
 }
-
-type TabType = 'overview' | 'children' | 'requests' | 'limits' | 'categories' | 'reports';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [children, setChildren] = useState<Child[]>([]);
   const [showAddChild, setShowAddChild] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -31,12 +30,11 @@ export default function DashboardPage() {
       router.push('/auth/signin');
       return;
     }
-    // Carregar dados das crianças (mock por enquanto)
     loadChildren();
   }, [session, status, router]);
 
   const loadChildren = () => {
-    // Mock data - depois será do banco
+    // Por enquanto, dados mock - depois será localStorage
     const mockChildren: Child[] = [
       {
         id: '1',
@@ -52,319 +50,150 @@ export default function DashboardPage() {
     setChildren(mockChildren);
   };
 
+  const handleSaveChild = async (childData: { name: string; pin: string; avatar: string }) => {
+    setIsSubmitting(true);
+    setFormErrors({});
+
+    // Validações simples
+    const errors: {[key: string]: string} = {};
+    
+    if (childData.name.trim().length < 2) {
+      errors.name = 'Nome deve ter pelo menos 2 caracteres';
+    }
+    
+    if (!/^\d{4}$/.test(childData.pin)) {
+      errors.pin = 'PIN deve ter exatamente 4 dígitos';
+    }
+    
+    if (children.some(c => c.pin === childData.pin)) {
+      errors.pin = 'Este PIN já está sendo usado';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Simular salvamento
+    setTimeout(() => {
+      const newChild: Child = {
+        id: `child_${Date.now()}`,
+        name: childData.name.trim(),
+        pin: childData.pin,
+        balance: 0,
+        level: 1,
+        points: 0,
+        avatar: childData.avatar,
+        createdAt: new Date().toISOString()
+      };
+      
+      setChildren([...children, newChild]);
+      setShowAddChild(false);
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
   if (status === 'loading') {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            border: '3px solid #3b82f6',
-            borderTop: '3px solid transparent',
-            borderRadius: '50%',
-            margin: '0 auto 16px',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p style={{ color: '#1e40af' }}>Carregando...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-blue-600">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  if (!session) {
-    return null; // Will redirect
-  }
-
-  // Componente para renderizar o conteúdo de cada aba
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div>
-            <h2 style={{ fontSize: '1.5rem', color: '#1f2937', marginBottom: '1.5rem' }}>Visão Geral da Família</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              <div style={{ background: '#f0f9ff', padding: '1.5rem', borderRadius: '8px', border: '1px solid #bae6fd' }}>
-                <h3 style={{ color: '#0c4a6e', marginBottom: '1rem' }}>Total Familiar</h3>
-                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0c4a6e' }}>R$ {children.reduce((sum, child) => sum + child.balance, 0).toFixed(2)}</p>
-              </div>
-              <div style={{ background: '#f0fdf4', padding: '1.5rem', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                <h3 style={{ color: '#14532d', marginBottom: '1rem' }}>Crianças Cadastradas</h3>
-                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#14532d' }}>{children.length}</p>
-              </div>
-            </div>
-          </div>
-        );
-      
-      case 'children':
-        return (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', color: '#1f2937' }}>Gerenciar Crianças</h2>
-              <button
-                onClick={() => setShowAddChild(true)}
-                style={{
-                  background: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  cursor: 'pointer'
-                }}
-              >
-                + Adicionar Criança
-              </button>
-            </div>
-            
-            {children.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem', background: '#f9fafb', borderRadius: '8px' }}>
-                <p style={{ color: '#6b7280', marginBottom: '1rem' }}>Nenhuma criança cadastrada ainda</p>
-                <button
-                  onClick={() => setShowAddChild(true)}
-                  style={{
-                    background: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '0.75rem 1.5rem',
-                    fontSize: '1rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cadastrar Primeira Criança
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                {children.map(child => (
-                  <div key={child.id} style={{
-                    background: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    padding: '1.5rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ fontSize: '2rem' }}>{child.avatar}</div>
-                      <div>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937' }}>{child.name}</h3>
-                        <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Nível {child.level} · {child.points} pontos</p>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#059669' }}>R$ {child.balance.toFixed(2)}</p>
-                      <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Saldo atual</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      
-      default:
-        return <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>Funcionalidade em desenvolvimento</div>;
-    }
-  };
+  if (!session) return null;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)',
-      padding: '1rem'
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
-        {/* Cabeçalho */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          marginBottom: '1.5rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {session.user?.image && (
-              <img
-                src={session.user.image}
-                alt="Avatar"
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  border: '2px solid #3b82f6'
-                }}
-              />
-            )}
-            <div>
-              <h1 style={{ fontSize: '1.5rem', color: '#1f2937', margin: 0 }}>🏦 Banco da Família</h1>
-              <p style={{ color: '#6b7280', margin: 0 }}>Olá, {session.user?.name?.split(' ')[0]}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {session.user?.image && (
+                <img
+                  src={session.user.image}
+                  alt="Avatar"
+                  className="w-10 h-10 rounded-full border-2 border-blue-500"
+                />
+              )}
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">🏦 Banco da Família</h1>
+                <p className="text-sm text-gray-600">Olá, {session.user?.name?.split(' ')[0]}</p>
+              </div>
             </div>
-          </div>
-          <button
-            onClick={() => signOut({ callbackUrl: '/' })}
-            style={{
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0.5rem 1rem',
-              fontSize: '0.875rem',
-              cursor: 'pointer'
-            }}
-          >
-            🚪 Sair
-          </button>
-        </div>
-
-        {/* Navegação por abas */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-        }}>
-          <div style={{ borderBottom: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', overflowX: 'auto' }}>
-              {[
-                { id: 'overview', label: 'Resumo', icon: '📊' },
-                { id: 'children', label: 'Crianças', icon: '👧' },
-                { id: 'requests', label: 'Pedidos', icon: '🛋' },
-                { id: 'limits', label: 'Limites', icon: '⚙️' },
-                { id: 'categories', label: 'Categorias', icon: '📁' },
-                { id: 'reports', label: 'Relatórios', icon: '📈' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  style={{
-                    background: activeTab === tab.id ? '#eff6ff' : 'transparent',
-                    border: 'none',
-                    borderBottom: activeTab === tab.id ? '3px solid #3b82f6' : '3px solid transparent',
-                    padding: '1rem 1.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: activeTab === tab.id ? 'bold' : 'normal',
-                    color: activeTab === tab.id ? '#1e40af' : '#6b7280',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  {tab.icon} {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Conteúdo da aba */}
-          <div style={{ padding: '2rem' }}>
-            {renderTabContent()}
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              Sair
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Modal para adicionar criança */}
-      {showAddChild && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            width: '90%',
-            maxWidth: '400px',
-            boxShadow: '0 20px 25px rgba(0, 0, 0, 0.1)'
-          }}>
-            <h3 style={{ fontSize: '1.25rem', color: '#1f2937', marginBottom: '1.5rem' }}>Adicionar Nova Criança</h3>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem' }}>Nome da Criança</label>
-              <input
-                type="text"
-                placeholder="Digite o nome..."
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem' }}>PIN de 4 dígitos</label>
-              <input
-                type="password"
-                maxLength={4}
-                placeholder="0000"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  textAlign: 'center',
-                  letterSpacing: '0.5rem'
-                }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button
-                onClick={() => setShowAddChild(false)}
-                style={{
-                  flex: 1,
-                  background: '#f3f4f6',
-                  color: '#374151',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                style={{
-                  flex: 1,
-                  background: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Salvar
-              </button>
-            </div>
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Crianças Cadastradas</h2>
+            <button
+              onClick={() => setShowAddChild(true)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              + Adicionar Criança
+            </button>
           </div>
+
+          {children.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">👶</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma criança cadastrada</h3>
+              <p className="text-gray-600 mb-4">Comece adicionando a primeira criança da família</p>
+              <button
+                onClick={() => setShowAddChild(true)}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Cadastrar Primeira Criança
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {children.map(child => (
+                <div key={child.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-3xl">{child.avatar}</div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{child.name}</h3>
+                      <p className="text-sm text-gray-600">Nível {child.level} • {child.points} pontos</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-green-600">R$ {child.balance.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">Saldo atual</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Modal */}
+      {showAddChild && (
+        <ChildForm
+          onSave={handleSaveChild}
+          onCancel={() => {
+            setShowAddChild(false);
+            setFormErrors({});
+          }}
+          isSubmitting={isSubmitting}
+          errors={formErrors}
+        />
       )}
     </div>
   );
