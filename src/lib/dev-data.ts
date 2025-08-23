@@ -161,7 +161,12 @@ export const clearSampleData = () => {
 
 export const getSampleDataInfo = () => {
   if (typeof window === 'undefined') {
-    return { hasChildren: false, hasTransactions: false };
+    return {
+      hasChildren: false,
+      hasTransactions: false,
+      childrenCount: 0,
+      transactionsCount: 0,
+    };
   }
 
   try {
@@ -175,6 +180,11 @@ export const getSampleDataInfo = () => {
       transactionsCount: transactions ? JSON.parse(transactions).length : 0,
     };
   } catch (error) {
-    return { hasChildren: false, hasTransactions: false };
+    return {
+      hasChildren: false,
+      hasTransactions: false,
+      childrenCount: 0,
+      transactionsCount: 0,
+    };
   }
 };
