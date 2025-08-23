@@ -45,7 +45,12 @@ export const GoalStorage = {
     return goals.find(goal => goal.id === id);
   },
 
-  create: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'currentAmount' | 'isCompleted'>): Goal => {
+  create: (
+    goal: Omit<
+      Goal,
+      'id' | 'createdAt' | 'updatedAt' | 'currentAmount' | 'isCompleted'
+    >
+  ): Goal => {
     const newGoal: Goal = {
       ...goal,
       id: nextId++,
@@ -54,7 +59,7 @@ export const GoalStorage = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    
+
     goals.push(newGoal);
     (globalThis as any).__goalNextId = nextId;
     return newGoal;
@@ -100,7 +105,10 @@ export const GoalStorage = {
   getProgress: (id: number): number => {
     const goal = goals.find(g => g.id === id);
     if (!goal) return 0;
-    
-    return Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100));
-  }
+
+    return Math.min(
+      100,
+      Math.round((goal.currentAmount / goal.targetAmount) * 100)
+    );
+  },
 };

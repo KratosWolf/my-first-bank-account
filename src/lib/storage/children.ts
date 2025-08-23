@@ -18,7 +18,7 @@ export class ChildrenStorage {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (!data) return [];
-      
+
       const allChildren: Child[] = JSON.parse(data);
       return allChildren.filter(child => child.parentId === parentId);
     } catch (error) {
@@ -31,13 +31,13 @@ export class ChildrenStorage {
     try {
       const allChildren = this.getAllRaw();
       const existingIndex = allChildren.findIndex(c => c.id === child.id);
-      
+
       if (existingIndex >= 0) {
         allChildren[existingIndex] = child;
       } else {
         allChildren.push(child);
       }
-      
+
       localStorage.setItem(STORAGE_KEY, JSON.stringify(allChildren));
     } catch (error) {
       console.error('Error saving child:', error);
@@ -81,6 +81,20 @@ export class ChildrenStorage {
 
 // Avatar options for children
 export const AVATAR_OPTIONS = [
-  '👧', '👦', '🧒', '👶', '🐱', '🐶', '🦊', '🐼', 
-  '🦄', '🌟', '⭐', '🎈', '🎯', '🎨', '🚀', '⚽'
+  '👧',
+  '👦',
+  '🧒',
+  '👶',
+  '🐱',
+  '🐶',
+  '🦊',
+  '🐼',
+  '🦄',
+  '🌟',
+  '⭐',
+  '🎈',
+  '🎯',
+  '🎨',
+  '🚀',
+  '⚽',
 ];

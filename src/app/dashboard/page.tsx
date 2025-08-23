@@ -46,7 +46,7 @@ export default function DashboardPage() {
       if (saved) {
         const allChildren = JSON.parse(saved);
         const userChildren = allChildren.filter(
-          (c: Child) => c.parentId === session.user.id
+          (c: Child) => c.parentId === session.user?.id
         );
         setChildren(userChildren);
       } else {

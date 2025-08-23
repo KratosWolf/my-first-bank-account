@@ -21,7 +21,8 @@ if (!(globalThis as any).__purchaseRequests) {
   (globalThis as any).__purchaseRequestNextId = 1;
 }
 
-const purchaseRequests = (globalThis as any).__purchaseRequests as PurchaseRequest[];
+const purchaseRequests = (globalThis as any)
+  .__purchaseRequests as PurchaseRequest[];
 let nextId = (globalThis as any).__purchaseRequestNextId as number;
 
 export const PurchaseRequestStorage = {
@@ -41,21 +42,26 @@ export const PurchaseRequestStorage = {
     return purchaseRequests.find(req => req.id === id);
   },
 
-  create: (request: Omit<PurchaseRequest, 'id' | 'createdAt' | 'status'>): PurchaseRequest => {
+  create: (
+    request: Omit<PurchaseRequest, 'id' | 'createdAt' | 'status'>
+  ): PurchaseRequest => {
     const newRequest: PurchaseRequest = {
       ...request,
       id: nextId++,
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
-    
+
     purchaseRequests.push(newRequest);
     // Update global nextId
     (globalThis as any).__purchaseRequestNextId = nextId;
     return newRequest;
   },
 
-  update: (id: number, updates: Partial<PurchaseRequest>): PurchaseRequest | null => {
+  update: (
+    id: number,
+    updates: Partial<PurchaseRequest>
+  ): PurchaseRequest | null => {
     const index = purchaseRequests.findIndex(req => req.id === id);
     if (index === -1) return null;
 
@@ -68,8 +74,8 @@ export const PurchaseRequestStorage = {
   },
 
   getPendingCount: (parentId: number): number => {
-    return purchaseRequests.filter(req => 
-      req.parentId === parentId && req.status === 'pending'
+    return purchaseRequests.filter(
+      req => req.parentId === parentId && req.status === 'pending'
     ).length;
-  }
+  },
 };

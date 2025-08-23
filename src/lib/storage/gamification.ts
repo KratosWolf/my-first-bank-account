@@ -26,7 +26,14 @@ interface PointTransaction {
   childId: number;
   points: number;
   reason: string;
-  actionType: 'goal_created' | 'goal_completed' | 'purchase_approved' | 'daily_login' | 'spending_tracked' | 'badge_earned' | 'level_up';
+  actionType:
+    | 'goal_created'
+    | 'goal_completed'
+    | 'purchase_approved'
+    | 'daily_login'
+    | 'spending_tracked'
+    | 'badge_earned'
+    | 'level_up';
   relatedId?: number; // ID of related goal, purchase, etc.
   multiplier: number;
   createdAt: string;
@@ -229,7 +236,10 @@ export const GamificationStorage = {
   },
 
   getBadgeById: (id: number): Badge | null => {
-    return (globalThis as any).__badges.find((badge: Badge) => badge.id === id) || null;
+    return (
+      (globalThis as any).__badges.find((badge: Badge) => badge.id === id) ||
+      null
+    );
   },
 
   getEarnedBadgesByChild: (childId: number): EarnedBadge[] => {
@@ -244,7 +254,8 @@ export const GamificationStorage = {
 
     // Check if already earned
     const alreadyEarned = (globalThis as any).__earnedBadges.some(
-      (earned: EarnedBadge) => earned.childId === childId && earned.badgeId === badgeId
+      (earned: EarnedBadge) =>
+        earned.childId === childId && earned.badgeId === badgeId
     );
 
     if (alreadyEarned) return null;
@@ -261,7 +272,13 @@ export const GamificationStorage = {
     (globalThis as any).__earnedBadges.push(earnedBadge);
 
     // Award points for earning badge
-    GamificationStorage.addPoints(childId, POINT_VALUES.BADGE_EARNED, 'badge_earned', badgeId);
+    GamificationStorage.addPoints(
+      childId,
+      POINT_VALUES.BADGE_EARNED,
+      'Ganhou uma conquista',
+      'badge_earned',
+      badgeId
+    );
 
     return earnedBadge;
   },
@@ -276,7 +293,7 @@ export const GamificationStorage = {
     multiplier: number = 1
   ): PointTransaction => {
     const finalPoints = Math.round(points * multiplier);
-    
+
     const transaction: PointTransaction = {
       id: (globalThis as any).__pointTransactionNextId++,
       childId,
@@ -298,16 +315,25 @@ export const GamificationStorage = {
 
   getPointTransactionsByChild: (childId: number): PointTransaction[] => {
     return (globalThis as any).__pointTransactions
-      .filter((transaction: PointTransaction) => transaction.childId === childId)
-      .sort((a: PointTransaction, b: PointTransaction) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      .filter(
+        (transaction: PointTransaction) => transaction.childId === childId
+      )
+      .sort(
+        (a: PointTransaction, b: PointTransaction) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
   },
 
   getTotalPointsByChild: (childId: number): number => {
     return (globalThis as any).__pointTransactions
-      .filter((transaction: PointTransaction) => transaction.childId === childId)
-      .reduce((total: number, transaction: PointTransaction) => total + transaction.points, 0);
+      .filter(
+        (transaction: PointTransaction) => transaction.childId === childId
+      )
+      .reduce(
+        (total: number, transaction: PointTransaction) =>
+          total + transaction.points,
+        0
+      );
   },
 
   // Stats methods
@@ -324,11 +350,20 @@ export const GamificationStorage = {
     const pointsForCurrentLevel = calculatePointsForLevel(currentLevel);
     const pointsForNextLevel = calculatePointsForLevel(currentLevel + 1);
     const pointsToNextLevel = pointsForNextLevel - totalPoints;
-    const levelProgress = Math.round(((totalPoints - pointsForCurrentLevel) / (pointsForNextLevel - pointsForCurrentLevel)) * 100);
+    const levelProgress = Math.round(
+      ((totalPoints - pointsForCurrentLevel) /
+        (pointsForNextLevel - pointsForCurrentLevel)) *
+        100
+    );
 
-    const earnedBadges = GamificationStorage.getEarnedBadgesByChild(childId).length;
-    const transactions = GamificationStorage.getPointTransactionsByChild(childId);
-    const lastActivity = transactions.length > 0 ? transactions[0].createdAt : new Date().toISOString();
+    const earnedBadges =
+      GamificationStorage.getEarnedBadgesByChild(childId).length;
+    const transactions =
+      GamificationStorage.getPointTransactionsByChild(childId);
+    const lastActivity =
+      transactions.length > 0
+        ? transactions[0].createdAt
+        : new Date().toISOString();
 
     // Calculate streak (simplified - would need proper date tracking in real app)
     const streakDays = 1; // Placeholder
@@ -354,11 +389,17 @@ export const GamificationStorage = {
   },
 
   // Achievement checking methods
-  checkAndAwardBadges: (childId: number, actionType: string, data?: any): EarnedBadge[] => {
+  checkAndAwardBadges: (
+    childId: number,
+    actionType: string,
+    data?: any
+  ): EarnedBadge[] => {
     const awardedBadges: EarnedBadge[] = [];
     const badges = GamificationStorage.getAllBadges();
     const childStats = GamificationStorage.getChildStats(childId);
-    const earnedBadgeIds = GamificationStorage.getEarnedBadgesByChild(childId).map(eb => eb.badgeId);
+    const earnedBadgeIds = GamificationStorage.getEarnedBadgesByChild(
+      childId
+    ).map(eb => eb.badgeId);
 
     for (const badge of badges) {
       if (earnedBadgeIds.includes(badge.id)) continue;
@@ -414,7 +455,9 @@ export const GamificationStorage = {
   calculatePointsForLevel,
 
   // Helper methods for common actions
-  handleGoalCreated: (childId: number): { points: PointTransaction; badges: EarnedBadge[] } => {
+  handleGoalCreated: (
+    childId: number
+  ): { points: PointTransaction; badges: EarnedBadge[] } => {
     const points = GamificationStorage.addPoints(
       childId,
       POINT_VALUES.GOAL_CREATED,
@@ -422,12 +465,18 @@ export const GamificationStorage = {
       'goal_created'
     );
 
-    const badges = GamificationStorage.checkAndAwardBadges(childId, 'goal_created');
+    const badges = GamificationStorage.checkAndAwardBadges(
+      childId,
+      'goal_created'
+    );
 
     return { points, badges };
   },
 
-  handleGoalCompleted: (childId: number, goalId: number): { points: PointTransaction; badges: EarnedBadge[] } => {
+  handleGoalCompleted: (
+    childId: number,
+    goalId: number
+  ): { points: PointTransaction; badges: EarnedBadge[] } => {
     const points = GamificationStorage.addPoints(
       childId,
       POINT_VALUES.GOAL_COMPLETED,
@@ -436,12 +485,18 @@ export const GamificationStorage = {
       goalId
     );
 
-    const badges = GamificationStorage.checkAndAwardBadges(childId, 'goal_completed');
+    const badges = GamificationStorage.checkAndAwardBadges(
+      childId,
+      'goal_completed'
+    );
 
     return { points, badges };
   },
 
-  handleSpendingTracked: (childId: number, expenseId: number): { points: PointTransaction; badges: EarnedBadge[] } => {
+  handleSpendingTracked: (
+    childId: number,
+    expenseId: number
+  ): { points: PointTransaction; badges: EarnedBadge[] } => {
     const points = GamificationStorage.addPoints(
       childId,
       POINT_VALUES.SPENDING_TRACKED,
@@ -452,14 +507,20 @@ export const GamificationStorage = {
 
     // Check for spending-related badges
     // This would need integration with spending system to get accurate data
-    const badges = GamificationStorage.checkAndAwardBadges(childId, 'spending_tracked', {
-      expenseCount: 10 // Placeholder
-    });
+    const badges = GamificationStorage.checkAndAwardBadges(
+      childId,
+      'spending_tracked',
+      {
+        expenseCount: 10, // Placeholder
+      }
+    );
 
     return { points, badges };
   },
 
-  handleDailyLogin: (childId: number): { points: PointTransaction; badges: EarnedBadge[] } => {
+  handleDailyLogin: (
+    childId: number
+  ): { points: PointTransaction; badges: EarnedBadge[] } => {
     const points = GamificationStorage.addPoints(
       childId,
       POINT_VALUES.DAILY_LOGIN,

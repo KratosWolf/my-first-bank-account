@@ -50,7 +50,7 @@ if (!(globalThis as any).__spendingCategories) {
       color: '#FF6B6B',
       parentId: 1,
       isActive: true,
-      monthlyBudget: 50.00,
+      monthlyBudget: 50.0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -61,7 +61,7 @@ if (!(globalThis as any).__spendingCategories) {
       color: '#4ECDC4',
       parentId: 1,
       isActive: true,
-      monthlyBudget: 100.00,
+      monthlyBudget: 100.0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -72,7 +72,7 @@ if (!(globalThis as any).__spendingCategories) {
       color: '#45B7D1',
       parentId: 1,
       isActive: true,
-      monthlyBudget: 30.00,
+      monthlyBudget: 30.0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -83,7 +83,7 @@ if (!(globalThis as any).__spendingCategories) {
       color: '#96CEB4',
       parentId: 1,
       isActive: true,
-      monthlyBudget: 20.00,
+      monthlyBudget: 20.0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -94,7 +94,7 @@ if (!(globalThis as any).__spendingCategories) {
       color: '#9B59B6',
       parentId: 1,
       isActive: true,
-      monthlyBudget: 40.00,
+      monthlyBudget: 40.0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -105,7 +105,7 @@ if (!(globalThis as any).__spendingCategories) {
       color: '#F39C12',
       parentId: 1,
       isActive: true,
-      monthlyBudget: 200.00,
+      monthlyBudget: 200.0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -186,14 +186,17 @@ export const SpendingStorage = {
 
   getCategoriesByParent: (parentId: number): SpendingCategory[] => {
     return (globalThis as any).__spendingCategories.filter(
-      (category: SpendingCategory) => category.parentId === parentId && category.isActive
+      (category: SpendingCategory) =>
+        category.parentId === parentId && category.isActive
     );
   },
 
   getCategoryById: (id: number): SpendingCategory | null => {
-    return (globalThis as any).__spendingCategories.find(
-      (category: SpendingCategory) => category.id === id
-    ) || null;
+    return (
+      (globalThis as any).__spendingCategories.find(
+        (category: SpendingCategory) => category.id === id
+      ) || null
+    );
   },
 
   createCategory: (
@@ -240,14 +243,18 @@ export const SpendingStorage = {
 
     // Instead of deleting, mark as inactive
     (globalThis as any).__spendingCategories[index].isActive = false;
-    (globalThis as any).__spendingCategories[index].updatedAt = new Date().toISOString();
+    (globalThis as any).__spendingCategories[index].updatedAt =
+      new Date().toISOString();
     return true;
   },
 
   // Analytics methods
-  getMonthlySpendingByChild: (childId: number, month?: string): MonthlySpending[] => {
+  getMonthlySpendingByChild: (
+    childId: number,
+    month?: string
+  ): MonthlySpending[] => {
     const targetMonth = month || new Date().toISOString().slice(0, 7); // YYYY-MM format
-    
+
     const transactions = (globalThis as any).__spendingTransactions.filter(
       (transaction: SpendingTransaction) =>
         transaction.childId === childId &&
@@ -259,12 +266,15 @@ export const SpendingStorage = {
       (category: SpendingCategory) => category.isActive
     );
 
-    const spendingByCategory = new Map<number, {
-      categoryName: string;
-      totalSpent: number;
-      budget?: number;
-      transactionCount: number;
-    }>();
+    const spendingByCategory = new Map<
+      number,
+      {
+        categoryName: string;
+        totalSpent: number;
+        budget?: number;
+        transactionCount: number;
+      }
+    >();
 
     // Initialize categories
     categories.forEach((category: SpendingCategory) => {
@@ -286,19 +296,27 @@ export const SpendingStorage = {
     });
 
     // Convert to array and calculate percentages
-    const totalSpent = transactions.reduce((sum: number, t: SpendingTransaction) => sum + t.amount, 0);
-    
-    return Array.from(spendingByCategory.entries()).map(([categoryId, data]) => ({
-      categoryId,
-      categoryName: data.categoryName,
-      totalSpent: data.totalSpent,
-      budget: data.budget,
-      transactionCount: data.transactionCount,
-      percentage: totalSpent > 0 ? (data.totalSpent / totalSpent) * 100 : 0,
-    }));
+    const totalSpent = transactions.reduce(
+      (sum: number, t: SpendingTransaction) => sum + t.amount,
+      0
+    );
+
+    return Array.from(spendingByCategory.entries()).map(
+      ([categoryId, data]) => ({
+        categoryId,
+        categoryName: data.categoryName,
+        totalSpent: data.totalSpent,
+        budget: data.budget,
+        transactionCount: data.transactionCount,
+        percentage: totalSpent > 0 ? (data.totalSpent / totalSpent) * 100 : 0,
+      })
+    );
   },
 
-  getTotalSpentByChild: (childId: number, period: 'week' | 'month' | 'year' = 'month'): number => {
+  getTotalSpentByChild: (
+    childId: number,
+    period: 'week' | 'month' | 'year' = 'month'
+  ): number => {
     const now = new Date();
     let startDate: Date;
 
@@ -315,12 +333,17 @@ export const SpendingStorage = {
     }
 
     return (globalThis as any).__spendingTransactions
-      .filter((transaction: SpendingTransaction) =>
-        transaction.childId === childId &&
-        transaction.type === 'expense' &&
-        new Date(transaction.date) >= startDate
+      .filter(
+        (transaction: SpendingTransaction) =>
+          transaction.childId === childId &&
+          transaction.type === 'expense' &&
+          new Date(transaction.date) >= startDate
       )
-      .reduce((sum: number, transaction: SpendingTransaction) => sum + transaction.amount, 0);
+      .reduce(
+        (sum: number, transaction: SpendingTransaction) =>
+          sum + transaction.amount,
+        0
+      );
   },
 };
 

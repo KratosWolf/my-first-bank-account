@@ -1,12 +1,12 @@
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
+import NextAuth from 'next-auth';
+import Google from 'next-auth/providers/google';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    })
+    }),
   ],
   pages: {
     signIn: '/auth/signin',
@@ -21,17 +21,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session?.user && token?.sub) {
-        session.user.id = token.sub
-        session.user.role = 'parent'
+        session.user.id = token.sub;
       }
-      return session
+      return session;
     },
     async jwt({ user, token }) {
       if (user) {
-        token.uid = user.id
-        token.role = 'parent'
+        token.uid = user.id;
       }
-      return token
+      return token;
     },
   },
-})
+});
