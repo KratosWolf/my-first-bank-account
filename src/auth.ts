@@ -13,11 +13,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Redireciona para dashboard após login
-      if (url.includes('/api/auth/callback')) {
-        return `${baseUrl}/dashboard`;
+      console.log('NextAuth redirect:', { url, baseUrl });
+
+      // Sempre redireciona para dashboard após signin bem-sucedido
+      if (
+        url === baseUrl ||
+        url === `${baseUrl}/` ||
+        url.includes('/api/auth/callback')
+      ) {
+        const dashboardUrl = `${baseUrl}/dashboard`;
+        console.log('Redirecting to dashboard:', dashboardUrl);
+        return dashboardUrl;
       }
-      return url.startsWith(baseUrl) ? url : baseUrl;
+
+      // Se URL já for absoluta e do mesmo domínio, usar ela
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+
+      // Caso contrário, redirecionar para dashboard
+      return `${baseUrl}/dashboard`;
     },
     async session({ session, token }) {
       if (session?.user && token?.sub) {
