@@ -28,7 +28,7 @@ interface Transaction {
 export default function ChildDashboard() {
   const router = useRouter();
   const params = useParams();
-  const childId = params.id as string;
+  const childId = params?.id as string;
 
   const [child, setChild] = useState<Child | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
