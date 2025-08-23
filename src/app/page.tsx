@@ -4,11 +4,22 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ChildLogin from '@/components/ChildLogin';
+import {
+  createSampleData,
+  clearSampleData,
+  getSampleDataInfo,
+} from '@/lib/dev-data';
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showChildLogin, setShowChildLogin] = useState(false);
+  const [sampleDataInfo, setSampleDataInfo] = useState({
+    hasChildren: false,
+    hasTransactions: false,
+    childrenCount: 0,
+    transactionsCount: 0,
+  });
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -17,7 +28,20 @@ export default function Home() {
       // Se está logado como pai, vai para dashboard
       router.push('/dashboard');
     }
+
+    // Update sample data info
+    setSampleDataInfo(getSampleDataInfo());
   }, [session, status, router]);
+
+  const handleCreateSampleData = () => {
+    createSampleData();
+    setSampleDataInfo(getSampleDataInfo());
+  };
+
+  const handleClearSampleData = () => {
+    clearSampleData();
+    setSampleDataInfo(getSampleDataInfo());
+  };
 
   if (status === 'loading') {
     return (
@@ -71,14 +95,44 @@ export default function Home() {
             Entrar como Criança
           </button>
 
-          {/* Link direto para dashboard (dev) */}
+          {/* Development Tools */}
           {process.env.NODE_ENV === 'development' && (
-            <a
-              href="/dashboard"
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm"
-            >
-              [DEV] Ir direto para Dashboard
-            </a>
+            <div className="space-y-2">
+              <div className="border-t border-gray-200 pt-4">
+                <p className="text-xs text-gray-500 mb-2 text-center">
+                  🔧 Ferramentas de Desenvolvimento
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <button
+                    onClick={handleCreateSampleData}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3 rounded text-xs transition-colors"
+                  >
+                    Criar Dados Exemplo
+                  </button>
+                  <button
+                    onClick={handleClearSampleData}
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded text-xs transition-colors"
+                  >
+                    Limpar Dados
+                  </button>
+                </div>
+
+                {sampleDataInfo.hasChildren && (
+                  <div className="text-xs text-gray-600 mb-2 p-2 bg-green-50 rounded">
+                    📊 {sampleDataInfo.childrenCount} crianças,{' '}
+                    {sampleDataInfo.transactionsCount} transações
+                  </div>
+                )}
+
+                <a
+                  href="/dashboard"
+                  className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 rounded text-xs transition-colors flex items-center justify-center"
+                >
+                  Dashboard Direto
+                </a>
+              </div>
+            </div>
           )}
         </div>
 
