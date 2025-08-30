@@ -912,7 +912,7 @@ export default function ParentView() {
           ],
   };
 
-  const totalPendingRequests = family.children.reduce(
+  const totalPendingRequests = children.reduce(
     (total, child) => total + child.pendingRequests,
     0
   );
@@ -1234,7 +1234,7 @@ export default function ParentView() {
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <div className="text-2xl mb-2">👨‍👩‍👧‍👦</div>
             <div className="text-2xl font-bold text-blue-600">
-              {family.children.length}
+              {children.length}
             </div>
             <div className="text-sm text-gray-600">Filhos Ativos</div>
           </div>
@@ -1258,7 +1258,9 @@ export default function ParentView() {
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <div className="text-2xl mb-2">🏆</div>
             <div className="text-2xl font-bold text-purple-600">
-              {Math.max(...family.children.map(c => c.currentStreak))}
+              {children.length > 0
+                ? Math.max(...children.map(c => c.currentStreak))
+                : 0}
             </div>
             <div className="text-sm text-gray-600">Maior Streak</div>
           </div>
@@ -1271,7 +1273,7 @@ export default function ParentView() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {family.children.map(child => (
+            {children.map(child => (
               <div
                 key={child.id}
                 className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -1941,7 +1943,7 @@ export default function ParentView() {
               </div>
 
               <div className="space-y-6">
-                {family.children.map(child => {
+                {children.map(child => {
                   const config = allowanceConfigs[child.id] || {
                     amount: 25,
                     frequency: 'weekly',
