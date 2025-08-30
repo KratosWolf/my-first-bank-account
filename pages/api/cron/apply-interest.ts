@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { TransactionsService } from '@/lib/services/transactions';
+import { TransactionService } from '@/lib/services/transactions';
 import { DatabaseService } from '@/lib/services/database';
 
 /**
@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       for (const child of children) {
         try {
           // Aplicar juros para cada criança
-          const interestTransaction = await TransactionsService.calculateInterest(child.id);
+          const interestTransaction = await TransactionService.calculateInterest(child.id);
           
           if (interestTransaction) {
             totalInterestApplied += interestTransaction.amount;
