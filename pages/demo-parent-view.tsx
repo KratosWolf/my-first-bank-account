@@ -521,11 +521,17 @@ export default function ParentView() {
         setCurrentFamily(families[0]);
       }
 
-      // Carregar crianças do Supabase
+      // Carregar crianças do Supabase usando a família que acabamos de definir
+      const familyId =
+        families?.[0]?.id ||
+        (await supabase.from('families').select('id').limit(1).single()).data
+          ?.id;
+      console.log('👨‍👩‍👧‍👦 Usando family_id:', familyId);
+
       const { data: familyChildren, error: childrenError } = await supabase
         .from('children')
         .select('*')
-        .eq('family_id', families?.[0]?.id || currentFamily?.id);
+        .eq('family_id', familyId);
 
       if (childrenError) {
         console.error('❌ Erro ao carregar crianças:', childrenError);
