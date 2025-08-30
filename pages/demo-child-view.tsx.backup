@@ -196,7 +196,7 @@ export default function ChildView() {
 
   // Estados locais para demo (fallback)
   const [currentBalance, setCurrentBalance] = useState(0);
-  const [activeLoan, setActiveLoan] = useState<Loan | null>(null);
+  const [activeLoan, setActiveLoan] = useState(null);
   const [currentGoals, setCurrentGoals] = useState([
     // Sem metas para conta nova - será preenchido quando a criança criar
   ]);
@@ -233,8 +233,7 @@ export default function ChildView() {
   // Funções de alocação de dinheiro
   const payLoan = async () => {
     const currentBalance = currentChild?.balance || 0;
-    if (!activeLoan) return;
-    const amountStr = prompt(`Quanto você quer pagar do empréstimo?\n\nEmpréstimo total: R$ ${activeLoan.amount.toFixed(2)}\nSeu saldo: R$ ${currentBalance.toFixed(2)}`);
+    const amountStr = prompt(`Quanto você quer pagar do empréstimo?\n\nEmpréstimo total: R$ ${activeLoan?.amount.toFixed(2)}\nSeu saldo: R$ ${currentBalance.toFixed(2)}`);
     
     if (amountStr === null) return; // Cancelou
     

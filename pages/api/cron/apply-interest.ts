@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           results.push({
             child_id: child.id,
             child_name: child.name,
-            error: error.message,
+            error: (error as Error).message,
             status: 'error'
           });
         }
@@ -99,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({
       success: false,
       error: 'Erro interno na aplicação de juros',
-      details: error.message,
+      details: (error as Error).message,
       timestamp: new Date().toISOString()
     });
   }
