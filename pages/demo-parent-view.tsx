@@ -532,7 +532,17 @@ export default function ParentView() {
         setChildren([]);
       } else {
         console.log('✅ Crianças carregadas do Supabase:', familyChildren);
-        setChildren(familyChildren || []);
+
+        // Filtrar crianças deletadas localmente (para versão demo)
+        const deletedChildIds = JSON.parse(
+          localStorage.getItem('deleted-children-ids') || '[]'
+        );
+        const filteredChildren = (familyChildren || []).filter(
+          child => !deletedChildIds.includes(child.id)
+        );
+        console.log('🔄 Crianças após filtro de exclusão:', filteredChildren);
+
+        setChildren(filteredChildren);
       }
 
       if (familyChildren.length > 0) {
@@ -2809,6 +2819,17 @@ export default function ParentView() {
                             localStorage.setItem(
                               'demo-interest-configs',
                               JSON.stringify(interestConfigs)
+                            );
+
+                            // Adicionar criança à lista de excluídas (para filtrar no reload)
+                            const deletedChildIds = JSON.parse(
+                              localStorage.getItem('deleted-children-ids') ||
+                                '[]'
+                            );
+                            deletedChildIds.push(selectedChildForDetails.id);
+                            localStorage.setItem(
+                              'deleted-children-ids',
+                              JSON.stringify(deletedChildIds)
                             );
 
                             // Remover criança do estado local também
