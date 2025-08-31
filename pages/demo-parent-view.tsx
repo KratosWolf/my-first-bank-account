@@ -905,8 +905,22 @@ export default function ParentView() {
   };
 
   // Dados híbridos - usa Supabase quando disponível, fallback para mock
+  // Pegar nome da sessão parental
+  const getParentName = () => {
+    try {
+      const parentSession = localStorage.getItem('parent-session');
+      if (parentSession) {
+        const session = JSON.parse(parentSession);
+        return session.name;
+      }
+    } catch (error) {
+      console.error('Erro ao ler sessão parental:', error);
+    }
+    return currentFamily?.parent_name || 'João Silva';
+  };
+
   const family = {
-    parentName: currentFamily?.parent_name || 'João Silva',
+    parentName: getParentName(),
     parentAvatar: '👨‍💼',
     familyBalance:
       children.reduce((total, child) => total + (child.balance || 0), 0) ||
