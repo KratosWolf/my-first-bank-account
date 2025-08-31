@@ -639,67 +639,42 @@ export default function ParentView() {
     requestId: string,
     approved: boolean
   ) => {
-    console.log('🚀 [v3] INICIO handleRequestDecision:', {
-      requestId,
-      approved,
-    });
-    console.log('🔧 [v3] Estados atuais:', {
-      loading,
-      pendingRequestsCount: pendingRequests.length,
-    });
+    // SOLUÇÃO RADICAL: Confirmação + Reload completo
+    const confirmed = confirm(
+      `${approved ? 'APROVAR' : 'NEGAR'} esta solicitação?\n\nA página será recarregada após a operação.`
+    );
+
+    if (!confirmed) return;
 
     try {
-      setLoading(true);
-      console.log('⏳ Loading definido como true');
+      console.log('🚀 SOLUÇÃO RADICAL: Processando', { requestId, approved });
 
-      alert(
-        `[DEBUG v3 - CACHE CLEAR] Iniciando ${approved ? 'aprovação' : 'rejeição'} da solicitação ${requestId}`
-      );
-
-      console.log('🔗 Supabase client:', !!supabase);
-      console.log('🔄 Tentando atualizar transação...');
-
-      // Atualizar status no Supabase
-      const { data: updatedRequest, error } = await supabase
+      // Atualizar diretamente no Supabase
+      const { error } = await supabase
         .from('transactions')
         .update({
           status: approved ? 'approved' : 'rejected',
           approved_by_parent: approved,
           approved_at: new Date().toISOString(),
         })
-        .eq('id', requestId)
-        .select()
-        .single();
-
-      console.log('📄 Resultado da query:', { data: updatedRequest, error });
+        .eq('id', requestId);
 
       if (error) {
-        console.error('❌ Erro ao atualizar solicitação:', error);
-        alert(`❌ Erro ao processar solicitação: ${error.message}`);
+        console.error('❌ Erro na operação:', error);
+        alert(`❌ ERRO: ${error.message}`);
         return;
       }
 
-      console.log('✅ Solicitação atualizada:', updatedRequest);
-      alert('✅ Transação atualizada com sucesso!');
+      console.log('✅ Operação concluída no banco');
 
-      // Remover da lista local
-      setPendingRequests(prev => {
-        console.log('🗑️ Removendo da lista local. Lista atual:', prev.length);
-        const newList = prev.filter(req => req.id !== requestId);
-        console.log('🗑️ Nova lista:', newList.length);
-        return newList;
-      });
-
-      // Recarregar dados para atualizar saldos
-      console.log('🔄 Recarregando dados da família...');
-      await loadFamilyData();
-
-      alert(approved ? '✅ Solicitação aprovada!' : '❌ Solicitação negada!');
+      // FORÇA BRUTA: Recarregar página para eliminar qualquer problema de cache
+      alert(
+        `✅ ${approved ? 'APROVADO' : 'NEGADO'} com sucesso!\n\nRecarregando página...`
+      );
+      window.location.reload();
     } catch (error) {
-      console.error('Erro ao processar solicitação:', error);
-      alert('❌ Erro ao processar solicitação');
-    } finally {
-      setLoading(false);
+      console.error('❌ Erro crítico:', error);
+      alert('❌ Erro crítico. Tente recarregar a página.');
     }
   };
 
