@@ -1297,7 +1297,7 @@ export default function ParentView() {
             <div className="text-2xl mb-2">🏆</div>
             <div className="text-2xl font-bold text-purple-600">
               {children.length > 0
-                ? Math.max(...children.map(c => c.currentStreak))
+                ? Math.max(...children.map(c => c.currentStreak || 0))
                 : 0}
             </div>
             <div className="text-sm text-gray-600">Maior Streak</div>
