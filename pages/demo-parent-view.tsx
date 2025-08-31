@@ -739,7 +739,7 @@ export default function ParentView() {
     }
   };
 
-  // Função para criar/editar criança
+  // SOLUÇÃO DEFINITIVA: Função reescrita completamente
   const handleChildSubmit = async (childData: {
     name: string;
     age: number;
@@ -747,17 +747,17 @@ export default function ParentView() {
     pin: string;
     avatar_url?: string;
   }) => {
-    try {
-      console.log('🔧 Criando criança no banco de dados real');
+    console.log('🚀 SOLUÇÃO DEFINITIVA: Criando criança');
 
-      // Verificar se temos uma família válida carregada
-      if (!currentFamily || !currentFamily.id) {
-        console.error('❌ Família não carregada corretamente');
-        alert('❌ Erro: Família não encontrada. Recarregue a página.');
+    try {
+      // 1. GARANTIR que temos uma família válida
+      if (!currentFamily?.id) {
+        console.error('❌ Família não encontrada');
+        alert('❌ Família não encontrada. Recarregue a página.');
         return;
       }
 
-      console.log('👨‍👩‍👧‍👦 Usando família:', currentFamily);
+      console.log('✅ Família confirmada:', currentFamily.id);
 
       if (editingChild) {
         // Editando criança existente no Supabase
@@ -796,72 +796,29 @@ export default function ParentView() {
 
         alert('✅ Criança atualizada com sucesso!');
       } else {
-        // Criando nova criança no Supabase
-        let newChild = null;
-        const { data, error } = await supabase
-          .from('children')
-          .insert([
-            {
-              family_id: currentFamily.id,
-              name: childData.name,
-              pin: childData.pin,
-              avatar: childData.avatar_url || '👧',
-              balance: 0,
-              total_earned: 0,
-              total_spent: 0,
-              level: 1,
-              xp: 0,
-            },
-          ])
-          .select()
-          .single();
+        // 2. CRIAR criança usando DatabaseService (SOLUÇÃO DEFINITIVA)
+        console.log('📝 Criando nova criança...');
 
-        if (!error) {
-          newChild = data;
+        const newChild = await DatabaseService.createChild({
+          family_id: currentFamily.id,
+          name: childData.name,
+          pin: childData.pin,
+          avatar: childData.avatar_url || '👧',
+          balance: 0,
+          total_earned: 0,
+          total_spent: 0,
+          level: 1,
+          xp: 0,
+        });
+
+        if (!newChild) {
+          console.error('❌ Falha ao criar criança');
+          alert('❌ Erro ao criar criança. Tente novamente.');
+          return;
         }
 
-        if (error) {
-          console.warn(
-            '⚠️ Falha no Supabase, criando localmente para demo:',
-            error
-          );
-
-          // Fallback: criar criança local para versão demo
-          const localChild = {
-            id: `child-${Date.now()}`,
-            family_id: currentFamily.id,
-            name: childData.name,
-            pin: childData.pin,
-            avatar: childData.avatar_url || '👧',
-            balance: 0,
-            total_earned: 0,
-            total_spent: 0,
-            level: 1,
-            xp: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            pendingRequests: 0,
-            currentStreak: 0,
-          };
-
-          // Salvar no localStorage
-          const localChildren = JSON.parse(
-            localStorage.getItem('demo-children') || '[]'
-          );
-          localChildren.push(localChild);
-          localStorage.setItem('demo-children', JSON.stringify(localChildren));
-
-          // Adicionar ao estado local também
-          setChildren(prev => [...prev, localChild]);
-
-          // Usar a criança local como newChild para continuar o fluxo
-          newChild = localChild;
-
-          console.log('✅ Criança criada localmente:', newChild);
-        }
-
-        // Salvar data de nascimento no localStorage (temporário)
-        if (childData.birth_date && newChild) {
+        // 3. SALVAR data nascimento se fornecida
+        if (childData.birth_date) {
           const childBirthDates = JSON.parse(
             localStorage.getItem('child-birth-dates') || '{}'
           );
@@ -870,21 +827,21 @@ export default function ParentView() {
             'child-birth-dates',
             JSON.stringify(childBirthDates)
           );
-          console.log(
-            '📅 Data de nascimento salva no localStorage:',
-            childData.birth_date
-          );
+          console.log('📅 Data de nascimento salva:', childData.birth_date);
         }
 
-        console.log('✅ Nova criança criada no Supabase:', newChild);
-        alert('✅ Criança criada com sucesso!');
+        alert(`✅ ${newChild.name} criado(a) com sucesso!`);
       }
 
-      // Recarregar dados para atualizar a interface
+      // 4. RECARREGAR dados imediatamente
+      console.log('🔄 Recarregando dados...');
       await loadFamilyData();
 
+      // 5. FECHAR modal
       setShowChildModal(false);
       setEditingChild(null);
+
+      console.log('✅ SOLUÇÃO DEFINITIVA: Processo completo');
     } catch (error) {
       console.error('Erro ao criar/editar criança:', error);
       alert('❌ Erro ao processar dados da criança');
