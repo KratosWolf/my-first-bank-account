@@ -639,14 +639,21 @@ export default function ParentView() {
     requestId: string,
     approved: boolean
   ) => {
-    console.log('🚀 INICIO handleRequestDecision:', { requestId, approved });
+    console.log('🚀 [v3] INICIO handleRequestDecision:', {
+      requestId,
+      approved,
+    });
+    console.log('🔧 [v3] Estados atuais:', {
+      loading,
+      pendingRequestsCount: pendingRequests.length,
+    });
 
     try {
       setLoading(true);
       console.log('⏳ Loading definido como true');
 
       alert(
-        `[DEBUG v2] Iniciando ${approved ? 'aprovação' : 'rejeição'} da solicitação ${requestId}`
+        `[DEBUG v3 - CACHE CLEAR] Iniciando ${approved ? 'aprovação' : 'rejeição'} da solicitação ${requestId}`
       );
 
       console.log('🔗 Supabase client:', !!supabase);
