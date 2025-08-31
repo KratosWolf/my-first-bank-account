@@ -22,15 +22,48 @@ export default function HomePage() {
 
   const loadChildren = async () => {
     try {
+      // Get parent email from the known credentials or use default
+      let parentEmail = 'demo@teste.com';
+
+      // Try to get from session storage if parent is logged in
+      if (typeof window !== 'undefined') {
+        const parentSession = localStorage.getItem('parent-session');
+        if (parentSession) {
+          const session = JSON.parse(parentSession);
+          parentEmail = session.email;
+        } else {
+          // Use default family email (your email)
+          parentEmail = 'tifernandes@gmail.com';
+        }
+      }
+
+      // Get family by email first
+      const { data: family, error: familyError } = await supabase
+        .from('families')
+        .select('id')
+        .eq('parent_email', parentEmail)
+        .single();
+
+      if (familyError || !family) {
+        console.log('Família não encontrada para email:', parentEmail);
+        setChildren([]);
+        return;
+      }
+
+      // Get children from that family
       const { data, error } = await supabase
         .from('children')
         .select('id, name, avatar')
+        .eq('family_id', family.id)
         .order('name');
 
       if (error) throw error;
+
+      console.log('Crianças carregadas para família:', family.id, data);
       setChildren(data || []);
     } catch (error) {
       console.error('Erro ao carregar crianças:', error);
+      setChildren([]);
     }
   };
 
