@@ -639,12 +639,18 @@ export default function ParentView() {
     requestId: string,
     approved: boolean
   ) => {
+    console.log('🚀 INICIO handleRequestDecision:', { requestId, approved });
+
     try {
       setLoading(true);
-      console.log(
-        `🔄 ${approved ? 'Aprovando' : 'Negando'} solicitação:`,
-        requestId
+      console.log('⏳ Loading definido como true');
+
+      alert(
+        `Iniciando ${approved ? 'aprovação' : 'rejeição'} da solicitação ${requestId}`
       );
+
+      console.log('🔗 Supabase client:', !!supabase);
+      console.log('🔄 Tentando atualizar transação...');
 
       // Atualizar status no Supabase
       const { data: updatedRequest, error } = await supabase
@@ -658,18 +664,27 @@ export default function ParentView() {
         .select()
         .single();
 
+      console.log('📄 Resultado da query:', { data: updatedRequest, error });
+
       if (error) {
         console.error('❌ Erro ao atualizar solicitação:', error);
-        alert('❌ Erro ao processar solicitação');
+        alert(`❌ Erro ao processar solicitação: ${error.message}`);
         return;
       }
 
       console.log('✅ Solicitação atualizada:', updatedRequest);
+      alert('✅ Transação atualizada com sucesso!');
 
       // Remover da lista local
-      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+      setPendingRequests(prev => {
+        console.log('🗑️ Removendo da lista local. Lista atual:', prev.length);
+        const newList = prev.filter(req => req.id !== requestId);
+        console.log('🗑️ Nova lista:', newList.length);
+        return newList;
+      });
 
       // Recarregar dados para atualizar saldos
+      console.log('🔄 Recarregando dados da família...');
       await loadFamilyData();
 
       alert(approved ? '✅ Solicitação aprovada!' : '❌ Solicitação negada!');
