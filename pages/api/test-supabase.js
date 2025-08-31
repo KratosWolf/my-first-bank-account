@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         // Testar conexão básica
         const { data, error } = await supabase
           .from('families')
-          .select('count(*)')
+          .select('id')
           .limit(1);
 
         if (error) {
@@ -59,11 +59,9 @@ export default async function handler(req, res) {
           .limit(1);
 
         if (!families || families.length === 0) {
-          return res
-            .status(400)
-            .json({
-              error: 'Nenhuma família encontrada. Crie uma família primeiro.',
-            });
+          return res.status(400).json({
+            error: 'Nenhuma família encontrada. Crie uma família primeiro.',
+          });
         }
 
         // Criar criança de teste

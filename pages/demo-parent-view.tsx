@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
 import { DatabaseService } from '@/lib/services/database';
+import { StorageAdapter } from '@/lib/services/storage-adapter';
 import { ParentalDashboardService } from '@/lib/services/parental-dashboard';
 import type { Family, Child, PurchaseRequest } from '@/lib/supabase';
 
@@ -489,67 +490,64 @@ export default function ParentView() {
   const loadFamilyData = async () => {
     setLoading(true);
     try {
-      // Usar Supabase para dados reais
-      console.log('🔍 Carregando dados do Supabase...');
+      console.log('🔍 Carregando dados da família...');
 
-      // Usar família existente do banco (primeira família disponível)
-      const { data: families, error: familyError } = await supabase
-        .from('families')
-        .select('*')
-        .limit(1);
+      // Get parent email from session
+      let parentEmail = 'demo@teste.com';
+      let parentName = 'Demo Parent';
 
-      if (familyError || !families || families.length === 0) {
-        console.error('❌ Erro ao carregar família:', familyError);
-        // Fallback: criar família demo
-        const { data: newFamily, error: createError } = await supabase
-          .from('families')
-          .insert([
-            {
-              parent_name: 'Demo Parent',
-              parent_email: 'demo@teste.com',
-            },
-          ])
-          .select()
-          .single();
-
-        if (createError || !newFamily) {
-          console.error('❌ Erro ao criar família:', createError);
-          return;
+      // Only access localStorage on client side
+      if (typeof window !== 'undefined') {
+        try {
+          const parentSession = localStorage.getItem('parent-session');
+          if (parentSession) {
+            const session = JSON.parse(parentSession);
+            parentEmail = session.email;
+            parentName = session.name || 'Parent';
+          }
+        } catch (e) {
+          console.log('No parent session found, using demo credentials');
         }
-        setCurrentFamily(newFamily);
-      } else {
-        setCurrentFamily(families[0]);
       }
 
-      // Carregar crianças do Supabase usando a família que acabamos de definir
-      const familyId =
-        families?.[0]?.id ||
-        (await supabase.from('families').select('id').limit(1).single()).data
-          ?.id;
-      console.log('👨‍👩‍👧‍👦 Usando family_id:', familyId);
+      // Try to get family from database
+      let family = await DatabaseService.getFamilyByEmail(parentEmail);
 
-      const { data: familyChildren, error: childrenError } = await supabase
-        .from('children')
-        .select('*')
-        .eq('family_id', familyId);
+      if (!family) {
+        console.log('🔨 Família não encontrada, criando nova...');
+        family = await DatabaseService.createFamily({
+          parent_name: parentName,
+          parent_email: parentEmail,
+        });
+      }
 
-      if (childrenError) {
-        console.error('❌ Erro ao carregar crianças:', childrenError);
-        setChildren([]);
+      if (family) {
+        console.log('✅ Família carregada:', family);
+        setCurrentFamily(family);
       } else {
-        console.log('✅ Crianças carregadas do Supabase:', familyChildren);
+        console.error('❌ Erro ao carregar/criar família');
+        return;
+      }
 
-        // Filtrar crianças deletadas localmente (para versão demo)
-        const deletedChildIds = JSON.parse(
+      // Carregar crianças usando StorageAdapter (com fallback)
+      console.log('👨‍👩‍👧‍👦 Carregando crianças para família:', family.id);
+
+      const familyChildren = await DatabaseService.getChildren(family.id);
+      console.log('✅ Crianças carregadas:', familyChildren);
+
+      // Filtrar crianças deletadas localmente (para versão demo)
+      let deletedChildIds: string[] = [];
+      if (typeof window !== 'undefined') {
+        deletedChildIds = JSON.parse(
           localStorage.getItem('deleted-children-ids') || '[]'
         );
-        const filteredChildren = (familyChildren || []).filter(
-          child => !deletedChildIds.includes(child.id)
-        );
-        console.log('🔄 Crianças após filtro de exclusão:', filteredChildren);
-
-        setChildren(filteredChildren);
       }
+      const filteredChildren = (familyChildren || []).filter(
+        child => !deletedChildIds.includes(child.id)
+      );
+      console.log('🔄 Crianças após filtro de exclusão:', filteredChildren);
+
+      setChildren(filteredChildren);
 
       if (familyChildren.length > 0) {
         setSelectedChild(familyChildren[0]);
@@ -907,6 +905,11 @@ export default function ParentView() {
   // Dados híbridos - usa Supabase quando disponível, fallback para mock
   // Pegar nome da sessão parental
   const getParentName = () => {
+    // Check if we're on the client side
+    if (typeof window === 'undefined') {
+      return currentFamily?.parent_name || 'Parent';
+    }
+
     try {
       const parentSession = localStorage.getItem('parent-session');
       if (parentSession) {
@@ -1260,6 +1263,13 @@ export default function ParentView() {
                 </h1>
                 <p className="text-sm text-gray-600">
                   Dashboard Parental - Banco da Família
+                  <button
+                    onClick={() => router.push('/migrate-to-real-app')}
+                    className="ml-4 text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-md transition-colors"
+                    title="Migrar dados para banco real"
+                  >
+                    🚀 Migrar para App Real
+                  </button>
                 </p>
               </div>
             </div>
