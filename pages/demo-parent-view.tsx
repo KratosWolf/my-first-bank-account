@@ -484,6 +484,11 @@ export default function ParentView() {
 
   // useEffect para carregar dados reais do Supabase
   useEffect(() => {
+    // Limpar dados antigos do localStorage que podem interferir
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('deleted-children-ids');
+      localStorage.removeItem('banco-familia-children');
+    }
     loadFamilyData();
   }, []);
 
@@ -535,19 +540,9 @@ export default function ParentView() {
       const familyChildren = await DatabaseService.getChildren(family.id);
       console.log('✅ Crianças carregadas:', familyChildren);
 
-      // Filtrar crianças deletadas localmente (para versão demo)
-      let deletedChildIds: string[] = [];
-      if (typeof window !== 'undefined') {
-        deletedChildIds = JSON.parse(
-          localStorage.getItem('deleted-children-ids') || '[]'
-        );
-      }
-      const filteredChildren = (familyChildren || []).filter(
-        child => !deletedChildIds.includes(child.id)
-      );
-      console.log('🔄 Crianças após filtro de exclusão:', filteredChildren);
-
-      setChildren(filteredChildren);
+      // Usar dados direto do banco (não mais filtros localStorage)
+      console.log('✅ Crianças carregadas do banco:', familyChildren);
+      setChildren(familyChildren);
 
       if (familyChildren.length > 0) {
         setSelectedChild(familyChildren[0]);
