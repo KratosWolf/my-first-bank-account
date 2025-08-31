@@ -810,7 +810,8 @@ export default function ParentView() {
         alert('✅ Criança atualizada com sucesso!');
       } else {
         // Criando nova criança no Supabase
-        const { data: newChild, error } = await supabase
+        let newChild = null;
+        const { data, error } = await supabase
           .from('children')
           .insert([
             {
@@ -827,6 +828,10 @@ export default function ParentView() {
           ])
           .select()
           .single();
+
+        if (!error) {
+          newChild = data;
+        }
 
         if (error) {
           console.warn(
