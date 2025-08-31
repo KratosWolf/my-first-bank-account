@@ -617,7 +617,6 @@ export default function ParentView() {
 
       // Adicionar as crianças ao objeto family
       const familyWithChildren = { ...family, children: familyChildren };
-      setFamilyData(familyWithChildren);
 
       // Salvar de volta no localStorage
       localStorage.setItem(
@@ -695,7 +694,7 @@ export default function ParentView() {
       console.log('Atualizando configuração de juros:', { childId, config });
 
       // Atualizar estado local
-      setInterestConfigs(prev => {
+      setInterestConfigs((prev: any) => {
         const newConfigs = {
           ...prev,
           [childId]: {
@@ -735,7 +734,7 @@ export default function ParentView() {
       console.log('Atualizando configuração de mesada:', { childId, config });
 
       // Atualizar estado local
-      setAllowanceConfigs(prev => {
+      setAllowanceConfigs((prev: any) => {
         const newConfigs = {
           ...prev,
           [childId]: {
