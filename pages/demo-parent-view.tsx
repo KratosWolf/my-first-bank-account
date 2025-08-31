@@ -881,9 +881,10 @@ export default function ParentView() {
   const family = {
     parentName: getParentName(),
     parentAvatar: '👨‍💼',
-    familyBalance:
-      children.reduce((total, child) => total + (child.balance || 0), 0) ||
-      1250.75,
+    familyBalance: children.reduce(
+      (total, child) => total + (child.balance || 0),
+      0
+    ),
     children:
       children.length > 0
         ? children.map(child => ({
