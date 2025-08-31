@@ -641,23 +641,44 @@ export default function ParentView() {
     approved: boolean
   ) => {
     try {
-      const success = await ParentalDashboardService.handleApprovalRequest(
-        requestId,
-        approved
+      setLoading(true);
+      console.log(
+        `🔄 ${approved ? 'Aprovando' : 'Negando'} solicitação:`,
+        requestId
       );
 
-      if (success) {
-        // Remover da lista local
-        setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+      // Atualizar status no Supabase
+      const { data: updatedRequest, error } = await supabase
+        .from('transactions')
+        .update({
+          status: approved ? 'approved' : 'rejected',
+          approved_by_parent: approved,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', requestId)
+        .select()
+        .single();
 
-        // Recarregar dados para atualizar saldos
-        await loadFamilyData();
-
-        alert(approved ? '✅ Solicitação aprovada!' : '❌ Solicitação negada!');
+      if (error) {
+        console.error('❌ Erro ao atualizar solicitação:', error);
+        alert('❌ Erro ao processar solicitação');
+        return;
       }
+
+      console.log('✅ Solicitação atualizada:', updatedRequest);
+
+      // Remover da lista local
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+
+      // Recarregar dados para atualizar saldos
+      await loadFamilyData();
+
+      alert(approved ? '✅ Solicitação aprovada!' : '❌ Solicitação negada!');
     } catch (error) {
       console.error('Erro ao processar solicitação:', error);
       alert('❌ Erro ao processar solicitação');
+    } finally {
+      setLoading(false);
     }
   };
 
