@@ -10,10 +10,19 @@ export default async function handler(req, res) {
 
     console.log('🚀 EMERGÊNCIA: Processando via API', { id, action });
 
+    // MODO TESTE: Se o ID for "test", só simular sucesso
+    if (id === 'test') {
+      console.log('✅ MODO TESTE: Simulando aprovação sem tocar no banco');
+      const message = action === 'approve' ? 'APROVADA' : 'NEGADA';
+      return res.redirect(
+        `/demo-parent-view?success=TESTE ${message} com sucesso! JavaScript funcionando!`
+      );
+    }
+
     const status = action === 'approve' ? 'approved' : 'rejected';
     const approved = action === 'approve';
 
-    // Atualizar no Supabase
+    // Atualizar no Supabase (apenas para IDs reais)
     const { error } = await supabase
       .from('transactions')
       .update({
