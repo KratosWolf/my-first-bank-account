@@ -92,6 +92,42 @@ export default async function handler(req, res) {
 
         return res.json({ success: true, message: 'Criança criada!', child });
 
+      case 'debug-family-children':
+        // Debug: buscar família e suas crianças
+        const parentEmail = req.body.email || 'tifernandes@gmail.com';
+
+        // 1. Buscar família
+        const { data: debugFamily, error: debugFamilyError } = await supabase
+          .from('families')
+          .select('*')
+          .eq('parent_email', parentEmail)
+          .single();
+
+        if (debugFamilyError) {
+          return res.json({
+            success: false,
+            error: 'Família não encontrada',
+            email: parentEmail,
+            debugFamilyError,
+          });
+        }
+
+        // 2. Buscar crianças dessa família
+        const { data: debugChildren, error: debugChildrenError } =
+          await supabase
+            .from('children')
+            .select('*')
+            .eq('family_id', debugFamily.id);
+
+        return res.json({
+          success: true,
+          message: 'Debug completo',
+          family: debugFamily,
+          children: debugChildren || [],
+          children_count: (debugChildren || []).length,
+          debugChildrenError,
+        });
+
       default:
         return res.status(400).json({ error: 'Ação não reconhecida' });
     }

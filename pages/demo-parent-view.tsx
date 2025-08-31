@@ -748,22 +748,16 @@ export default function ParentView() {
     avatar_url?: string;
   }) => {
     try {
-      console.log(
-        '🔧 Versão demo - criando criança com localStorage + Supabase híbrido'
-      );
+      console.log('🔧 Criando criança no banco de dados real');
 
-      // Para versão demo, vamos criar criança no Supabase E localStorage
-      const demoFamily = {
-        id: 'demo-family-1',
-        parent_name: 'Demo Parent',
-        parent_email: 'demo@teste.com',
-      };
-
-      const familyToUse = currentFamily || demoFamily;
-
-      if (!currentFamily) {
-        setCurrentFamily(demoFamily);
+      // Verificar se temos uma família válida carregada
+      if (!currentFamily || !currentFamily.id) {
+        console.error('❌ Família não carregada corretamente');
+        alert('❌ Erro: Família não encontrada. Recarregue a página.');
+        return;
       }
+
+      console.log('👨‍👩‍👧‍👦 Usando família:', currentFamily);
 
       if (editingChild) {
         // Editando criança existente no Supabase
@@ -808,7 +802,7 @@ export default function ParentView() {
           .from('children')
           .insert([
             {
-              family_id: familyToUse.id,
+              family_id: currentFamily.id,
               name: childData.name,
               pin: childData.pin,
               avatar: childData.avatar_url || '👧',
@@ -835,7 +829,7 @@ export default function ParentView() {
           // Fallback: criar criança local para versão demo
           const localChild = {
             id: `child-${Date.now()}`,
-            family_id: familyToUse.id,
+            family_id: currentFamily.id,
             name: childData.name,
             pin: childData.pin,
             avatar: childData.avatar_url || '👧',
