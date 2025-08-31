@@ -944,7 +944,7 @@ export default function ParentView() {
   };
 
   const totalPendingRequests = children.reduce(
-    (total, child) => total + child.pendingRequests,
+    (total, child) => total + (child.pendingRequests || 0),
     0
   );
 
