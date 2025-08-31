@@ -755,42 +755,21 @@ export default function ParentView() {
     avatar_url?: string;
   }) => {
     try {
-      // Garantir que temos uma família válida
-      let familyToUse = currentFamily;
+      console.log(
+        '🔧 Versão demo - criando criança com localStorage + Supabase híbrido'
+      );
 
-      if (!familyToUse) {
-        console.log('🔍 Família não carregada, buscando/criando...');
-        // Buscar família existente ou criar nova
-        const { data: families } = await supabase
-          .from('families')
-          .select('*')
-          .limit(1);
+      // Para versão demo, vamos criar criança no Supabase E localStorage
+      const demoFamily = {
+        id: 'demo-family-1',
+        parent_name: 'Demo Parent',
+        parent_email: 'demo@teste.com',
+      };
 
-        if (families && families.length > 0) {
-          familyToUse = families[0];
-          setCurrentFamily(families[0]);
-        } else {
-          // Criar nova família
-          const { data: newFamily, error: createError } = await supabase
-            .from('families')
-            .insert([
-              {
-                parent_name: 'Demo Parent',
-                parent_email: 'demo@teste.com',
-              },
-            ])
-            .select()
-            .single();
+      const familyToUse = currentFamily || demoFamily;
 
-          if (createError || !newFamily) {
-            alert('❌ Erro ao criar família');
-            console.error('Erro:', createError);
-            return;
-          }
-
-          familyToUse = newFamily;
-          setCurrentFamily(newFamily);
-        }
+      if (!currentFamily) {
+        setCurrentFamily(demoFamily);
       }
 
       if (editingChild) {
@@ -850,9 +829,43 @@ export default function ParentView() {
           .single();
 
         if (error) {
-          console.error('❌ Erro ao criar criança:', error);
-          alert('❌ Erro ao criar criança');
-          return;
+          console.warn(
+            '⚠️ Falha no Supabase, criando localmente para demo:',
+            error
+          );
+
+          // Fallback: criar criança local para versão demo
+          const localChild = {
+            id: `child-${Date.now()}`,
+            family_id: familyToUse.id,
+            name: childData.name,
+            pin: childData.pin,
+            avatar: childData.avatar_url || '👧',
+            balance: 0,
+            total_earned: 0,
+            total_spent: 0,
+            level: 1,
+            xp: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            pendingRequests: 0,
+            currentStreak: 0,
+          };
+
+          // Salvar no localStorage
+          const localChildren = JSON.parse(
+            localStorage.getItem('demo-children') || '[]'
+          );
+          localChildren.push(localChild);
+          localStorage.setItem('demo-children', JSON.stringify(localChildren));
+
+          // Adicionar ao estado local também
+          setChildren(prev => [...prev, localChild]);
+
+          // Usar a criança local como newChild para continuar o fluxo
+          newChild = localChild;
+
+          console.log('✅ Criança criada localmente:', newChild);
         }
 
         // Salvar data de nascimento no localStorage (temporário)
