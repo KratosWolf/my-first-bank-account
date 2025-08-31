@@ -750,11 +750,21 @@ export default function ParentView() {
     console.log('🚀 SOLUÇÃO DEFINITIVA: Criando criança');
 
     try {
-      // 1. GARANTIR que temos uma família válida
+      // 1. GARANTIR que temos uma família válida - CORREÇÃO EMERGENCIAL
       if (!currentFamily?.id) {
-        console.error('❌ Família não encontrada');
-        alert('❌ Família não encontrada. Recarregue a página.');
-        return;
+        console.error('❌ Família não encontrada, tentando recarregar...');
+        await loadFamilyData();
+
+        // Aguardar um pouco e verificar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        if (!currentFamily?.id) {
+          console.error('❌ Ainda sem família após reload');
+          alert(
+            '❌ Erro: Não conseguiu carregar dados da família. Tente recarregar a página.'
+          );
+          return;
+        }
       }
 
       console.log('✅ Família confirmada:', currentFamily.id);
