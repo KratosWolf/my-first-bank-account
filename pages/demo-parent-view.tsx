@@ -1475,24 +1475,39 @@ export default function ParentView() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() =>
-                            handleRequestDecision(request.id, true)
-                          }
-                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
-                          disabled={loading}
+                        {/* EMERGÊNCIA: Links diretos para API - sem dependência de React */}
+                        <a
+                          href={`/api/approve-request?id=${request.id}&action=approve`}
+                          onClick={e => {
+                            e.preventDefault();
+                            if (
+                              confirm(
+                                'APROVAR esta solicitação?\n\nVocê será redirecionado após o processamento.'
+                              )
+                            ) {
+                              window.location.href = e.target.href;
+                            }
+                          }}
+                          className="inline-block bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all font-bold text-center cursor-pointer"
                         >
-                          ✅ Aprovar
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleRequestDecision(request.id, false)
-                          }
-                          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all"
-                          disabled={loading}
+                          ✅ APROVAR
+                        </a>
+                        <a
+                          href={`/api/approve-request?id=${request.id}&action=reject`}
+                          onClick={e => {
+                            e.preventDefault();
+                            if (
+                              confirm(
+                                'NEGAR esta solicitação?\n\nVocê será redirecionado após o processamento.'
+                              )
+                            ) {
+                              window.location.href = e.target.href;
+                            }
+                          }}
+                          className="inline-block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all font-bold text-center cursor-pointer"
                         >
-                          ❌ Negar
-                        </button>
+                          ❌ NEGAR
+                        </a>
                       </div>
                     </div>
                   </div>
