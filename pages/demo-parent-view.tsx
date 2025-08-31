@@ -646,7 +646,7 @@ export default function ParentView() {
       console.log('⏳ Loading definido como true');
 
       alert(
-        `Iniciando ${approved ? 'aprovação' : 'rejeição'} da solicitação ${requestId}`
+        `[DEBUG v2] Iniciando ${approved ? 'aprovação' : 'rejeição'} da solicitação ${requestId}`
       );
 
       console.log('🔗 Supabase client:', !!supabase);
