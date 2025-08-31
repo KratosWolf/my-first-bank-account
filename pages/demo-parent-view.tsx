@@ -755,9 +755,42 @@ export default function ParentView() {
     avatar_url?: string;
   }) => {
     try {
-      if (!currentFamily) {
-        alert('❌ Família não encontrada');
-        return;
+      // Garantir que temos uma família válida
+      let familyToUse = currentFamily;
+
+      if (!familyToUse) {
+        console.log('🔍 Família não carregada, buscando/criando...');
+        // Buscar família existente ou criar nova
+        const { data: families } = await supabase
+          .from('families')
+          .select('*')
+          .limit(1);
+
+        if (families && families.length > 0) {
+          familyToUse = families[0];
+          setCurrentFamily(families[0]);
+        } else {
+          // Criar nova família
+          const { data: newFamily, error: createError } = await supabase
+            .from('families')
+            .insert([
+              {
+                parent_name: 'Demo Parent',
+                parent_email: 'demo@teste.com',
+              },
+            ])
+            .select()
+            .single();
+
+          if (createError || !newFamily) {
+            alert('❌ Erro ao criar família');
+            console.error('Erro:', createError);
+            return;
+          }
+
+          familyToUse = newFamily;
+          setCurrentFamily(newFamily);
+        }
       }
 
       if (editingChild) {
@@ -802,7 +835,7 @@ export default function ParentView() {
           .from('children')
           .insert([
             {
-              family_id: currentFamily.id,
+              family_id: familyToUse.id,
               name: childData.name,
               pin: childData.pin,
               avatar: childData.avatar_url || '👧',
