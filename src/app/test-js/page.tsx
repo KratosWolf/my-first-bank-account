@@ -3,7 +3,7 @@
 export default function TestJS() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <h1>🔧 TESTE JAVASCRIPT PRODUÇÃO</h1>
+      <h1>🔧 TESTE JAVASCRIPT PRODUÇÃO - V2.0</h1>
 
       <button
         onClick={() => alert('JavaScript funcionando!')}
