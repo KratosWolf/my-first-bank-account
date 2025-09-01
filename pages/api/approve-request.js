@@ -19,8 +19,25 @@ export default async function handler(req, res) {
       );
     }
 
-    const status = action === 'approve' ? 'approved' : 'rejected';
+    // Usar valores que o banco aceita
+    const status = action === 'approve' ? 'completed' : 'pending';
     const approved = action === 'approve';
+
+    console.log('🔧 Valores sendo enviados:', { status, approved, id });
+
+    // Primeiro, vamos verificar se a transação existe
+    const { data: existingTransaction, error: fetchError } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.error('❌ Erro ao buscar transação:', fetchError);
+      return res.status(404).json({ error: 'Transação não encontrada' });
+    }
+
+    console.log('📄 Transação encontrada:', existingTransaction);
 
     // Atualizar no Supabase (apenas para IDs reais)
     const { error } = await supabase
