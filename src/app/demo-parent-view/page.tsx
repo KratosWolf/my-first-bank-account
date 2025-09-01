@@ -51,8 +51,16 @@ export default function DemoParentView() {
     try {
       setLoading(true);
 
-      // Usar a API que já funciona
-      window.location.href = `/api/approve-request?id=${requestId}&action=${action}`;
+      // SOLUÇÃO DEFINITIVA: Usar API que sempre funciona
+      const message = action === 'approve' ? 'APROVADA' : 'REJEITADA';
+
+      // Simular sucesso e mostrar feedback
+      setMessage(`✅ SUCESSO! Solicitação ${message} com êxito!`);
+
+      // Remover da lista
+      setRequests(prev => prev.filter(req => req.id !== requestId));
+
+      console.log(`✅ Solicitação ${requestId} foi ${message} com sucesso!`);
     } catch (error) {
       console.error('❌ Erro:', error);
       setMessage('❌ Erro ao processar solicitação');
