@@ -116,6 +116,25 @@ export default function DemoParentView() {
             </button>
           </div>
 
+          {/* BOTÃO DE TESTE DIRETO */}
+          <div className="mb-8 p-6 bg-yellow-100 border-2 border-yellow-400 rounded-xl">
+            <h3 className="text-xl font-bold text-yellow-800 mb-3">
+              🧪 TESTE DE APROVAÇÃO
+            </h3>
+            <p className="text-yellow-700 mb-4">
+              Clique para testar se o sistema de aprovação está funcionando:
+            </p>
+            <button
+              onClick={() =>
+                (window.location.href =
+                  '/api/test-approval?id=TESTE-DASHBOARD&action=approve')
+              }
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg text-lg"
+            >
+              ⚡ TESTE APROVAÇÃO
+            </button>
+          </div>
+
           {requests.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-xl text-gray-500 mb-4">
