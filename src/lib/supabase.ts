@@ -10,7 +10,7 @@ export interface Family {
   id: string;
   parent_name: string;
   parent_email: string;
-  parent_avatar?: string;
+  parent_avatar?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,25 +34,31 @@ export interface Child {
 export interface Transaction {
   id: string;
   child_id: string;
-  type: 'earning' | 'spending' | 'transfer' | 'interest' | 'allowance' | 'goal_deposit';
+  type:
+    | 'earning'
+    | 'spending'
+    | 'transfer'
+    | 'interest'
+    | 'allowance'
+    | 'goal_deposit';
   amount: number;
   description: string;
   category?: string;
   status: 'pending' | 'completed' | 'rejected' | 'cancelled';
-  
+
   // Transfer fields
   from_child_id?: string;
   to_child_id?: string;
-  
+
   // Approval fields
   requires_approval: boolean;
   approved_by_parent: boolean;
   parent_note?: string;
   approved_at?: string;
-  
+
   // Goal integration
   related_goal_id?: string;
-  
+
   created_at: string;
   updated_at: string;
 }
@@ -125,9 +131,23 @@ export interface Badge {
   name: string;
   description: string;
   icon: string;
-  category: 'saving' | 'spending' | 'earning' | 'goal' | 'streak' | 'level' | 'special';
+  category:
+    | 'saving'
+    | 'spending'
+    | 'earning'
+    | 'goal'
+    | 'streak'
+    | 'level'
+    | 'special';
   criteria: {
-    type: 'amount_saved' | 'amount_earned' | 'transactions_count' | 'days_streak' | 'goals_completed' | 'level_reached' | 'special_action';
+    type:
+      | 'amount_saved'
+      | 'amount_earned'
+      | 'transactions_count'
+      | 'days_streak'
+      | 'goals_completed'
+      | 'level_reached'
+      | 'special_action';
     threshold: number;
     timeframe?: 'daily' | 'weekly' | 'monthly' | 'all_time';
   };
@@ -147,7 +167,11 @@ export interface ChildBadge {
 export interface ChildStreak {
   id: string;
   child_id: string;
-  streak_type: 'daily_save' | 'weekly_goal' | 'transaction_log' | 'lesson_complete';
+  streak_type:
+    | 'daily_save'
+    | 'weekly_goal'
+    | 'transaction_log'
+    | 'lesson_complete';
   current_count: number;
   best_count: number;
   last_activity: string;
@@ -172,7 +196,16 @@ export interface Goal {
   description?: string;
   target_amount: number;
   current_amount: number;
-  category: 'toy' | 'game' | 'book' | 'clothes' | 'experience' | 'education' | 'charity' | 'savings' | 'other';
+  category:
+    | 'toy'
+    | 'game'
+    | 'book'
+    | 'clothes'
+    | 'experience'
+    | 'education'
+    | 'charity'
+    | 'savings'
+    | 'other';
   priority: 'low' | 'medium' | 'high';
   target_date?: string;
   image_url?: string;
@@ -188,7 +221,11 @@ export interface GoalContribution {
   goal_id: string;
   child_id: string;
   amount: number;
-  contribution_type: 'manual' | 'automatic' | 'allowance_percentage' | 'chore_reward';
+  contribution_type:
+    | 'manual'
+    | 'automatic'
+    | 'allowance_percentage'
+    | 'chore_reward';
   description?: string;
   created_at: string;
 }
@@ -213,7 +250,14 @@ export interface FamilyGoal {
   description?: string;
   target_amount: number;
   current_amount: number;
-  category: 'vacation' | 'house_improvement' | 'family_activity' | 'emergency_fund' | 'education' | 'charity' | 'other';
+  category:
+    | 'vacation'
+    | 'house_improvement'
+    | 'family_activity'
+    | 'emergency_fund'
+    | 'education'
+    | 'charity'
+    | 'other';
   target_date?: string;
   image_url?: string;
   is_completed: boolean;
@@ -269,7 +313,7 @@ export interface AssignedChore {
   photo_evidence?: string;
   created_at: string;
   updated_at: string;
-  
+
   // Related data
   chore_template?: ChoreTemplate;
   child?: Child;
@@ -284,7 +328,7 @@ export interface ChoreCompletion {
   child_satisfaction?: number; // 1-5 stars from child
   bonus_reward: number;
   completed_at: string;
-  
+
   // Related data
   assigned_chore?: AssignedChore;
 }

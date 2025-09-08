@@ -5,18 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ChildForm from './components/ChildForm';
 import TransactionModal from './components/TransactionModal';
-
-interface Child {
-  id: string;
-  name: string;
-  pin: string;
-  balance: number;
-  level: number;
-  points: number;
-  avatar: string;
-  createdAt: string;
-  parentId: string;
-}
+import { FamilyService } from '@/lib/services/family-service';
+import type { Child } from '@/lib/supabase';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -38,20 +28,12 @@ export default function DashboardPage() {
     loadChildren();
   }, [session, status, router]);
 
-  const loadChildren = () => {
+  const loadChildren = async () => {
     if (!session?.user?.id) return;
 
     try {
-      const saved = localStorage.getItem('banco-familia-children');
-      if (saved) {
-        const allChildren = JSON.parse(saved);
-        const userChildren = allChildren.filter(
-          (c: Child) => c.parentId === session.user?.id
-        );
-        setChildren(userChildren);
-      } else {
-        setChildren([]);
-      }
+      const children = await FamilyService.getChildren();
+      setChildren(children);
     } catch (error) {
       console.error('Error loading children:', error);
       setChildren([]);
@@ -77,10 +59,12 @@ export default function DashboardPage() {
       errors.pin = 'PIN deve ter exatamente 4 dígitos';
     }
 
-    // Verificar PIN único (excluindo criança sendo editada)
-    if (
-      children.some(c => c.pin === childData.pin && c.id !== editingChild?.id)
-    ) {
+    // Verificar PIN único
+    const isPinUnique = await FamilyService.isPinUnique(
+      childData.pin,
+      editingChild?.id
+    );
+    if (!isPinUnique) {
       errors.pin = 'Este PIN já está sendo usado';
     }
 
@@ -91,44 +75,32 @@ export default function DashboardPage() {
     }
 
     try {
-      const saved = localStorage.getItem('banco-familia-children');
-      const allChildren = saved ? JSON.parse(saved) : [];
-
       if (editingChild) {
         // Editando criança existente
-        const index = allChildren.findIndex(
-          (c: Child) => c.id === editingChild.id
-        );
-        if (index >= 0) {
-          allChildren[index] = {
-            ...editingChild,
-            name: childData.name.trim(),
-            pin: childData.pin,
-            avatar: childData.avatar,
-          };
+        const result = await FamilyService.updateChild(editingChild.id, {
+          name: childData.name.trim(),
+          pin: childData.pin,
+          avatar: childData.avatar,
+        });
+
+        if (!result) {
+          throw new Error('Failed to update child');
         }
       } else {
         // Adicionando nova criança
-        const newChild: Child = {
-          id: `child_${Date.now()}`,
+        const result = await FamilyService.createChild({
           name: childData.name.trim(),
           pin: childData.pin,
-          balance: 0,
-          level: 1,
-          points: 0,
           avatar: childData.avatar,
-          createdAt: new Date().toISOString(),
-          parentId: session?.user?.id || '',
-        };
-        allChildren.push(newChild);
+          familyId: session?.user?.id || 'temp-family-id',
+        });
+
+        if (!result) {
+          throw new Error('Failed to create child');
+        }
       }
 
-      localStorage.setItem(
-        'banco-familia-children',
-        JSON.stringify(allChildren)
-      );
-      loadChildren();
-
+      await loadChildren();
       setShowAddChild(false);
       setEditingChild(null);
     } catch (error) {
@@ -144,7 +116,7 @@ export default function DashboardPage() {
     setShowAddChild(true);
   };
 
-  const handleDeleteChild = (childId: string) => {
+  const handleDeleteChild = async (childId: string) => {
     if (
       !confirm(
         'Tem certeza que deseja excluir esta criança? Esta ação não pode ser desfeita.'
@@ -154,15 +126,11 @@ export default function DashboardPage() {
     }
 
     try {
-      const saved = localStorage.getItem('banco-familia-children');
-      if (saved) {
-        const allChildren = JSON.parse(saved);
-        const filtered = allChildren.filter((c: Child) => c.id !== childId);
-        localStorage.setItem(
-          'banco-familia-children',
-          JSON.stringify(filtered)
-        );
-        loadChildren();
+      const success = await FamilyService.deleteChild(childId);
+      if (success) {
+        await loadChildren();
+      } else {
+        throw new Error('Failed to delete child');
       }
     } catch (error) {
       console.error('Error deleting child:', error);
@@ -170,23 +138,13 @@ export default function DashboardPage() {
     }
   };
 
-  const handleQuickTransaction = (child: Child, amount: number) => {
+  const handleQuickTransaction = async (child: Child, amount: number) => {
     try {
-      const saved = localStorage.getItem('banco-familia-children');
-      if (saved) {
-        const allChildren = JSON.parse(saved);
-        const index = allChildren.findIndex((c: Child) => c.id === child.id);
-        if (index >= 0) {
-          allChildren[index].balance = Math.max(
-            0,
-            allChildren[index].balance + amount
-          );
-          localStorage.setItem(
-            'banco-familia-children',
-            JSON.stringify(allChildren)
-          );
-          loadChildren();
-        }
+      const success = await FamilyService.updateChildBalance(child.id, amount);
+      if (success) {
+        await loadChildren();
+      } else {
+        throw new Error('Failed to update balance');
       }
     } catch (error) {
       console.error('Error updating balance:', error);
@@ -335,7 +293,7 @@ export default function DashboardPage() {
                         {child.name}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Nível {child.level} • {child.points} pontos
+                        Nível {child.level} • {child.xp} XP
                       </p>
                     </div>
                     <div className="flex gap-1">
