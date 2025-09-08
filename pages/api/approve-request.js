@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     // Validação básica
     if (!id || !action) {
       return res.redirect(
-        `/demo-parent-view?success=ERRO: Parâmetros inválidos (id=${id}, action=${action})`
+        `/demo-parent-view?success=${encodeURIComponent(`ERRO: Parâmetros inválidos (id=${id}, action=${action})`)}`
       );
     }
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       console.log('✅ MODO TESTE: Simulando aprovação sem tocar no banco');
       const message = action === 'approve' ? 'APROVADA' : 'NEGADA';
       return res.redirect(
-        `/demo-parent-view?success=TESTE ${message} com sucesso! JavaScript funcionando!`
+        `/demo-parent-view?success=${encodeURIComponent(`TESTE ${message} com sucesso! JavaScript funcionando!`)}`
       );
     }
 
@@ -34,13 +34,13 @@ export default async function handler(req, res) {
     });
 
     return res.redirect(
-      `/demo-parent-view?success=✅ FUNCIONOU! Solicitação ${message} (modo seguro - sem tocar no banco)&debug=id=${id}`
+      `/demo-parent-view?success=${encodeURIComponent(`FUNCIONOU! Solicitação ${message} (modo seguro - sem tocar no banco)`)}&debug=id=${id}`
     );
   } catch (error) {
     console.error('❌ Erro crítico capturado:', error);
     // NUNCA retornar 500 - sempre redirecionar
     return res.redirect(
-      `/demo-parent-view?success=❌ ERRO CAPTURADO: ${encodeURIComponent(error.message)}&debug=failsafe`
+      `/demo-parent-view?success=${encodeURIComponent(`ERRO CAPTURADO: ${error.message}`)}&debug=failsafe`
     );
   }
 }

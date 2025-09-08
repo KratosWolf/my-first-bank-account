@@ -18,6 +18,21 @@ export default function DemoParentView() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    // Verificar se há mensagem de sucesso na URL PRIMEIRO
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMessage = urlParams.get('success');
+    if (successMessage) {
+      setMessage(decodeURIComponent(successMessage));
+      // IMPORTANTE: Limpar a lista se houve sucesso e NÃO carregar do banco
+      setRequests([]);
+      setLoading(false);
+      // Limpar a URL sem recarregar a página
+      window.history.replaceState({}, '', '/demo-parent-view');
+      // PARAR AQUI - não carregar requests do banco
+      return;
+    }
+
+    // Só carregar do banco se NÃO houve sucesso
     loadRequests();
   }, []);
 
