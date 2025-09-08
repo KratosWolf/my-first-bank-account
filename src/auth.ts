@@ -1,9 +1,10 @@
-import NextAuth from 'next-auth';
-import Google from 'next-auth/providers/google';
+import NextAuth, { NextAuthConfig } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+// NextAuth v4 compatible configuration
+export const authOptions: NextAuthConfig = {
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
@@ -15,7 +16,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async redirect({ url, baseUrl }) {
       console.log('NextAuth redirect:', { url, baseUrl });
 
-      // Sempre redireciona para dashboard após signin bem-sucedido
+      // Always redirect to dashboard after successful signin
       if (
         url === baseUrl ||
         url === `${baseUrl}/` ||
@@ -26,12 +27,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return dashboardUrl;
       }
 
-      // Se URL já for absoluta e do mesmo domínio, usar ela
+      // If URL is absolute and same domain, use it
       if (url.startsWith(baseUrl)) {
         return url;
       }
 
-      // Caso contrário, redirecionar para dashboard
+      // Otherwise, redirect to dashboard
       return `${baseUrl}/dashboard`;
     },
     async session({ session, token }) {
@@ -47,4 +48,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
   },
-});
+};
+
+export default NextAuth(authOptions);
