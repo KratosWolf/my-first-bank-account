@@ -48,7 +48,7 @@
     "lint-staged": "^15",
     "playwright": "^1.40",
     "prettier": "^3",
-    "semantic-release": "^22",
+    "semantic-release": "^25",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vercel": "^44.7.0"
