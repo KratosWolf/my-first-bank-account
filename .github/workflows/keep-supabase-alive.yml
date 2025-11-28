@@ -1,0 +1,40 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 9 * * 0,3'  # Domingo e Quarta às 9h UTC (12h Brasil horário padrão)
+  workflow_dispatch:  # Permitir execução manual no GitHub Actions
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          echo "🏓 Enviando ping para Supabase..."
+
+          response=$(curl -s -w "\n%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "https://mqcfdwyhbtvaclslured.supabase.co/rest/v1/families?select=id&limit=1")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "📊 Status HTTP: $http_code"
+          echo "📦 Resposta: $body"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Supabase está ATIVO e respondendo!"
+            exit 0
+          else
+            echo "❌ Erro ao pingar Supabase (HTTP $http_code)"
+            exit 1
+          fi
+
+      - name: Log Execution Time
+        if: always()
+        run: |
+          echo "⏰ Executado em: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "📅 Próxima execução: Domingo ou Quarta às 9h UTC"
