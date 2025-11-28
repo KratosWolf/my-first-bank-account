@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { LoanService } from '../src/lib/services/loanService';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { DatabaseService } from '@/lib/services/database';
 import { TransactionService } from '@/lib/services/transactions';
 import { GoalsService } from '@/lib/services/goals';
 import { GamificationService } from '@/lib/services/gamification';
-import { CategoriesService } from '@/lib/services/categoriesService';
 import type { Child, Transaction, Goal, PurchaseRequest } from '@/lib/supabase';
 
 interface Achievement {
@@ -31,39 +29,33 @@ export default function ChildView() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('home');
 
-  // Verificar sessão autenticada da criança
+  // Verificar sessão da criança
   useEffect(() => {
     const checkChildSession = () => {
-      const authenticatedChild = sessionStorage.getItem('authenticatedChild');
-      if (!authenticatedChild) {
-        // Redirecionar para login se não há criança autenticada
-        console.log('❌ Nenhuma criança autenticada, redirecionando para login');
-        router.push('/child-login');
+      const childSession = localStorage.getItem('child-session');
+      if (!childSession) {
+        router.replace('/');
         return;
       }
 
       try {
-        const session = JSON.parse(authenticatedChild);
-        // Use authenticated child data directly
-        console.log('👶 Criança autenticada:', session.name);
-        
-        // Store in localStorage for component access (temporary for session)
-        localStorage.setItem('child-session', JSON.stringify({
-          id: session.id,
-          name: session.name,
-          age: session.age,
-          avatar: session.avatar,
-          balance: session.balance,
-          level: session.level,
-          xp: session.xp,
-          loginTime: new Date().toISOString()
-        }));
+        const session = JSON.parse(childSession);
+        // Verificar se a sessão não expirou (24 horas)
+        const loginTime = new Date(session.loginTime);
+        const now = new Date();
+        const diffHours =
+          (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
+
+        if (diffHours > 24) {
+          localStorage.removeItem('child-session');
+          router.replace('/');
+          return;
+        }
+
+        console.log('👶 Sessão da criança válida:', session.name);
       } catch (error) {
-        console.error('❌ Erro ao processar sessão autenticada:', error);
-        sessionStorage.removeItem('authenticatedChild');
         localStorage.removeItem('child-session');
-        router.push('/child-login');
-        return;
+        router.replace('/');
       }
     };
 
@@ -92,8 +84,7 @@ export default function ChildView() {
       // Obter dados da sessão
       const childSession = localStorage.getItem('child-session');
       if (!childSession) {
-        console.log('⚠️ Sessão não encontrada durante carregamento, criando sessão demo...');
-        createDemoData();
+        router.replace('/');
         return;
       }
 
@@ -105,7 +96,6 @@ export default function ChildView() {
       await loadSupabaseGoals(sessionData.id);
       await loadSupabaseTransactions(sessionData.id);
       await loadPurchaseRequests(sessionData.id);
-      await loadLoanRequests(sessionData.id);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -145,60 +135,19 @@ export default function ChildView() {
   };
 
   const loadPurchaseRequests = async (childId: string) => {
-    let requests: any[] = [];
+    const { data: requests, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('child_id', childId)
+      .eq('requires_approval', true)
+      .order('created_at', { ascending: false });
 
-    // Tentar carregar do Supabase primeiro
-    try {
-      const { data: supabaseRequests, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('child_id', childId)
-        .eq('requires_approval', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.warn('⚠️ Erro no Supabase, usando localStorage fallback:', error.message);
-      } else {
-        requests = supabaseRequests || [];
-        console.log('✅ Pedidos carregados do Supabase:', requests);
-      }
-    } catch (error) {
-      console.warn('⚠️ Supabase não disponível, usando localStorage fallback');
-    }
-
-    // Fallback: Carregar também do localStorage 
-    try {
-      const localRequests = JSON.parse(localStorage.getItem('familyPendingRequests') || '[]');
-      const childLocalRequests = localRequests.filter((req: any) => 
-        req.child_id === childId && req.status === 'pending' && req.type === 'spending'
-      );
-      
-      if (childLocalRequests.length > 0) {
-        console.log('💾 Pedidos adicionais carregados do localStorage:', childLocalRequests);
-        requests = [...requests, ...childLocalRequests];
-      }
-    } catch (localError) {
-      console.warn('⚠️ Erro ao ler localStorage:', localError);
-    }
-
-    console.log('🎯 Total de pedidos carregados para criança:', requests);
-    setPendingPurchases(requests);
-  };
-
-  // Carregar pedidos de empréstimo da tabela purchase_requests
-  const loadLoanRequests = async (childId: string) => {
-    try {
-      console.log('🔍 Carregando pedidos de empréstimo para criança:', childId);
-      const loanRequests = await LoanService.getLoanRequests();
-      
-      // Filtrar apenas os pedidos desta criança
-      const childLoanRequests = loanRequests.filter(request => request.child_id === childId);
-      
-      console.log('✅ Pedidos de empréstimo carregados:', childLoanRequests);
-      setPendingRequests(childLoanRequests);
-    } catch (error) {
-      console.error('❌ Erro ao carregar pedidos de empréstimo:', error);
-      setPendingRequests([]);
+    if (error) {
+      console.error('❌ Erro ao carregar pedidos:', error);
+      setPendingPurchases([]);
+    } else {
+      console.log('✅ Pedidos carregados:', requests);
+      setPendingPurchases(requests || []);
     }
   };
 
@@ -293,24 +242,21 @@ export default function ChildView() {
     category: '',
   });
 
-  // Categorias dinâmicas do sistema centralizado
-  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
-
-  // Carregar categorias do sistema
-  useEffect(() => {
-    const loadCategories = () => {
-      const categories = CategoriesService.getCategories();
-      // Converter para o formato esperado pelos componentes
-      const formattedCategories = categories.map(cat => ({
-        name: cat.name,
-        icon: cat.icon
-      }));
-      setAvailableCategories(formattedCategories);
-      console.log('📂 Categorias carregadas para criança:', formattedCategories);
-    };
-
-    loadCategories();
-  }, []);
+  // Categorias disponíveis
+  const availableCategories = [
+    { name: 'Jogos', icon: '🎮' },
+    { name: 'Roupas', icon: '👕' },
+    { name: 'Livros', icon: '📚' },
+    { name: 'Esportes', icon: '⚽' },
+    { name: 'Eletrônicos', icon: '📱' },
+    { name: 'Brinquedos', icon: '🧸' },
+    { name: 'Música', icon: '🎵' },
+    { name: 'Arte', icon: '🎨' },
+    { name: 'Viagem', icon: '✈️' },
+    { name: 'Educação', icon: '📖' },
+    { name: 'Alimentação', icon: '🍔' },
+    { name: 'Emergência', icon: '🚨' },
+  ];
 
   // Funções de alocação de dinheiro
   const payLoan = async () => {
@@ -371,7 +317,7 @@ export default function ChildView() {
     );
   };
 
-  const contributeToGoal = async (goalId: string, goalName: string) => {
+  const contributeToGoal = async (goalName: string) => {
     const currentBalance = currentChild?.balance || 0;
     const amountStr = prompt(
       `Quanto você quer guardar para "${goalName}"?\n\nSeu saldo: R$ ${currentBalance.toFixed(2)}`
@@ -391,68 +337,26 @@ export default function ChildView() {
       return;
     }
 
-    if (!currentChild) {
-      alert('❌ Erro: Dados da criança não encontrados.');
-      return;
+    // Atualizar saldo no Supabase
+    const newBalance = currentBalance - amount;
+    if (currentChild) {
+      await updateChildBalance(currentChild.id, newBalance);
     }
+    setRecentTransactions(prev => [
+      {
+        id: Date.now().toString(),
+        type: 'spent' as const,
+        amount: amount,
+        description: `Contribuição - ${goalName}`,
+        date: 'Agora',
+        icon: '🎯',
+      },
+      ...prev,
+    ]);
 
-    try {
-      console.log('💰 Contribuindo para meta via API:', {
-        goal_id: goalId,
-        child_id: currentChild.id,
-        amount,
-        goalName
-      });
-
-      const response = await fetch('/api/goal-contributions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          goal_id: goalId,
-          child_id: currentChild.id,
-          amount: amount,
-          description: `Contribuição para ${goalName}`,
-          contribution_type: 'manual'
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('❌ Erro da API:', result);
-        alert(`❌ Erro ao contribuir:\n${result.error}`);
-        return;
-      }
-
-      console.log('✅ Contribuição realizada via API:', result);
-
-      // Update local state
-      if (currentChild) {
-        setCurrentChild({
-          ...currentChild,
-          balance: result.data.new_child_balance
-        });
-      }
-
-      // Reload data to show updated goals
-      await loadChildData();
-
-      if (result.data.goal_completed) {
-        alert(
-          `🎉 PARABÉNS! Você completou seu sonho "${goalName}"!\n\nContribuição: R$ ${amount.toFixed(2)}\nNovo saldo: R$ ${result.data.new_child_balance.toFixed(2)}\n\n✅ Meta alcançada! 🎯`
-        );
-      } else {
-        alert(
-          `✅ R$ ${amount.toFixed(2)} guardado para ${goalName}!\nNovo saldo: R$ ${result.data.new_child_balance.toFixed(2)}`
-        );
-      }
-
-    } catch (error) {
-      console.error('❌ Erro interno:', error);
-      alert('❌ Erro interno ao contribuir. Verifique sua conexão e tente novamente.');
-    }
+    alert(
+      `✅ R$ ${amount.toFixed(2)} guardado para ${goalName}!\nNovo saldo: R$ ${newBalance.toFixed(2)}`
+    );
   };
 
   const requestPurchase = async (category: string) => {
@@ -482,7 +386,7 @@ export default function ChildView() {
       return;
     }
 
-    console.log('💰 Criando pedido via API:', {
+    console.log('💰 Criando pedido:', {
       child_id: currentChild.id,
       itemName,
       category,
@@ -490,30 +394,32 @@ export default function ChildView() {
     });
 
     try {
-      // Usar nova API para criar pedido
-      const response = await fetch('/api/purchase-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          child_id: currentChild.id,
-          item_name: itemName,
-          amount: amount,
-          category: category,
-          type: 'spending'
-        })
-      });
+      // Criar pedido de compra como transação pendente no Supabase
+      const { data: newRequest, error } = await supabase
+        .from('transactions')
+        .insert([
+          {
+            child_id: currentChild.id,
+            type: 'spending',
+            amount: amount,
+            description: `Pedido: ${itemName}`,
+            category: category,
+            status: 'pending',
+            requires_approval: true,
+          },
+        ])
+        .select()
+        .single();
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('❌ Erro da API:', result);
-        alert(`❌ Erro ao enviar pedido:\n${result.error}\n\nTente novamente.`);
+      if (error) {
+        console.error('❌ Erro detalhado do Supabase:', error);
+        alert(
+          `❌ Erro ao enviar pedido:\n${error.message}\n\nTente novamente.`
+        );
         return;
       }
 
-      console.log('✅ Pedido criado via API:', result);
+      console.log('✅ Pedido de compra criado no Supabase:', newRequest);
 
       // Recarregar lista de pedidos para mostrar atualizada
       if (currentChild) {
@@ -559,50 +465,31 @@ export default function ChildView() {
     );
 
     try {
-      console.log('🎯 Criando nova meta via API:', {
-        child_id: currentChild.id,
-        title: newGoalData.name,
-        target_amount: amount,
-        category: newGoalData.category
-      });
-
-      const response = await fetch('/api/goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          child_id: currentChild.id,
-          title: newGoalData.name,
-          description: `Meta criada pela criança: ${newGoalData.name}`,
-          target_amount: amount,
-          category: newGoalData.category.toLowerCase(),
-          priority: 'medium'
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('❌ Erro da API:', result);
-        alert(`❌ Erro ao criar meta:\n${result.error}`);
-        return;
-      }
-
-      console.log('✅ Meta criada via API:', result);
-
-      setShowGoalModal(false);
-
-      // Reload data to show new goal
-      await loadChildData();
-
-      alert(
-        `🎉 Novo sonho criado com sucesso!\n\nSonho: ${newGoalData.name}\nCategoria: ${selectedCategory?.icon} ${newGoalData.category}\nValor: R$ ${amount.toFixed(2)}\n\nVocê já pode começar a guardar dinheiro para ele! 💰`
+      // Criar solicitação de meta no Supabase
+      const purchaseRequest = await DatabaseService.createPurchaseRequest(
+        currentChild.id,
+        {
+          type: 'goal',
+          item_name: newGoalData.name,
+          amount: amount,
+          category: newGoalData.category,
+          description: `Solicitação para criar nova meta: ${newGoalData.name}`,
+          status: 'pending',
+        }
       );
 
+      if (purchaseRequest) {
+        // Atualizar lista local
+        setPendingPurchases([...pendingPurchases, purchaseRequest]);
+        setShowGoalModal(false);
+
+        alert(
+          `📨 Novo sonho enviado para aprovação!\n\nSonho: ${newGoalData.name}\nCategoria: ${selectedCategory?.icon} ${newGoalData.category}\nValor: R$ ${amount.toFixed(2)}\n\nVocê pode acompanhar na tela inicial! 😊`
+        );
+      }
     } catch (error) {
-      console.error('❌ Erro interno:', error);
-      alert('❌ Erro interno ao criar meta. Verifique sua conexão e tente novamente.');
+      console.error('Erro ao criar solicitação de meta:', error);
+      alert('❌ Erro ao enviar solicitação. Tente novamente.');
     }
   };
 
@@ -611,7 +498,7 @@ export default function ChildView() {
     setShowLoanModal(true);
   };
 
-  const submitLoanRequest = async () => {
+  const submitLoanRequest = () => {
     const amount = parseFloat(newLoanData.amount.replace(',', '.'));
 
     if (
@@ -628,30 +515,19 @@ export default function ChildView() {
       cat => cat.name === newLoanData.category
     );
 
-    // Criar pedido de empréstimo usando o serviço híbrido
-    try {
-      const newRequest = await LoanService.createLoanRequest({
-        type: 'loan',
-        child_id: currentChild?.id || 'unknown',
-        child_name: currentChild?.name || 'Criança Desconhecida',
-        reason: newLoanData.reason,
-        category: newLoanData.category,
-        categoryIcon: selectedCategory?.icon || '🏦',
-        amount
-      });
+    // Adicionar à lista de pedidos pendentes
+    const newRequest = {
+      id: Date.now().toString(),
+      type: 'loan' as const,
+      reason: newLoanData.reason,
+      category: newLoanData.category,
+      categoryIcon: selectedCategory?.icon || '🏦',
+      amount,
+      requestedAt: 'Agora',
+      status: 'pending' as const,
+    };
 
-      if (newRequest) {
-        setPendingRequests(prev => [newRequest, ...prev]);
-        console.log('✅ Pedido de empréstimo criado:', newRequest);
-        
-        // Recarregar pedidos de empréstimo para garantir sincronização
-        if (currentChild?.id) {
-          await loadLoanRequests(currentChild.id);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Erro ao criar pedido de empréstimo:', error);
-    }
+    setPendingRequests(prev => [newRequest, ...prev]);
     setShowLoanModal(false);
 
     alert(
@@ -677,7 +553,7 @@ export default function ChildView() {
       realGoals.length > 0
         ? realGoals.map(goal => ({
             id: goal.id,
-            name: goal.title,  // ✅ BUG FIX #6: Supabase field is 'title', not 'name'
+            name: goal.name,
             target: goal.target_amount,
             current: goal.current_amount,
             category: goal.category,
@@ -731,7 +607,7 @@ export default function ChildView() {
           <div className="text-xl font-bold text-gray-700 mb-2">
             Carregando seu banco...
           </div>
-          <div className="text-gray-800 font-medium">Conectando com Supabase</div>
+          <div className="text-gray-500">Conectando com Supabase</div>
         </div>
       </div>
     );
@@ -913,15 +789,14 @@ export default function ChildView() {
               </div>
             )}
 
-            {/* Pending Requests - Dados reais do Supabase + Empréstimos */}
-            {(pendingPurchases.length > 0 || pendingRequests.length > 0) && (
+            {/* Pending Requests - Dados reais do Supabase */}
+            {pendingPurchases.length > 0 && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
                 <h3 className="font-bold text-orange-800 mb-3 flex items-center">
                   <span className="mr-2">📋</span>
-                  Meus Pedidos ({pendingPurchases.length + pendingRequests.length})
+                  Meus Pedidos ({pendingPurchases.length})
                 </h3>
                 <div className="space-y-3">
-                  {/* Mostrar pedidos de compra primeiro */}
                   {pendingPurchases.slice(0, 3).map(request => (
                     <div
                       key={request.id}
@@ -939,7 +814,7 @@ export default function ChildView() {
                           <div className="font-semibold text-gray-900">
                             {request.item_name}
                           </div>
-                          <div className="text-sm text-gray-800 font-medium">
+                          <div className="text-sm text-gray-600">
                             {request.type === 'purchase'
                               ? `Compra: ${request.category}`
                               : request.type === 'goal'
@@ -947,65 +822,34 @@ export default function ChildView() {
                                 : `Empréstimo: ${request.category}`}{' '}
                             • R$ {request.amount.toFixed(2)}
                           </div>
-                          <div className="text-xs text-orange-700 font-medium">
+                          <div className="text-xs text-orange-600">
                             Enviado{' '}
                             {new Date(request.created_at).toLocaleDateString(
                               'pt-BR'
                             )}
                           </div>
                         </div>
-                        <div className="text-sm">
-                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
-                            {request.status === 'pending' ? 'Pendente' : request.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Mostrar pedidos de empréstimo em seguida */}
-                  {pendingRequests.slice(0, 3 - pendingPurchases.slice(0, 3).length).map(request => (
-                    <div
-                      key={request.id}
-                      className="bg-white rounded-lg p-3 border border-orange-200"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="text-xl">💰</div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-gray-900">
-                            {request.reason}
-                          </div>
-                          <div className="text-sm text-gray-800 font-medium">
-                            Empréstimo: {request.category} • R$ {request.amount.toFixed(2)}
-                          </div>
-                          <div className="text-xs text-orange-700 font-medium">
-                            Enviado{' '}
-                            {new Date(request.requestedAt).toLocaleDateString(
-                              'pt-BR'
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-sm">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             request.status === 'pending'
                               ? 'bg-yellow-100 text-yellow-700'
-                              : request.status === 'completed'
+                              : request.status === 'approved'
                                 ? 'bg-green-100 text-green-700'
                                 : 'bg-red-100 text-red-700'
-                          }`}>
-                            {request.status === 'pending'
-                              ? '⏰ Aguardando'
-                              : request.status === 'completed'
-                                ? '✅ Aprovado'
-                                : '❌ Negado'}
-                          </span>
+                          }`}
+                        >
+                          {request.status === 'pending'
+                            ? '⏰ Aguardando'
+                            : request.status === 'approved'
+                              ? '✅ Aprovado'
+                              : '❌ Negado'}
                         </div>
                       </div>
                     </div>
                   ))}
-                  {(pendingPurchases.length + pendingRequests.length) > 3 && (
+                  {pendingPurchases.length > 3 && (
                     <div className="text-center text-orange-600 text-sm">
-                      +{(pendingPurchases.length + pendingRequests.length) - 3} outros pedidos pendentes
+                      +{pendingPurchases.length - 3} outros pedidos pendentes
                     </div>
                   )}
                 </div>
@@ -1044,26 +888,28 @@ export default function ChildView() {
                       <div className="font-medium text-gray-900">
                         {transaction.description}
                       </div>
-                      <div className="text-xs text-gray-800 font-medium">
+                      <div className="text-xs text-gray-500">
                         {transaction.date}
                       </div>
                     </div>
                     <div
                       className={`font-bold ${
-                        transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest'
+                        transaction.type === 'received'
                           ? 'text-green-600'
                           : transaction.type === 'loan'
                             ? 'text-blue-600'
-                            : transaction.type === 'loan_payment' || transaction.type === 'spending'
-                              ? 'text-red-500'
+                            : transaction.type === 'loan_payment'
+                              ? 'text-orange-600'
                               : 'text-red-500'
                       }`}
                     >
-                      {transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest'
+                      {transaction.type === 'received'
                         ? '+'
                         : transaction.type === 'loan'
                           ? '+'
-                          : '-'}
+                          : transaction.type === 'loan_payment'
+                            ? '-'
+                            : '-'}
                       R$ {transaction.amount.toFixed(2)}
                     </div>
                   </div>
@@ -1149,7 +995,7 @@ export default function ChildView() {
                   {childData.goals.map(goal => (
                     <button
                       key={goal.id}
-                      onClick={() => contributeToGoal(goal.id, goal.name)}
+                      onClick={() => contributeToGoal(goal.name)}
                       className="w-full bg-white border border-purple-200 rounded-lg p-3 flex items-center space-x-3 hover:bg-purple-50 transition-all"
                     >
                       <div className="text-2xl">{goal.icon}</div>
@@ -1157,7 +1003,7 @@ export default function ChildView() {
                         <div className="font-semibold text-gray-900">
                           {goal.name}
                         </div>
-                        <div className="text-xs text-gray-800 font-medium">
+                        <div className="text-xs text-gray-500">
                           R$ {goal.current.toFixed(2)} de R${' '}
                           {goal.target.toFixed(2)} (
                           {Math.round((goal.current / goal.target) * 100)}%)
@@ -1189,20 +1035,46 @@ export default function ChildView() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Renderizar categorias dinâmicas para gastos */}
-                  {CategoriesService.getCategoriesByType('spending').map(category => (
-                    <button
-                      key={category.id}
-                      onClick={() => requestPurchase(category.name)}
-                      className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
-                    >
-                      <div className="text-2xl mb-1">{category.icon}</div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {category.name}
-                      </div>
-                      <div className="text-xs text-gray-800 font-semibold">Pedir aprovação</div>
-                    </button>
-                  ))}
+                  <button
+                    onClick={() => requestPurchase('Jogos')}
+                    className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
+                  >
+                    <div className="text-2xl mb-1">🎮</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      Jogos
+                    </div>
+                    <div className="text-xs text-gray-500">Pedir aprovação</div>
+                  </button>
+                  <button
+                    onClick={() => requestPurchase('Roupas')}
+                    className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
+                  >
+                    <div className="text-2xl mb-1">👕</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      Roupas
+                    </div>
+                    <div className="text-xs text-gray-500">Pedir aprovação</div>
+                  </button>
+                  <button
+                    onClick={() => requestPurchase('Livros')}
+                    className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
+                  >
+                    <div className="text-2xl mb-1">📚</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      Livros
+                    </div>
+                    <div className="text-xs text-gray-500">Pedir aprovação</div>
+                  </button>
+                  <button
+                    onClick={() => requestPurchase('Esportes')}
+                    className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
+                  >
+                    <div className="text-2xl mb-1">⚽</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      Esportes
+                    </div>
+                    <div className="text-xs text-gray-500">Pedir aprovação</div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1255,7 +1127,7 @@ export default function ChildView() {
                   ></div>
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-800 font-medium mb-3">
+                <div className="flex justify-between text-xs text-gray-500 mb-3">
                   <span>
                     {Math.round((goal.current / goal.target) * 100)}% completo
                   </span>
@@ -1265,7 +1137,7 @@ export default function ChildView() {
                 </div>
 
                 <button
-                  onClick={() => contributeToGoal(goal.id, goal.name)}
+                  onClick={() => contributeToGoal(goal.name)}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
                 >
                   💰 Contribuir para este sonho
@@ -1331,20 +1203,14 @@ export default function ChildView() {
                     <div className="font-medium text-gray-900">
                       {transaction.description}
                     </div>
-                    <div className="text-xs text-gray-800 font-medium">
+                    <div className="text-xs text-gray-500">
                       {transaction.date}
                     </div>
                   </div>
                   <div
-                    className={`font-bold ${
-                      transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest' || transaction.type === 'loan'
-                        ? 'text-green-600'
-                        : 'text-red-500'
-                    }`}
+                    className={`font-bold ${transaction.type === 'received' ? 'text-green-600' : 'text-red-500'}`}
                   >
-                    {transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest' || transaction.type === 'loan'
-                      ? '+'
-                      : '-'}R${' '}
+                    {transaction.type === 'received' ? '+' : '-'}R${' '}
                     {transaction.amount.toFixed(2)}
                   </div>
                 </div>
@@ -1390,17 +1256,17 @@ export default function ChildView() {
         {/* Navigation */}
         <div className="p-4 flex justify-center space-x-4">
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/demo-parent-view')}
             className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg"
           >
             👨‍💼 Ver como Pai
           </button>
 
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/system-overview')}
             className="bg-gray-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-600"
           >
-            🏠 Voltar ao Início
+            ← Voltar ao Overview
           </button>
         </div>
       </div>
@@ -1415,7 +1281,7 @@ export default function ChildView() {
               </h2>
               <button
                 onClick={() => setShowGoalModal(false)}
-                className="text-gray-800 font-medium hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-700 text-2xl"
               >
                 ×
               </button>
@@ -1501,7 +1367,7 @@ export default function ChildView() {
               </h2>
               <button
                 onClick={() => setShowLoanModal(false)}
-                className="text-gray-800 font-medium hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-700 text-2xl"
               >
                 ×
               </button>

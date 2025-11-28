@@ -21,6 +21,7 @@ export interface Child {
   name: string;
   pin: string;
   avatar: string;
+  birth_date?: string; // Data de nascimento (formato: YYYY-MM-DD)
   balance: number;
   total_earned: number;
   total_spent: number;

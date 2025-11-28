@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpar Storage - Banco da Família</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #ff4444;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover { background: #ff6666; }
+        .success { color: #00aa00; font-weight: bold; }
+        .info { color: #666; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Limpar Dados Corrompidos</h1>
+        <div class="info">
+            Esta página força a limpeza completa de todos os dados corrompidos do localStorage.
+        </div>
+        
+        <button onclick="clearAllData()">🗑️ Limpar TODOS os Dados</button>
+        <button onclick="window.location.href='/dashboard'">📊 Ir para Dashboard</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function clearAllData() {
+            try {
+                // Remover todas as chaves relacionadas ao sistema
+                const keysToRemove = [
+                    'familyChildren',
+                    'familyPendingRequests', 
+                    'authenticatedChild',
+                    'familyCategories',
+                    'familyTransactions'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log('🗑️ Removido:', key);
+                });
+                
+                // Limpar tudo relacionado ao sistema
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('family') || key.includes('child') || key.includes('bank')) {
+                        localStorage.removeItem(key);
+                        console.log('🗑️ Removido:', key);
+                    }
+                });
+                
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ Todos os dados foram limpos com sucesso!<br>Agora vá para o Dashboard.</div>';
+                    
+            } catch (error) {
+                console.error('Erro ao limpar dados:', error);
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ Erro ao limpar dados: ' + error.message + '</div>';
+            }
+        }
+        
+        // Mostrar dados atuais
+        window.onload = function() {
+            const keys = Object.keys(localStorage).filter(key => 
+                key.includes('family') || key.includes('child') || key.includes('bank')
+            );
+            
+            if (keys.length > 0) {
+                console.log('📊 Dados encontrados no localStorage:', keys);
+                keys.forEach(key => {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        console.log('📊', key, ':', data);
+                    } catch (e) {
+                        console.log('📊', key, ':', localStorage.getItem(key));
+                    }
+                });
+            } else {
+                console.log('✅ Nenhum dado relacionado encontrado no localStorage');
+            }
+        };
+    </script>
+</body>
+</html>
