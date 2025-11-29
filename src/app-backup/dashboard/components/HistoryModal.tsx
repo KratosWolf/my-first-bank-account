@@ -75,10 +75,11 @@ export default function HistoryModal({
                 const child = getChildInfo(transaction.childId);
                 const categoryInfo = getCategoryInfo(transaction.category);
                 // Corrigir lógica: usar o campo 'type' ao invés do sinal do amount
-                const isIncome = transaction.type === 'earning' ||
-                                 transaction.type === 'interest' ||
-                                 transaction.type === 'allowance' ||
-                                 transaction.type === 'transfer';
+                const isIncome =
+                  transaction.type === 'earning' ||
+                  transaction.type === 'interest' ||
+                  transaction.type === 'allowance' ||
+                  transaction.type === 'transfer';
 
                 return (
                   <div
@@ -116,7 +117,8 @@ export default function HistoryModal({
                             isIncome ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
-                          {isIncome ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
+                          {isIncome ? '+' : '-'}R${' '}
+                          {transaction.amount.toFixed(2)}
                         </p>
                         <p className="text-xs text-gray-500">
                           {isIncome ? 'Recebido' : 'Gasto'}
