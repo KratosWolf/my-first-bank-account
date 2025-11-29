@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import ChildModal from '../components/ChildModal';
 import CategoriesManager from '../components/CategoriesManager';
 import { ChildrenService } from '../src/lib/services/childrenService';
@@ -7,7 +9,18 @@ import type { Child } from '../src/lib/supabase';
 import { calculateAge } from '../src/lib/utils/date';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const user = session?.user as any;
   const [children, setChildren] = useState<Child[]>([]);
+
+  // Protect route - redirect to signin if not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      console.log('⛔ Usuário não autenticado, redirecionando para login...');
+      router.push('/auth/signin');
+    }
+  }, [status, router]);
 
   const [analytics, setAnalytics] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -411,6 +424,22 @@ export default function DashboardPage() {
     setTransactionAmount(amount.toString());
   };
 
+  // Handle logout with complete session cleanup
+  const handleLogout = async () => {
+    try {
+      console.log('🚪 Iniciando logout...');
+      // Force signOut with redirect
+      await signOut({
+        callbackUrl: '/auth/signin',
+        redirect: true
+      });
+    } catch (error) {
+      console.error('❌ Erro ao fazer logout:', error);
+      // Fallback: force redirect manually
+      window.location.href = '/auth/signin';
+    }
+  };
+
   // Calculate real analytics based on current children data from Supabase
   const calculateRealAnalytics = async () => {
     if (children.length === 0) {
@@ -559,6 +588,23 @@ export default function DashboardPage() {
     return calculatedAnalytics;
   };
 
+  // Show loading state while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-blue-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if not authenticated
+  if (status === 'unauthenticated') {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -567,18 +613,25 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                👨‍👩‍👧‍👦
+                {user?.avatar || '👨‍👩‍👧‍👦'}
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
                   🏦 Banco da Família - Dashboard Parental
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Olá, Usuário
+                  Olá, {user?.userName || user?.name || 'Usuário'}
                 </p>
               </div>
             </div>
             <div className="flex space-x-2">
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                title="Sair da conta"
+              >
+                🚪 Sair
+              </button>
               <button
                 onClick={() => {
                   if (confirm('Limpar todos os dados corrompidos e resetar para dados padrão?')) {

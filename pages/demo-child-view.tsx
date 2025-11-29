@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useSession, signOut } from 'next-auth/react';
 import { LoanService } from '../src/lib/services/loanService';
 import { supabase } from '@/lib/supabase';
 import { DatabaseService } from '@/lib/services/database';
@@ -29,46 +30,37 @@ interface Loan {
 
 export default function ChildView() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [selectedTab, setSelectedTab] = useState('home');
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // Verificar sessão autenticada da criança
+  // Proteger página: apenas criança dona do perfil OU pais da família podem acessar
   useEffect(() => {
-    const checkChildSession = () => {
-      const authenticatedChild = sessionStorage.getItem('authenticatedChild');
-      if (!authenticatedChild) {
-        // Redirecionar para login se não há criança autenticada
-        console.log('❌ Nenhuma criança autenticada, redirecionando para login');
-        router.push('/child-login');
-        return;
-      }
+    if (status === 'loading') return;
 
-      try {
-        const session = JSON.parse(authenticatedChild);
-        // Use authenticated child data directly
-        console.log('👶 Criança autenticada:', session.name);
-        
-        // Store in localStorage for component access (temporary for session)
-        localStorage.setItem('child-session', JSON.stringify({
-          id: session.id,
-          name: session.name,
-          age: session.age,
-          avatar: session.avatar,
-          balance: session.balance,
-          level: session.level,
-          xp: session.xp,
-          loginTime: new Date().toISOString()
-        }));
-      } catch (error) {
-        console.error('❌ Erro ao processar sessão autenticada:', error);
-        sessionStorage.removeItem('authenticatedChild');
-        localStorage.removeItem('child-session');
-        router.push('/child-login');
-        return;
-      }
-    };
+    if (status === 'unauthenticated') {
+      console.log('⛔ Usuário não autenticado, redirecionando para login...');
+      router.push('/auth/signin');
+      return;
+    }
 
-    checkChildSession();
-  }, [router]);
+    if (status === 'authenticated' && session?.user) {
+      const user = session.user as any;
+      const { childId: queryChildId } = router.query;
+
+      // Verificar autorização
+      const isChildOwner = user.role === 'child' && user.childId === queryChildId;
+      const isParent = user.role === 'parent';
+
+      if (isChildOwner || isParent) {
+        console.log('✅ Acesso autorizado:', { role: user.role, isChildOwner, isParent });
+        setIsAuthorized(true);
+      } else {
+        console.log('⛔ Acesso negado - usuário não autorizado');
+        router.push('/acesso-negado');
+      }
+    }
+  }, [status, session, router]);
 
   // Estados para dados reais do Supabase
   const [currentChild, setCurrentChild] = useState<Child | null>(null);
@@ -81,31 +73,38 @@ export default function ChildView() {
 
   // useEffect para carregar dados reais do Supabase
   useEffect(() => {
-    loadChildData();
-  }, []);
+    if (isAuthorized && router.query.childId) {
+      loadChildData(router.query.childId as string);
+    }
+  }, [isAuthorized, router.query.childId]);
 
-  const loadChildData = async () => {
+  const loadChildData = async (childId: string) => {
     setLoading(true);
     try {
-      console.log('🔍 Carregando dados da criança do Supabase...');
+      console.log('🔍 Carregando dados da criança do Supabase...', childId);
 
-      // Obter dados da sessão
-      const childSession = localStorage.getItem('child-session');
-      if (!childSession) {
-        console.log('⚠️ Sessão não encontrada durante carregamento, criando sessão demo...');
-        createDemoData();
+      // Buscar dados da criança no Supabase
+      const { data: childData, error: childError } = await supabase
+        .from('children')
+        .select('*')
+        .eq('id', childId)
+        .single();
+
+      if (childError || !childData) {
+        console.error('❌ Erro ao carregar dados da criança:', childError);
+        alert('❌ Erro ao carregar dados da criança. Tente novamente.');
+        router.push('/dashboard');
         return;
       }
 
-      const sessionData = JSON.parse(childSession);
-      console.log('✅ Dados da sessão:', sessionData);
-      setCurrentChild(sessionData);
+      console.log('✅ Dados da criança carregados:', childData);
+      setCurrentChild(childData);
 
       // Carregar dados relacionados
-      await loadSupabaseGoals(sessionData.id);
-      await loadSupabaseTransactions(sessionData.id);
-      await loadPurchaseRequests(sessionData.id);
-      await loadLoanRequests(sessionData.id);
+      await loadSupabaseGoals(childId);
+      await loadSupabaseTransactions(childId);
+      await loadPurchaseRequests(childId);
+      await loadLoanRequests(childId);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -722,7 +721,24 @@ export default function ChildView() {
     </button>
   );
 
-  // Tela de loading
+  // Verificando autenticação
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-purple-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Não autorizado - será redirecionado
+  if (!isAuthorized) {
+    return null;
+  }
+
+  // Tela de loading dos dados
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
@@ -750,9 +766,16 @@ export default function ChildView() {
             </div>
             <div className="text-right flex flex-col items-end space-y-2">
               <button
-                onClick={() => {
-                  localStorage.removeItem('child-session');
-                  router.push('/');
+                onClick={async () => {
+                  try {
+                    await signOut({
+                      callbackUrl: '/auth/signin',
+                      redirect: true
+                    });
+                  } catch (error) {
+                    console.error('❌ Erro ao fazer logout:', error);
+                    window.location.href = '/auth/signin';
+                  }
                 }}
                 className="bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-xs transition-colors"
               >
