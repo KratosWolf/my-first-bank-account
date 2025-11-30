@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '@/src/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 /**
  * API Cron para Aplicação Automática de Mesadas
