@@ -13,27 +13,18 @@ export default NextAuth({
     signIn: '/auth/signin',
   },
   callbacks: {
-    async redirect({ url, baseUrl, token }) {
-      console.log('NextAuth redirect:', { url, baseUrl, role: token?.role });
+    async redirect({ url, baseUrl }) {
+      console.log('NextAuth redirect:', { url, baseUrl });
 
-      // Redirecionar baseado no role após login/callback
+      // Após callback do OAuth, redirecionar para página intermediária
       if (
         url.includes('/api/auth/callback') ||
         url.includes('/api/auth/signin')
       ) {
-        // Child: redirecionar para demo-child-view com childId
-        if (token?.role === 'child' && token?.childId) {
-          const childUrl = `${baseUrl}/demo-child-view?childId=${token.childId}`;
-          console.log('🧒 Redirecionando child para:', childUrl);
-          return childUrl;
-        }
-
-        // Parent: redirecionar para dashboard
-        if (token?.role === 'parent') {
-          const dashboardUrl = `${baseUrl}/dashboard`;
-          console.log('👨 Redirecionando parent para:', dashboardUrl);
-          return dashboardUrl;
-        }
+        // Redirecionar para index que fará o roteamento correto
+        const indexUrl = `${baseUrl}/`;
+        console.log('🔄 Redirecionando para index para roteamento:', indexUrl);
+        return indexUrl;
       }
 
       // Se URL já for absoluta e do mesmo domínio, usar ela
