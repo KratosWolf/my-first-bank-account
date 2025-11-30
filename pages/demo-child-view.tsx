@@ -1466,22 +1466,24 @@ export default function ChildView() {
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="p-4 flex justify-center space-x-4">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg"
-          >
-            👨‍💼 Ver como Pai
-          </button>
+        {/* Navigation - Mostrar APENAS para pais visualizando */}
+        {session?.user && (session.user as any).role === 'parent' && (
+          <div className="p-4 flex justify-center space-x-4">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg"
+            >
+              👨‍💼 Ver como Pai
+            </button>
 
-          <button
-            onClick={() => router.push('/')}
-            className="bg-gray-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-600"
-          >
-            🏠 Voltar ao Início
-          </button>
-        </div>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-gray-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-600"
+            >
+              🏠 Voltar ao Início
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal Novo Sonho */}
