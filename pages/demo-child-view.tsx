@@ -10,7 +10,14 @@ import { TransactionService } from '@/lib/services/transactions';
 import { GoalsService } from '@/lib/services/goals';
 import { GamificationService } from '@/lib/services/gamification';
 import { CategoriesService } from '@/lib/services/categoriesService';
-import type { Child, Transaction, Goal, PurchaseRequest } from '@/lib/supabase';
+import { AllowanceService } from '@/lib/services/allowanceService';
+import type {
+  Child,
+  Transaction,
+  Goal,
+  PurchaseRequest,
+  AllowanceConfig,
+} from '@/lib/supabase';
 
 interface Achievement {
   id: string;
@@ -74,6 +81,8 @@ export default function ChildView() {
   const [pendingPurchases, setPendingPurchases] = useState<PurchaseRequest[]>(
     []
   );
+  const [allowanceConfig, setAllowanceConfig] =
+    useState<AllowanceConfig | null>(null);
   const [loading, setLoading] = useState(true);
 
   // useEffect para carregar dados reais do Supabase
@@ -110,10 +119,37 @@ export default function ChildView() {
       await loadSupabaseTransactions(childId);
       await loadPurchaseRequests(childId);
       await loadLoanRequests(childId);
+      await loadAllowanceConfig(childId);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAllowanceConfig = async (childId: string) => {
+    try {
+      console.log(
+        '💰 Carregando configuração de mesada para criança:',
+        childId
+      );
+      const config = await AllowanceService.getConfigByChildId(childId);
+
+      if (config) {
+        console.log('✅ Configuração de mesada carregada:', {
+          amount: config.amount,
+          frequency: config.frequency,
+          next_payment_date: config.next_payment_date,
+          is_active: config.is_active,
+        });
+        setAllowanceConfig(config);
+      } else {
+        console.log('ℹ️ Nenhuma configuração de mesada encontrada');
+        setAllowanceConfig(null);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar configuração de mesada:', error);
+      setAllowanceConfig(null);
     }
   };
 
@@ -686,6 +722,28 @@ export default function ChildView() {
     );
   };
 
+  // Calcular descrição da próxima mesada
+  const getAllowanceDescription = () => {
+    if (!allowanceConfig || !allowanceConfig.is_active) {
+      return { amount: 0, description: 'Não configurado' };
+    }
+
+    const amount = allowanceConfig.amount || 0;
+    const nextDate = allowanceConfig.next_payment_date
+      ? new Date(allowanceConfig.next_payment_date).toLocaleDateString('pt-BR')
+      : 'Data não definida';
+
+    const frequencyText =
+      AllowanceService.getFrequencyDescription(allowanceConfig);
+
+    return {
+      amount,
+      description: `${nextDate} (${frequencyText})`,
+    };
+  };
+
+  const allowanceInfo = getAllowanceDescription();
+
   // Dados híbridos - usa Supabase quando disponível, fallback para mock
   const childData = {
     name: currentChild?.name || 'Criança',
@@ -696,8 +754,8 @@ export default function ChildView() {
     xp: currentChild?.xp || 0,
     xpToNext: 100, // Próximo nível em 100 XP para iniciante
     currentStreak: currentChild?.streak_count || 0,
-    weeklyAllowance: 0,
-    nextAllowanceDate: 'Não configurado',
+    weeklyAllowance: allowanceInfo.amount,
+    nextAllowanceDate: allowanceInfo.description,
     activeLoan: activeLoan,
     achievements: [], // Sem conquistas para conta nova
     goals:
