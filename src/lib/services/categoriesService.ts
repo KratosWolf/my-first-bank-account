@@ -1,126 +1,208 @@
-// Serviço para gerenciar categorias de gastos e sonhos
+// Serviço para gerenciar categorias de gastos - CONECTADO AO SUPABASE
+import { supabase } from '../supabase';
 
+// Interface atualizada para refletir o schema do Supabase
 export interface Category {
   id: string;
   name: string;
   icon: string;
-  type: 'spending' | 'dream' | 'both'; // Tipo de categoria
-  color?: string; // Cor opcional para personalização
+  color: string;
+  monthly_limit: number;
+  quarterly_limit: number;
+  enabled: boolean;
+  family_id?: string | null;
+  created_at?: string;
 }
 
-// Categorias padrão do sistema
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: '1', name: 'Jogos', icon: '🎮', type: 'both' },
-  { id: '2', name: 'Roupas', icon: '👕', type: 'both' },
-  { id: '3', name: 'Livros', icon: '📚', type: 'both' },
-  { id: '4', name: 'Esportes', icon: '⚽', type: 'both' },
-  { id: '5', name: 'Eletrônicos', icon: '📱', type: 'both' },
-  { id: '6', name: 'Brinquedos', icon: '🧸', type: 'both' },
-  { id: '7', name: 'Alimentação', icon: '🍕', type: 'spending' },
-  { id: '8', name: 'Educação', icon: '📖', type: 'both' },
-  { id: '9', name: 'Viagem', icon: '✈️', type: 'dream' },
-  { id: '10', name: 'Música', icon: '🎵', type: 'both' },
-];
+// Tipo para criar/atualizar categorias (sem id, created_at)
+export type CategoryInput = Omit<Category, 'id' | 'created_at'>;
 
 export class CategoriesService {
-  private static STORAGE_KEY = 'familyCategories';
-
-  // Carregar categorias do localStorage ou usar padrão
-  static getCategories(): Category[] {
+  // Carregar todas as categorias ativas do Supabase
+  static async getCategories(): Promise<Category[]> {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const categories = JSON.parse(stored);
-        console.log('📂 Categorias carregadas do localStorage:', categories);
-        return categories;
+      const { data, error } = await supabase
+        .from('spending_categories')
+        .select('*')
+        .eq('enabled', true)
+        .order('name');
+
+      if (error) {
+        console.error('❌ Erro ao carregar categorias do Supabase:', error);
+        throw error;
       }
-      
-      // Usar categorias padrão na primeira execução
-      this.saveCategories(DEFAULT_CATEGORIES);
-      return DEFAULT_CATEGORIES;
-    } catch (error) {
-      console.error('❌ Erro ao carregar categorias:', error);
-      return DEFAULT_CATEGORIES;
-    }
-  }
 
-  // Salvar categorias no localStorage
-  static saveCategories(categories: Category[]): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(categories));
-      console.log('📂 Categorias salvas no localStorage');
+      console.log('📂 Categorias carregadas do Supabase:', data?.length || 0);
+      return (data || []) as Category[];
     } catch (error) {
-      console.error('❌ Erro ao salvar categorias:', error);
+      console.error('❌ Erro ao buscar categorias:', error);
+      return [];
     }
   }
 
   // Adicionar nova categoria
-  static addCategory(category: Omit<Category, 'id'>): Category {
-    const categories = this.getCategories();
-    const newCategory: Category = {
-      ...category,
-      id: Date.now().toString(), // ID simples baseado em timestamp
-    };
-    
-    categories.push(newCategory);
-    this.saveCategories(categories);
-    
-    console.log('✅ Nova categoria adicionada:', newCategory);
-    return newCategory;
+  static async addCategory(
+    category: Partial<CategoryInput>
+  ): Promise<Category | null> {
+    try {
+      const newCategory = {
+        name: category.name || '',
+        icon: category.icon || '📦',
+        color: category.color || '#3B82F6',
+        monthly_limit: category.monthly_limit || 0,
+        quarterly_limit: category.quarterly_limit || 0,
+        enabled: category.enabled !== undefined ? category.enabled : true,
+        family_id: category.family_id || null,
+      };
+
+      const { data, error } = await supabase
+        .from('spending_categories')
+        .insert([newCategory])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erro ao adicionar categoria:', error);
+        throw error;
+      }
+
+      console.log('✅ Nova categoria adicionada:', data);
+      return data as Category;
+    } catch (error) {
+      console.error('❌ Erro ao criar categoria:', error);
+      return null;
+    }
   }
 
   // Atualizar categoria existente
-  static updateCategory(id: string, updates: Partial<Omit<Category, 'id'>>): Category | null {
-    const categories = this.getCategories();
-    const index = categories.findIndex(cat => cat.id === id);
-    
-    if (index === -1) {
-      console.error('❌ Categoria não encontrada:', id);
+  static async updateCategory(
+    id: string,
+    updates: Partial<CategoryInput>
+  ): Promise<Category | null> {
+    try {
+      const { data, error } = await supabase
+        .from('spending_categories')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erro ao atualizar categoria:', error);
+        throw error;
+      }
+
+      console.log('✅ Categoria atualizada:', data);
+      return data as Category;
+    } catch (error) {
+      console.error('❌ Erro ao atualizar categoria:', error);
       return null;
     }
-    
-    categories[index] = { ...categories[index], ...updates };
-    this.saveCategories(categories);
-    
-    console.log('✅ Categoria atualizada:', categories[index]);
-    return categories[index];
   }
 
-  // Remover categoria
-  static deleteCategory(id: string): boolean {
-    const categories = this.getCategories();
-    const filteredCategories = categories.filter(cat => cat.id !== id);
-    
-    if (filteredCategories.length === categories.length) {
-      console.error('❌ Categoria não encontrada para exclusão:', id);
+  // Remover categoria (soft delete - marca como disabled)
+  static async deleteCategory(id: string): Promise<boolean> {
+    try {
+      // Soft delete: apenas desabilita a categoria
+      const { error } = await supabase
+        .from('spending_categories')
+        .update({ enabled: false })
+        .eq('id', id);
+
+      if (error) {
+        console.error('❌ Erro ao remover categoria:', error);
+        throw error;
+      }
+
+      console.log('✅ Categoria desabilitada:', id);
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao deletar categoria:', error);
       return false;
     }
-    
-    this.saveCategories(filteredCategories);
-    console.log('✅ Categoria removida:', id);
-    return true;
   }
 
-  // Obter categorias por tipo
-  static getCategoriesByType(type: 'spending' | 'dream' | 'both'): Category[] {
-    const categories = this.getCategories();
-    
-    if (type === 'both') {
-      return categories;
+  // Hard delete (remover permanentemente) - usar com cuidado
+  static async permanentlyDeleteCategory(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('spending_categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('❌ Erro ao remover categoria permanentemente:', error);
+        throw error;
+      }
+
+      console.log('✅ Categoria removida permanentemente:', id);
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao deletar categoria:', error);
+      return false;
     }
-    
-    return categories.filter(cat => cat.type === type || cat.type === 'both');
   }
 
   // Obter categoria por nome (para compatibilidade com código existente)
-  static getCategoryByName(name: string): Category | undefined {
-    const categories = this.getCategories();
-    return categories.find(cat => cat.name === name);
+  static async getCategoryByName(name: string): Promise<Category | null> {
+    try {
+      const { data, error } = await supabase
+        .from('spending_categories')
+        .select('*')
+        .eq('name', name)
+        .eq('enabled', true)
+        .single();
+
+      if (error) {
+        console.error('❌ Erro ao buscar categoria por nome:', error);
+        return null;
+      }
+
+      return data as Category;
+    } catch (error) {
+      console.error('❌ Erro ao buscar categoria:', error);
+      return null;
+    }
   }
 
-  // Resetar para categorias padrão
-  static resetToDefault(): void {
-    this.saveCategories(DEFAULT_CATEGORIES);
-    console.log('🔄 Categorias resetadas para padrão');
+  // Obter categoria por ID
+  static async getCategoryById(id: string): Promise<Category | null> {
+    try {
+      const { data, error } = await supabase
+        .from('spending_categories')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('❌ Erro ao buscar categoria por ID:', error);
+        return null;
+      }
+
+      return data as Category;
+    } catch (error) {
+      console.error('❌ Erro ao buscar categoria:', error);
+      return null;
+    }
+  }
+
+  // Obter todas as categorias (incluindo desabilitadas)
+  static async getAllCategories(): Promise<Category[]> {
+    try {
+      const { data, error } = await supabase
+        .from('spending_categories')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('❌ Erro ao carregar todas as categorias:', error);
+        throw error;
+      }
+
+      return (data || []) as Category[];
+    } catch (error) {
+      console.error('❌ Erro ao buscar categorias:', error);
+      return [];
+    }
   }
 }
