@@ -3,6 +3,8 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import ChildModal from '../components/ChildModal';
 import CategoriesManager from '../components/CategoriesManager';
+import InterestConfigManager from '../components/InterestConfigManager';
+import AllowanceConfigManager from '../components/AllowanceConfigManager';
 import { ChildrenService } from '../src/lib/services/childrenService';
 import { LoanService } from '../src/lib/services/loanService';
 import type { Child } from '../src/lib/supabase';
@@ -31,6 +33,8 @@ export default function DashboardPage() {
   const [calculatedAnalytics, setCalculatedAnalytics] = useState(null);
   const [isChildModalOpen, setIsChildModalOpen] = useState(false);
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
+  const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
+  const [isAllowanceModalOpen, setIsAllowanceModalOpen] = useState(false);
   const [editingChild, setEditingChild] = useState(null);
   const [modalMode, setModalMode] = useState('add');
 
@@ -732,6 +736,20 @@ export default function DashboardPage() {
                 🏷️ Categorias
               </button>
               <button
+                onClick={() => setIsInterestModalOpen(true)}
+                className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
+                title="Configurar rendimento automático"
+              >
+                💰 Juros
+              </button>
+              <button
+                onClick={() => setIsAllowanceModalOpen(true)}
+                className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                title="Configurar mesada automática"
+              >
+                📅 Mesada
+              </button>
+              <button
                 onClick={() => (window.location.href = '/')}
                 className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
@@ -1256,6 +1274,18 @@ export default function DashboardPage() {
       <CategoriesManager
         isOpen={isCategoriesModalOpen}
         onClose={() => setIsCategoriesModalOpen(false)}
+      />
+
+      {/* Interest Config Manager Modal */}
+      <InterestConfigManager
+        isOpen={isInterestModalOpen}
+        onClose={() => setIsInterestModalOpen(false)}
+      />
+
+      {/* Allowance Config Manager Modal */}
+      <AllowanceConfigManager
+        isOpen={isAllowanceModalOpen}
+        onClose={() => setIsAllowanceModalOpen(false)}
       />
 
       {/* Transaction Modal */}

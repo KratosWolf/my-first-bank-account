@@ -12,5 +12,15 @@
   },
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/apply-interest",
+      "schedule": "0 0 1 * *"
+    },
+    {
+      "path": "/api/cron/apply-allowance",
+      "schedule": "0 8 * * *"
+    }
+  ]
 }
