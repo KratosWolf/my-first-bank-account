@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [isAllowanceModalOpen, setIsAllowanceModalOpen] = useState(false);
   const [editingChild, setEditingChild] = useState(null);
   const [modalMode, setModalMode] = useState('add');
+  const [pendingFulfillments, setPendingFulfillments] = useState([]);
 
   // Transaction modal states
   const [showTransactionModal, setShowTransactionModal] = useState(false);
@@ -118,6 +119,11 @@ export default function DashboardPage() {
   useEffect(() => {
     loadPendingRequests();
   }, [selectedPeriod, selectedChildFilter]);
+
+  // Load pending goal fulfillments
+  useEffect(() => {
+    loadPendingFulfillments();
+  }, []);
 
   // Load calculated analytics when children or filters change
   useEffect(() => {
@@ -222,6 +228,86 @@ export default function DashboardPage() {
       setPendingRequests([]);
     } finally {
       setLoadingRequests(false);
+    }
+  };
+
+  const loadPendingFulfillments = async () => {
+    try {
+      const { supabase } = await import('../src/lib/supabase');
+
+      const { data, error } = await supabase
+        .from('goals')
+        .select(
+          `
+          id, title, target_amount, current_amount, emoji,
+          fulfillment_requested_at, child_id,
+          children!inner(name, avatar)
+        `
+        )
+        .eq('fulfillment_status', 'pending')
+        .order('fulfillment_requested_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao carregar pedidos de realização:', error);
+        setPendingFulfillments([]);
+        return;
+      }
+
+      console.log('✅ Pedidos de realização carregados:', data);
+      setPendingFulfillments(data || []);
+    } catch (error) {
+      console.error('❌ Erro ao carregar pedidos de realização:', error);
+      setPendingFulfillments([]);
+    }
+  };
+
+  const handleFulfillmentDecision = async (
+    goalId,
+    action,
+    goalTitle,
+    childName
+  ) => {
+    try {
+      const actionText = action === 'approve' ? 'APROVADO' : 'REJEITADO';
+      console.log(`🔄 ${actionText} realização de sonho:`, goalId);
+
+      const response = await fetch('/api/goals/resolve-fulfillment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal_id: goalId,
+          action: action,
+          parent_id: session?.user?.email || 'unknown',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(
+          `✅ Sonho ${actionText} com sucesso!\n\n` +
+            `Criança: ${childName}\n` +
+            `Sonho: ${goalTitle}\n\n` +
+            (action === 'approve'
+              ? `🎁 Lembre-se de comprar: ${goalTitle}`
+              : `A criança será notificada.`)
+        );
+        console.log(`✅ Sonho ${actionText}:`, result);
+
+        // Recarregar pedidos de realização
+        await loadPendingFulfillments();
+      } else {
+        alert(
+          `❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} sonho:\n${result.error}`
+        );
+        console.error('❌ Erro da API:', result);
+      }
+    } catch (error) {
+      console.error(
+        `❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} sonho:`,
+        error
+      );
+      alert('❌ Erro de conexão. Tente novamente.');
     }
   };
 
@@ -762,6 +848,167 @@ export default function DashboardPage() {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Goal Fulfillment Requests Section */}
+        {pendingFulfillments.length > 0 && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-300 shadow-lg mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-amber-800 flex items-center gap-2">
+                🎁 Pedidos de Realização de Sonhos
+                <span className="bg-red-500 text-white text-sm px-2 py-1 rounded-full animate-pulse">
+                  {pendingFulfillments.length}
+                </span>
+              </h2>
+              <button
+                onClick={loadPendingFulfillments}
+                className="px-3 py-1 bg-amber-500 text-white rounded text-sm hover:bg-amber-600"
+              >
+                🔄 Atualizar
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {pendingFulfillments.map(goal => {
+                const childName = goal.children?.name || 'Criança';
+                const childAvatar = goal.children?.avatar || '👶';
+                const percentage = Math.round(
+                  (goal.current_amount / goal.target_amount) * 100
+                );
+
+                return (
+                  <div
+                    key={goal.id}
+                    className="bg-white rounded-lg shadow-md p-5 border border-amber-200"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4 flex-1">
+                        {/* Child Avatar */}
+                        <div className="text-4xl">{childAvatar}</div>
+
+                        {/* Goal Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-bold text-lg text-gray-900">
+                              {childName}
+                            </h3>
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                              Criança
+                            </span>
+                          </div>
+
+                          {/* Goal Details */}
+                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded p-4 mb-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl">
+                                {goal.emoji || '🎯'}
+                              </span>
+                              <h4 className="font-bold text-gray-900">
+                                {goal.title}
+                              </h4>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-700">
+                                  Valor do sonho:
+                                </span>
+                                <p className="text-green-600 font-bold">
+                                  R$ {goal.target_amount.toFixed(2)}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">
+                                  Valor economizado:
+                                </span>
+                                <p className="text-blue-600 font-bold">
+                                  R$ {goal.current_amount.toFixed(2)} (
+                                  {percentage}%)
+                                </p>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="font-medium text-gray-700">
+                                  Solicitado em:
+                                </span>
+                                <p className="text-gray-600">
+                                  {new Date(
+                                    goal.fulfillment_requested_at
+                                  ).toLocaleString('pt-BR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="mb-3">
+                            <div className="flex justify-between text-xs text-gray-600 mb-1">
+                              <span>Progresso</span>
+                              <span className="font-semibold">
+                                {percentage}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
+                                style={{
+                                  width: `${Math.min(percentage, 100)}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Info Box */}
+                          <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                            <p className="text-blue-700 text-sm">
+                              💡 {childName} completou este sonho e está
+                              solicitando que você realize a compra de{' '}
+                              <strong>{goal.title}</strong>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col gap-2 ml-4">
+                        <button
+                          onClick={() =>
+                            handleFulfillmentDecision(
+                              goal.id,
+                              'approve',
+                              goal.title,
+                              childName
+                            )
+                          }
+                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                        >
+                          ✅ APROVAR
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleFulfillmentDecision(
+                              goal.id,
+                              'reject',
+                              goal.title,
+                              childName
+                            )
+                          }
+                          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                        >
+                          ❌ RECUSAR
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">

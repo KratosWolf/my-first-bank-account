@@ -674,6 +674,52 @@ export default function ChildView() {
     setShowLoanModal(true);
   };
 
+  const requestGoalFulfillment = async (goalId: string, goalTitle: string) => {
+    if (!currentChild) {
+      alert('❌ Erro: Dados da criança não encontrados.');
+      return;
+    }
+
+    try {
+      console.log('🎁 Solicitando realização de sonho via API:', {
+        goal_id: goalId,
+        child_id: currentChild.id,
+        goalTitle,
+      });
+
+      const response = await fetch('/api/goals/request-fulfillment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          goal_id: goalId,
+          child_id: currentChild.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ Erro da API:', result);
+        alert(`❌ Erro ao enviar pedido:\n${result.error}`);
+        return;
+      }
+
+      console.log('✅ Pedido de realização enviado via API:', result);
+
+      // Reload data to show updated status
+      await loadChildData(currentChild.id);
+
+      alert(
+        `🎁 Pedido enviado!\n\nSeus pais receberão um aviso para realizar seu sonho "${goalTitle}".\n\nAgora é só esperar! 🎉`
+      );
+    } catch (error) {
+      console.error('❌ Erro interno:', error);
+      alert('❌ Erro ao enviar pedido. Tente novamente.');
+    }
+  };
+
   const submitLoanRequest = async () => {
     const amount = parseFloat(newLoanData.amount.replace(',', '.'));
 
@@ -767,6 +813,8 @@ export default function ChildView() {
             current: goal.current_amount,
             category: goal.category,
             icon: goal.icon || '🎯',
+            fulfillment_status: goal.fulfillment_status || null,
+            is_completed: goal.is_completed || false,
           }))
         : currentGoals,
     recentTransactions:
@@ -1393,12 +1441,66 @@ export default function ChildView() {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => contributeToGoal(goal.id, goal.name)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
-                >
-                  💰 Contribuir para este sonho
-                </button>
+                {/* Lógica condicional baseada no status do sonho */}
+                {goal.current >= goal.target ? (
+                  // Sonho completo (100%)
+                  goal.fulfillment_status === null ||
+                  goal.fulfillment_status === undefined ? (
+                    // Ainda não solicitou realização
+                    <button
+                      onClick={() => requestGoalFulfillment(goal.id, goal.name)}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg transition-all animate-pulse"
+                    >
+                      🎁 Pedir aos Pais para Realizar
+                    </button>
+                  ) : goal.fulfillment_status === 'pending' ? (
+                    // Aguardando aprovação dos pais
+                    <div className="w-full bg-yellow-50 border-2 border-yellow-400 rounded-lg py-3 px-4 text-center">
+                      <div className="text-yellow-700 font-semibold">
+                        ⏳ Aguardando aprovação dos pais...
+                      </div>
+                      <div className="text-xs text-yellow-600 mt-1">
+                        Seus pais vão decidir em breve!
+                      </div>
+                    </div>
+                  ) : goal.fulfillment_status === 'approved' ? (
+                    // Sonho aprovado e realizado!
+                    <div className="w-full bg-green-50 border-2 border-green-400 rounded-lg py-3 px-4 text-center">
+                      <div className="text-green-700 font-bold text-lg">
+                        ✅ Sonho realizado! 🎉
+                      </div>
+                      <div className="text-xs text-green-600 mt-1">
+                        Parabéns! Você conseguiu!
+                      </div>
+                    </div>
+                  ) : goal.fulfillment_status === 'rejected' ? (
+                    // Sonho recusado pelos pais
+                    <div className="w-full bg-red-50 border-2 border-red-300 rounded-lg py-3 px-4 text-center">
+                      <div className="text-red-700 font-semibold">
+                        ❌ Não aprovado pelos pais
+                      </div>
+                      <div className="text-xs text-red-600 mt-1">
+                        Converse com seus pais sobre isso
+                      </div>
+                    </div>
+                  ) : (
+                    // Fallback - status desconhecido
+                    <button
+                      onClick={() => contributeToGoal(goal.id, goal.name)}
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
+                    >
+                      💰 Contribuir para este sonho
+                    </button>
+                  )
+                ) : (
+                  // Sonho não completo - mostrar botão de contribuir
+                  <button
+                    onClick={() => contributeToGoal(goal.id, goal.name)}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
+                  >
+                    💰 Contribuir para este sonho
+                  </button>
+                )}
               </div>
             ))}
 
