@@ -49,11 +49,16 @@ export default function ChildView() {
       const { childId: queryChildId } = router.query;
 
       // Verificar autorização
-      const isChildOwner = user.role === 'child' && user.childId === queryChildId;
+      const isChildOwner =
+        user.role === 'child' && user.childId === queryChildId;
       const isParent = user.role === 'parent';
 
       if (isChildOwner || isParent) {
-        console.log('✅ Acesso autorizado:', { role: user.role, isChildOwner, isParent });
+        console.log('✅ Acesso autorizado:', {
+          role: user.role,
+          isChildOwner,
+          isParent,
+        });
         setIsAuthorized(true);
       } else {
         console.log('⛔ Acesso negado - usuário não autorizado');
@@ -154,9 +159,12 @@ export default function ChildView() {
         .eq('child_id', childId)
         .eq('requires_approval', true)
         .order('created_at', { ascending: false });
-      
+
       if (error) {
-        console.warn('⚠️ Erro no Supabase, usando localStorage fallback:', error.message);
+        console.warn(
+          '⚠️ Erro no Supabase, usando localStorage fallback:',
+          error.message
+        );
       } else {
         requests = supabaseRequests || [];
         console.log('✅ Pedidos carregados do Supabase:', requests);
@@ -165,15 +173,23 @@ export default function ChildView() {
       console.warn('⚠️ Supabase não disponível, usando localStorage fallback');
     }
 
-    // Fallback: Carregar também do localStorage 
+    // Fallback: Carregar também do localStorage
     try {
-      const localRequests = JSON.parse(localStorage.getItem('familyPendingRequests') || '[]');
-      const childLocalRequests = localRequests.filter((req: any) => 
-        req.child_id === childId && req.status === 'pending' && req.type === 'spending'
+      const localRequests = JSON.parse(
+        localStorage.getItem('familyPendingRequests') || '[]'
       );
-      
+      const childLocalRequests = localRequests.filter(
+        (req: any) =>
+          req.child_id === childId &&
+          req.status === 'pending' &&
+          req.type === 'spending'
+      );
+
       if (childLocalRequests.length > 0) {
-        console.log('💾 Pedidos adicionais carregados do localStorage:', childLocalRequests);
+        console.log(
+          '💾 Pedidos adicionais carregados do localStorage:',
+          childLocalRequests
+        );
         requests = [...requests, ...childLocalRequests];
       }
     } catch (localError) {
@@ -189,10 +205,12 @@ export default function ChildView() {
     try {
       console.log('🔍 Carregando pedidos de empréstimo para criança:', childId);
       const loanRequests = await LoanService.getLoanRequests();
-      
+
       // Filtrar apenas os pedidos desta criança
-      const childLoanRequests = loanRequests.filter(request => request.child_id === childId);
-      
+      const childLoanRequests = loanRequests.filter(
+        request => request.child_id === childId
+      );
+
       console.log('✅ Pedidos de empréstimo carregados:', childLoanRequests);
       setPendingRequests(childLoanRequests);
     } catch (error) {
@@ -297,15 +315,23 @@ export default function ChildView() {
 
   // Carregar categorias do sistema
   useEffect(() => {
-    const loadCategories = () => {
-      const categories = CategoriesService.getCategories();
-      // Converter para o formato esperado pelos componentes
-      const formattedCategories = categories.map(cat => ({
-        name: cat.name,
-        icon: cat.icon
-      }));
-      setAvailableCategories(formattedCategories);
-      console.log('📂 Categorias carregadas para criança:', formattedCategories);
+    const loadCategories = async () => {
+      try {
+        const categories = await CategoriesService.getCategories();
+        // Converter para o formato esperado pelos componentes
+        const formattedCategories = categories.map(cat => ({
+          name: cat.name,
+          icon: cat.icon,
+        }));
+        setAvailableCategories(formattedCategories);
+        console.log(
+          '📂 Categorias carregadas para criança:',
+          formattedCategories
+        );
+      } catch (error) {
+        console.error('❌ Erro ao carregar categorias:', error);
+        setAvailableCategories([]);
+      }
     };
 
     loadCategories();
@@ -400,7 +426,7 @@ export default function ChildView() {
         goal_id: goalId,
         child_id: currentChild.id,
         amount,
-        goalName
+        goalName,
       });
 
       const response = await fetch('/api/goal-contributions', {
@@ -413,8 +439,8 @@ export default function ChildView() {
           child_id: currentChild.id,
           amount: amount,
           description: `Contribuição para ${goalName}`,
-          contribution_type: 'manual'
-        })
+          contribution_type: 'manual',
+        }),
       });
 
       const result = await response.json();
@@ -431,7 +457,7 @@ export default function ChildView() {
       if (currentChild) {
         setCurrentChild({
           ...currentChild,
-          balance: result.data.new_child_balance
+          balance: result.data.new_child_balance,
         });
       }
 
@@ -447,10 +473,11 @@ export default function ChildView() {
           `✅ R$ ${amount.toFixed(2)} guardado para ${goalName}!\nNovo saldo: R$ ${result.data.new_child_balance.toFixed(2)}`
         );
       }
-
     } catch (error) {
       console.error('❌ Erro interno:', error);
-      alert('❌ Erro interno ao contribuir. Verifique sua conexão e tente novamente.');
+      alert(
+        '❌ Erro interno ao contribuir. Verifique sua conexão e tente novamente.'
+      );
     }
   };
 
@@ -500,8 +527,8 @@ export default function ChildView() {
           item_name: itemName,
           amount: amount,
           category: category,
-          type: 'spending'
-        })
+          type: 'spending',
+        }),
       });
 
       const result = await response.json();
@@ -562,7 +589,7 @@ export default function ChildView() {
         child_id: currentChild.id,
         title: newGoalData.name,
         target_amount: amount,
-        category: newGoalData.category
+        category: newGoalData.category,
       });
 
       const response = await fetch('/api/goals', {
@@ -576,8 +603,8 @@ export default function ChildView() {
           description: `Meta criada pela criança: ${newGoalData.name}`,
           target_amount: amount,
           category: newGoalData.category.toLowerCase(),
-          priority: 'medium'
-        })
+          priority: 'medium',
+        }),
       });
 
       const result = await response.json();
@@ -598,10 +625,11 @@ export default function ChildView() {
       alert(
         `🎉 Novo sonho criado com sucesso!\n\nSonho: ${newGoalData.name}\nCategoria: ${selectedCategory?.icon} ${newGoalData.category}\nValor: R$ ${amount.toFixed(2)}\n\nVocê já pode começar a guardar dinheiro para ele! 💰`
       );
-
     } catch (error) {
       console.error('❌ Erro interno:', error);
-      alert('❌ Erro interno ao criar meta. Verifique sua conexão e tente novamente.');
+      alert(
+        '❌ Erro interno ao criar meta. Verifique sua conexão e tente novamente.'
+      );
     }
   };
 
@@ -636,13 +664,13 @@ export default function ChildView() {
         reason: newLoanData.reason,
         category: newLoanData.category,
         categoryIcon: selectedCategory?.icon || '🏦',
-        amount
+        amount,
       });
 
       if (newRequest) {
         setPendingRequests(prev => [newRequest, ...prev]);
         console.log('✅ Pedido de empréstimo criado:', newRequest);
-        
+
         // Recarregar pedidos de empréstimo para garantir sincronização
         if (currentChild?.id) {
           await loadLoanRequests(currentChild.id);
@@ -676,7 +704,7 @@ export default function ChildView() {
       realGoals.length > 0
         ? realGoals.map(goal => ({
             id: goal.id,
-            name: goal.title,  // ✅ BUG FIX #6: Supabase field is 'title', not 'name'
+            name: goal.title, // ✅ BUG FIX #6: Supabase field is 'title', not 'name'
             target: goal.target_amount,
             current: goal.current_amount,
             category: goal.category,
@@ -747,7 +775,9 @@ export default function ChildView() {
           <div className="text-xl font-bold text-gray-700 mb-2">
             Carregando seu banco...
           </div>
-          <div className="text-gray-800 font-medium">Conectando com Supabase</div>
+          <div className="text-gray-800 font-medium">
+            Conectando com Supabase
+          </div>
         </div>
       </div>
     );
@@ -770,7 +800,7 @@ export default function ChildView() {
                   try {
                     await signOut({
                       callbackUrl: '/auth/signin',
-                      redirect: true
+                      redirect: true,
                     });
                   } catch (error) {
                     console.error('❌ Erro ao fazer logout:', error);
@@ -941,7 +971,8 @@ export default function ChildView() {
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
                 <h3 className="font-bold text-orange-800 mb-3 flex items-center">
                   <span className="mr-2">📋</span>
-                  Meus Pedidos ({pendingPurchases.length + pendingRequests.length})
+                  Meus Pedidos (
+                  {pendingPurchases.length + pendingRequests.length})
                 </h3>
                 <div className="space-y-3">
                   {/* Mostrar pedidos de compra primeiro */}
@@ -979,56 +1010,64 @@ export default function ChildView() {
                         </div>
                         <div className="text-sm">
                           <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
-                            {request.status === 'pending' ? 'Pendente' : request.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Mostrar pedidos de empréstimo em seguida */}
-                  {pendingRequests.slice(0, 3 - pendingPurchases.slice(0, 3).length).map(request => (
-                    <div
-                      key={request.id}
-                      className="bg-white rounded-lg p-3 border border-orange-200"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="text-xl">💰</div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-gray-900">
-                            {request.reason}
-                          </div>
-                          <div className="text-sm text-gray-800 font-medium">
-                            Empréstimo: {request.category} • R$ {request.amount.toFixed(2)}
-                          </div>
-                          <div className="text-xs text-orange-700 font-medium">
-                            Enviado{' '}
-                            {new Date(request.requestedAt).toLocaleDateString(
-                              'pt-BR'
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-sm">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            request.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : request.status === 'completed'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                          }`}>
                             {request.status === 'pending'
-                              ? '⏰ Aguardando'
-                              : request.status === 'completed'
-                                ? '✅ Aprovado'
-                                : '❌ Negado'}
+                              ? 'Pendente'
+                              : request.status}
                           </span>
                         </div>
                       </div>
                     </div>
                   ))}
-                  {(pendingPurchases.length + pendingRequests.length) > 3 && (
+
+                  {/* Mostrar pedidos de empréstimo em seguida */}
+                  {pendingRequests
+                    .slice(0, 3 - pendingPurchases.slice(0, 3).length)
+                    .map(request => (
+                      <div
+                        key={request.id}
+                        className="bg-white rounded-lg p-3 border border-orange-200"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="text-xl">💰</div>
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-900">
+                              {request.reason}
+                            </div>
+                            <div className="text-sm text-gray-800 font-medium">
+                              Empréstimo: {request.category} • R${' '}
+                              {request.amount.toFixed(2)}
+                            </div>
+                            <div className="text-xs text-orange-700 font-medium">
+                              Enviado{' '}
+                              {new Date(request.requestedAt).toLocaleDateString(
+                                'pt-BR'
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-sm">
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                request.status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : request.status === 'completed'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
+                              }`}
+                            >
+                              {request.status === 'pending'
+                                ? '⏰ Aguardando'
+                                : request.status === 'completed'
+                                  ? '✅ Aprovado'
+                                  : '❌ Negado'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  {pendingPurchases.length + pendingRequests.length > 3 && (
                     <div className="text-center text-orange-600 text-sm">
-                      +{(pendingPurchases.length + pendingRequests.length) - 3} outros pedidos pendentes
+                      +{pendingPurchases.length + pendingRequests.length - 3}{' '}
+                      outros pedidos pendentes
                     </div>
                   )}
                 </div>
@@ -1073,16 +1112,23 @@ export default function ChildView() {
                     </div>
                     <div
                       className={`font-bold ${
-                        transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest'
+                        transaction.type === 'received' ||
+                        transaction.type === 'earning' ||
+                        transaction.type === 'allowance' ||
+                        transaction.type === 'interest'
                           ? 'text-green-600'
                           : transaction.type === 'loan'
                             ? 'text-blue-600'
-                            : transaction.type === 'loan_payment' || transaction.type === 'spending'
+                            : transaction.type === 'loan_payment' ||
+                                transaction.type === 'spending'
                               ? 'text-red-500'
                               : 'text-red-500'
                       }`}
                     >
-                      {transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest'
+                      {transaction.type === 'received' ||
+                      transaction.type === 'earning' ||
+                      transaction.type === 'allowance' ||
+                      transaction.type === 'interest'
                         ? '+'
                         : transaction.type === 'loan'
                           ? '+'
@@ -1213,9 +1259,9 @@ export default function ChildView() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Renderizar categorias dinâmicas para gastos */}
-                  {CategoriesService.getCategoriesByType('spending').map(category => (
+                  {availableCategories.map((category, index) => (
                     <button
-                      key={category.id}
+                      key={index}
                       onClick={() => requestPurchase(category.name)}
                       className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
                     >
@@ -1223,7 +1269,9 @@ export default function ChildView() {
                       <div className="text-sm font-semibold text-gray-900">
                         {category.name}
                       </div>
-                      <div className="text-xs text-gray-800 font-semibold">Pedir aprovação</div>
+                      <div className="text-xs text-gray-800 font-semibold">
+                        Pedir aprovação
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -1360,15 +1408,23 @@ export default function ChildView() {
                   </div>
                   <div
                     className={`font-bold ${
-                      transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest' || transaction.type === 'loan'
+                      transaction.type === 'received' ||
+                      transaction.type === 'earning' ||
+                      transaction.type === 'allowance' ||
+                      transaction.type === 'interest' ||
+                      transaction.type === 'loan'
                         ? 'text-green-600'
                         : 'text-red-500'
                     }`}
                   >
-                    {transaction.type === 'received' || transaction.type === 'earning' || transaction.type === 'allowance' || transaction.type === 'interest' || transaction.type === 'loan'
+                    {transaction.type === 'received' ||
+                    transaction.type === 'earning' ||
+                    transaction.type === 'allowance' ||
+                    transaction.type === 'interest' ||
+                    transaction.type === 'loan'
                       ? '+'
-                      : '-'}R${' '}
-                    {transaction.amount.toFixed(2)}
+                      : '-'}
+                    R$ {transaction.amount.toFixed(2)}
                   </div>
                 </div>
               ))}
