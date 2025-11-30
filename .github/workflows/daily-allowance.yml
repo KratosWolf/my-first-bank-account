@@ -1,0 +1,27 @@
+name: Daily Allowance Application
+
+on:
+  schedule:
+    # Executa todo dia às 8:00 AM UTC (5:00 AM Brasília)
+    # Ajuste o horário conforme necessário
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Permite execução manual para testes
+
+jobs:
+  apply-allowance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Apply Daily Allowance
+        run: |
+          curl -X POST https://my-first-bank-account.vercel.app/api/cron/apply-allowance \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP Status: %{http_code}\n" \
+            -s -S
+
+      - name: Log Execution
+        if: always()
+        run: |
+          echo "Allowance cron executed at $(date)"
+          echo "Job status: ${{ job.status }}"
