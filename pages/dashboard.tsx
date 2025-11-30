@@ -1563,25 +1563,25 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-4 gap-2">
                   <button
                     onClick={() => handleQuickAmount(10)}
-                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-sm transition-colors"
+                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
                   >
                     R$ 10
                   </button>
                   <button
                     onClick={() => handleQuickAmount(20)}
-                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-sm transition-colors"
+                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
                   >
                     R$ 20
                   </button>
                   <button
                     onClick={() => handleQuickAmount(50)}
-                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-sm transition-colors"
+                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
                   >
                     R$ 50
                   </button>
                   <button
                     onClick={() => handleQuickAmount(100)}
-                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-sm transition-colors"
+                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
                   >
                     R$ 100
                   </button>
