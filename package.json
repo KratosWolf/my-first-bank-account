@@ -32,7 +32,7 @@
     "@eslint/eslintrc": "^3",
     "@semantic-release/changelog": "^6",
     "@semantic-release/git": "^10",
-    "@semantic-release/npm": "^10",
+    "@semantic-release/npm": "^13",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6",
     "@testing-library/react": "^15",
