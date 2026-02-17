@@ -80,9 +80,9 @@ typescript
 | 1.4 | Keep-alive do Supabase           | ✅ Completo | **Reativados 3 workflows GitHub Actions:** keep-supabase-alive.yml (pings Domingo/Quarta 9h UTC), monthly-interest.yml (dia 1 às 00h UTC), daily-allowance.yml. Workflows estavam em `disabled_inactivity` (60 dias sem commit). Testado keep-alive manualmente com sucesso (HTTP 200, Supabase respondendo). Próximo ping automático: Domingo ou Quarta às 9h UTC.                                                                                  |
 | 1.5 | Audit de dependências            | ✅ Completo | **IMPLEMENTADO:** Auditadas 28 dependências outdated. Atualizadas 14 críticas/importantes: @supabase/supabase-js (2.96.0), dotenv (17.3.1), typescript (5.9.3), next (14.2.35), tailwindcss (4.1.18), playwright (1.58.2), prettier (3.8.1), @types/\* atualizados. Mantidos em versões atuais (sem breaking changes): React 18, Next 14, Jest 29, ESLint 9. Build validado. Documento de auditoria criado em docs/DEPENDENCY_AUDIT_2026-02-17.md.   |
 | 1.6 | Correção de labels e cleanup     | ✅ Completo | **BUG FIX #1:** Corrigido label incorreto na seção "Meus Pedidos" (demo-child-view:875) - purchase_requests exibindo "Empréstimo: [categoria]" agora mostram "Pedido: [categoria]". **INVESTIGAÇÃO #2:** LoanService investigado - NÃO é órfão, usa tabela `purchase_requests` existente com filtro `category='Empréstimo'`. Serviço mantido como camada de abstração válida. Documentação completa em /tmp/loanservice-findings.md.                 |
-| 1.7 | Testes e validação               | ⬜ Pendente | Testar manualmente todos os fluxos corrigidos. Verificar: histórico completo, juros aplicados corretamente, juros nos sonhos, keep-alive ativo, labels corretos na visão da criança.                                                                                                                                                                                                                                                                 |
+| 1.7 | Testes e validação               | ✅ Completo | **TESTADO E VALIDADO:** Todos os fluxos corrigidos verificados manualmente. ✅ Histórico completo funcionando (Task 1.1), ✅ Juros configuráveis OK (Task 1.2), ✅ Juros nos sonhos aplicados (Task 1.3), ✅ Keep-alive ativo (Task 1.4), ✅ Dependências atualizadas (Task 1.5), ✅ Labels corrigidos na visão da criança (Task 1.6). App estável e sem erros. **FASE 1 COMPLETA!** 🎉                                                              |
 
-**Critério de conclusão:** Todos os bugs corrigidos, app funcionando sem erros, juros calculados corretamente, histórico completo visível, labels corretos.
+**Critério de conclusão:** ✅ **FASE 1 CONCLUÍDA** - Todos os bugs corrigidos, app funcionando sem erros, juros calculados corretamente, histórico completo visível, labels corretos. Pronto para Fase 2 (Redesign Visual).
 
 ---
 
@@ -426,16 +426,17 @@ ALTER TABLE guardian_invites ENABLE ROW LEVEL SECURITY;
 
 ## 📝 HISTÓRICO DE MUDANÇAS
 
-| Data       | Fase   | O que mudou                                             | Motivo                                                                |
-| ---------- | ------ | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| 2026-02-17 | Setup  | Projeto existente auditado (138 arquivos, 31K linhas)   | Evolução planejada                                                    |
-| 2026-02-17 | Setup  | Supabase restaurado após auto-pause                     | Projeto pausou por inatividade                                        |
-| 2026-02-17 | Setup  | Redesign visual aprovado (verde + amarelo + branco)     | Referências: porquinho + ArobixBank                                   |
-| 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados             | Bugs → Redesign → Onboarding                                          |
-| 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                     | Início da evolução estruturada                                        |
-| 2026-02-17 | Fase 1 | Task 1.4 completa - workflows GitHub Actions reativados | Keep-alive do Supabase                                                |
-| 2026-02-17 | Fase 1 | Task 1.2 completa - annual_rate → monthly_rate (0-100%) | Correção de bug: taxa de juros                                        |
-| 2026-02-17 | Fase 1 | Task 1.5 completa - 14 dependências atualizadas         | Audit e update de dependências                                        |
-| 2026-02-17 | Fase 1 | Task 1.3 completa - juros em sonhos/metas implementado  | Goals agora rendem juros mensais                                      |
-| 2026-02-17 | Fase 1 | Taxa de juros corrigida: 9.9% → 1.0% ao mês             | Valor educacional realista                                            |
-| 2026-02-17 | Fase 1 | Task 1.6 completa - labels corrigidos + LoanService OK  | Labels "Empréstimo"→"Pedido", LoanService validado como serviço ativo |
+| Data       | Fase   | O que mudou                                             | Motivo                                                                     |
+| ---------- | ------ | ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 2026-02-17 | Setup  | Projeto existente auditado (138 arquivos, 31K linhas)   | Evolução planejada                                                         |
+| 2026-02-17 | Setup  | Supabase restaurado após auto-pause                     | Projeto pausou por inatividade                                             |
+| 2026-02-17 | Setup  | Redesign visual aprovado (verde + amarelo + branco)     | Referências: porquinho + ArobixBank                                        |
+| 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados             | Bugs → Redesign → Onboarding                                               |
+| 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                     | Início da evolução estruturada                                             |
+| 2026-02-17 | Fase 1 | Task 1.4 completa - workflows GitHub Actions reativados | Keep-alive do Supabase                                                     |
+| 2026-02-17 | Fase 1 | Task 1.2 completa - annual_rate → monthly_rate (0-100%) | Correção de bug: taxa de juros                                             |
+| 2026-02-17 | Fase 1 | Task 1.5 completa - 14 dependências atualizadas         | Audit e update de dependências                                             |
+| 2026-02-17 | Fase 1 | Task 1.3 completa - juros em sonhos/metas implementado  | Goals agora rendem juros mensais                                           |
+| 2026-02-17 | Fase 1 | Taxa de juros corrigida: 9.9% → 1.0% ao mês             | Valor educacional realista                                                 |
+| 2026-02-17 | Fase 1 | Task 1.6 completa - labels corrigidos + LoanService OK  | Labels "Empréstimo"→"Pedido", LoanService validado como serviço ativo      |
+| 2026-02-17 | Fase 1 | Task 1.7 completa - testes e validação OK               | Todos os fluxos testados manualmente e validados - **FASE 1 COMPLETA!** 🎉 |
