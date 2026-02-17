@@ -906,8 +906,8 @@ export default function ChildView() {
 
   return (
     <div className="min-h-screen bg-bg-primary">
-      {/* Header com gradiente verde/amarelo lúdico */}
-      <div className="bg-gradient-to-r from-success via-primary to-primary-light shadow-lg">
+      {/* Header com fundo verde escuro e destaques em amarelo */}
+      <div className="bg-gradient-to-br from-[#0D2818] to-[#1A4731] shadow-lg">
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -916,7 +916,7 @@ export default function ChildView() {
                 <h1 className="text-2xl font-bold text-white">
                   Oi, {childData.name}! 👋
                 </h1>
-                <p className="text-sm text-white/80">Seu banco pessoal</p>
+                <p className="text-sm text-primary">Seu banco pessoal</p>
               </div>
             </div>
             <div className="text-right">
@@ -934,38 +934,38 @@ export default function ChildView() {
                     window.location.href = '/auth/signin';
                   }
                 }}
-                className="text-white/80 hover:text-white mb-2"
+                className="text-white/70 hover:text-primary mb-2"
               >
                 🚪 Sair
               </Button>
-              <div className="text-3xl font-bold text-white">
+              <div className="text-3xl font-bold text-primary">
                 R$ {childData.balance.toFixed(2)}
               </div>
-              <div className="text-xs text-white/70">Meu saldo</div>
+              <div className="text-xs text-white/60">Meu saldo</div>
             </div>
           </div>
 
           {/* Level Progress */}
-          <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+          <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-primary/30">
             <div className="flex justify-between items-center mb-2">
               <Badge
                 variant="neutral"
                 size="sm"
-                className="bg-white/20 text-white"
+                className="bg-primary/20 text-primary border border-primary/40"
               >
                 Nível {childData.level}
               </Badge>
-              <span className="text-sm text-white/90 font-semibold">
+              <span className="text-sm text-white font-semibold">
                 {childData.xp} / {childData.xp + childData.xpToNext} XP
               </span>
             </div>
             <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-primary-light to-primary rounded-full transition-all duration-1000 shadow-lg"
+                className="h-full bg-gradient-to-r from-primary to-success rounded-full transition-all duration-1000 shadow-lg"
                 style={{ width: `${completionPercentage}%` }}
               ></div>
             </div>
-            <div className="text-xs text-white/80 mt-2 font-medium">
+            <div className="text-xs text-primary/90 mt-2 font-medium">
               Faltam {childData.xpToNext} XP para o próximo nível! 🚀
             </div>
           </div>
@@ -1041,12 +1041,12 @@ export default function ChildView() {
             <Card
               variant="elevated"
               padding="md"
-              className="bg-gradient-to-r from-warning to-orange-600 text-white shadow-xl"
+              className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white shadow-xl border-2 border-primary/30"
             >
               <CardBody>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-4xl font-bold">
+                    <div className="text-4xl font-bold text-primary">
                       {childData.currentStreak} dias
                     </div>
                     <div className="text-sm text-white/90 font-medium">
@@ -1062,7 +1062,7 @@ export default function ChildView() {
                     onClick={() =>
                       alert('Em breve: Ver suas tarefas pendentes!')
                     }
-                    className="w-full bg-white/20 text-white hover:bg-white/30"
+                    className="w-full bg-primary/20 text-primary hover:bg-primary/30 border border-primary/40"
                   >
                     Ver Minhas Tarefas
                   </Button>
@@ -1075,12 +1075,12 @@ export default function ChildView() {
               <Card
                 variant="elevated"
                 padding="md"
-                className="bg-gradient-to-r from-info to-primary text-white shadow-xl"
+                className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white shadow-xl border-2 border-primary/30"
               >
                 <CardBody>
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="text-3xl font-bold">
+                      <div className="text-3xl font-bold text-primary">
                         R$ {(childData.balance * 0.01).toFixed(2)}
                       </div>
                       <div className="text-sm text-white/90">
@@ -1092,7 +1092,11 @@ export default function ChildView() {
                   <div className="text-xs text-white/80 space-y-1">
                     <p>
                       Com R$ {childData.balance.toFixed(2)} você pode ganhar até
-                      R$ {(childData.balance * 0.01).toFixed(2)} por mês
+                      <span className="text-primary font-bold">
+                        {' '}
+                        R$ {(childData.balance * 0.01).toFixed(2)}
+                      </span>{' '}
+                      por mês
                     </p>
                     <p>⏰ Só rende o dinheiro que está há 30+ dias na conta</p>
                     <p>📊 Taxa: 1% ao mês • Mínimo: R$ 10,00</p>
@@ -1103,12 +1107,12 @@ export default function ChildView() {
               <Card
                 variant="outline"
                 padding="md"
-                className="border-text-muted bg-bg-secondary"
+                className="border-primary/30 bg-[#1A4731]/20"
               >
                 <CardBody>
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="text-2xl font-bold text-text-primary">
+                      <div className="text-2xl font-bold text-primary">
                         R$ 10,00
                       </div>
                       <div className="text-sm text-text-secondary">
@@ -1119,7 +1123,10 @@ export default function ChildView() {
                   </div>
                   <div className="text-xs text-text-secondary space-y-1">
                     <p>
-                      Economize mais R$ {(10 - childData.balance).toFixed(2)}{' '}
+                      Economize mais{' '}
+                      <span className="text-primary font-bold">
+                        R$ {(10 - childData.balance).toFixed(2)}
+                      </span>{' '}
                       para seu dinheiro começar a render 1% ao mês!
                     </p>
                     <p>
@@ -1231,16 +1238,18 @@ export default function ChildView() {
             <Card
               variant="default"
               padding="md"
-              className="bg-info/10 border-info"
+              className="bg-[#1A4731]/20 border-primary/30"
             >
               <CardBody>
                 <div className="flex items-center gap-3">
                   <div className="text-3xl">🗓️</div>
                   <div className="flex-1">
-                    <div className="font-bold text-info">Próxima Mesada</div>
+                    <div className="font-bold text-primary">Próxima Mesada</div>
                     <div className="text-sm text-text-primary font-medium">
-                      R$ {childData.weeklyAllowance.toFixed(2)} em{' '}
-                      {childData.nextAllowanceDate}
+                      <span className="text-primary font-bold">
+                        R$ {childData.weeklyAllowance.toFixed(2)}
+                      </span>{' '}
+                      em {childData.nextAllowanceDate}
                     </div>
                   </div>
                 </div>
@@ -1317,13 +1326,13 @@ export default function ChildView() {
               <Card
                 variant="default"
                 padding="lg"
-                className="bg-info/10 border-info border-2"
+                className="bg-[#1A4731]/20 border-primary/30 border-2"
               >
                 <CardBody>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="text-4xl">🏦</div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-info text-lg">
+                      <h3 className="font-bold text-primary text-lg">
                         Pedir Emprestado
                       </h3>
                       <p className="text-sm text-text-secondary">
@@ -1614,15 +1623,171 @@ export default function ChildView() {
             <h2 className="text-2xl font-bold text-text-primary mb-4">
               Minhas Conquistas 🏆
             </h2>
-            <Card variant="default" padding="lg" className="text-center">
+
+            {/* Locked Achievements Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Achievement 1: First Allowance */}
+              <Card
+                variant="default"
+                padding="md"
+                className="relative overflow-hidden bg-[#1A4731]/20 border-2 border-white/10 opacity-60"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl grayscale">💰</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white/50 text-lg">
+                        🔒 Primeira Mesada
+                      </h3>
+                      <p className="text-sm text-white/40 mt-1">
+                        Receba sua primeira mesada semanal
+                      </p>
+                      <div className="mt-2 text-xs text-white/30 font-semibold">
+                        EM BREVE
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Achievement 2: First Dream */}
+              <Card
+                variant="default"
+                padding="md"
+                className="relative overflow-hidden bg-[#1A4731]/20 border-2 border-white/10 opacity-60"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl grayscale">🎁</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white/50 text-lg">
+                        🔒 Primeiro Sonho Realizado
+                      </h3>
+                      <p className="text-sm text-white/40 mt-1">
+                        Complete e realize seu primeiro sonho
+                      </p>
+                      <div className="mt-2 text-xs text-white/30 font-semibold">
+                        EM BREVE
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Achievement 3: Streak */}
+              <Card
+                variant="default"
+                padding="md"
+                className="relative overflow-hidden bg-[#1A4731]/20 border-2 border-white/10 opacity-60"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl grayscale">🔥</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white/50 text-lg">
+                        🔒 Sequência de 10 Dias
+                      </h3>
+                      <p className="text-sm text-white/40 mt-1">
+                        Complete tarefas por 10 dias seguidos
+                      </p>
+                      <div className="mt-2 text-xs text-white/30 font-semibold">
+                        0/10 dias
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Achievement 4: First Purchase */}
+              <Card
+                variant="default"
+                padding="md"
+                className="relative overflow-hidden bg-[#1A4731]/20 border-2 border-white/10 opacity-60"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl grayscale">🛒</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white/50 text-lg">
+                        🔒 Primeira Compra
+                      </h3>
+                      <p className="text-sm text-white/40 mt-1">
+                        Faça seu primeiro pedido de compra aprovado
+                      </p>
+                      <div className="mt-2 text-xs text-white/30 font-semibold">
+                        EM BREVE
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Achievement 5: Saver */}
+              <Card
+                variant="default"
+                padding="md"
+                className="relative overflow-hidden bg-[#1A4731]/20 border-2 border-white/10 opacity-60"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl grayscale">🏦</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white/50 text-lg">
+                        🔒 Poupador Iniciante
+                      </h3>
+                      <p className="text-sm text-white/40 mt-1">
+                        Economize R$ 50,00 ou mais
+                      </p>
+                      <div className="mt-2 text-xs text-white/30 font-semibold">
+                        R$ 0,00 / R$ 50,00
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Achievement 6: Level 5 */}
+              <Card
+                variant="default"
+                padding="md"
+                className="relative overflow-hidden bg-[#1A4731]/20 border-2 border-white/10 opacity-60"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl grayscale">⭐</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white/50 text-lg">
+                        🔒 Nível 5 Alcançado
+                      </h3>
+                      <p className="text-sm text-white/40 mt-1">
+                        Alcance o nível 5 ganhando experiência
+                      </p>
+                      <div className="mt-2 text-xs text-white/30 font-semibold">
+                        Nível 1 / 5
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
+
+            {/* Info Card */}
+            <Card
+              variant="elevated"
+              padding="md"
+              className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/30"
+            >
               <CardBody>
-                <div className="text-6xl mb-4">🏆</div>
-                <p className="text-text-secondary">
-                  Suas conquistas aparecerão aqui!
-                </p>
-                <p className="text-sm text-text-muted mt-2">
-                  Complete tarefas e objetivos para ganhar troféus
-                </p>
+                <div className="text-center">
+                  <div className="text-4xl mb-3">🎯</div>
+                  <h3 className="font-bold text-primary text-lg mb-2">
+                    Desbloqueie Conquistas!
+                  </h3>
+                  <p className="text-white/80 text-sm">
+                    Complete tarefas, economize dinheiro e realize seus sonhos
+                    para desbloquear troféus incríveis!
+                  </p>
+                </div>
               </CardBody>
             </Card>
           </div>

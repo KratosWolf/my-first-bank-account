@@ -1305,17 +1305,17 @@ export default function DashboardPage() {
             ) : getFilteredAnalytics() ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Financial Summary */}
-                <div className="bg-gradient-to-br from-success to-green-600 text-white rounded-xl p-6 shadow-lg">
-                  <h4 className="text-sm opacity-90 mb-2">
-                    Saldo Total da Família
+                <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white rounded-xl p-6 shadow-lg border-2 border-primary/30">
+                  <h4 className="text-sm text-white/80 mb-2">
+                    💰 Saldo Total da Família
                   </h4>
-                  <p className="text-3xl font-bold mb-1">
+                  <p className="text-3xl font-bold text-primary mb-1">
                     R${' '}
                     {getFilteredAnalytics().financial_summary.total_family_balance.toFixed(
                       2
                     )}
                   </p>
-                  <p className="text-xs opacity-75">
+                  <p className="text-xs text-white/70">
                     Média: R${' '}
                     {getFilteredAnalytics().financial_summary.average_child_balance.toFixed(
                       2
@@ -1325,15 +1325,15 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Transaction Stats */}
-                <div className="bg-gradient-to-br from-info to-blue-600 text-white rounded-xl p-6 shadow-lg">
-                  <h4 className="text-sm opacity-90 mb-2">Transações</h4>
-                  <p className="text-3xl font-bold mb-1">
+                <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white rounded-xl p-6 shadow-lg border-2 border-primary/30">
+                  <h4 className="text-sm text-white/80 mb-2">📊 Transações</h4>
+                  <p className="text-3xl font-bold text-primary mb-1">
                     {
                       getFilteredAnalytics().transaction_stats
                         .total_transactions
                     }
                   </p>
-                  <p className="text-xs opacity-75">
+                  <p className="text-xs text-white/70">
                     R${' '}
                     {getFilteredAnalytics().transaction_stats.total_spent.toFixed(
                       2
@@ -1343,24 +1343,28 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Goal Stats */}
-                <div className="bg-gradient-to-br from-primary to-primary-light text-bg-primary rounded-xl p-6 shadow-lg">
-                  <h4 className="text-sm opacity-90 mb-2">Metas Ativas</h4>
-                  <p className="text-3xl font-bold mb-1">
+                <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white rounded-xl p-6 shadow-lg border-2 border-primary/30">
+                  <h4 className="text-sm text-white/80 mb-2">
+                    🎯 Metas Ativas
+                  </h4>
+                  <p className="text-3xl font-bold text-primary mb-1">
                     {getFilteredAnalytics().goal_stats.active_goals}
                   </p>
-                  <p className="text-xs opacity-75">
+                  <p className="text-xs text-white/70">
                     {getFilteredAnalytics().goal_stats.avg_completion_rate}%
                     progresso médio
                   </p>
                 </div>
 
                 {/* Pending Requests */}
-                <div className="bg-gradient-to-br from-warning to-orange-600 text-white rounded-xl p-6 shadow-lg">
-                  <h4 className="text-sm opacity-90 mb-2">Pedidos Pendentes</h4>
-                  <p className="text-3xl font-bold mb-1">
+                <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white rounded-xl p-6 shadow-lg border-2 border-primary/30">
+                  <h4 className="text-sm text-white/80 mb-2">
+                    ⏰ Pedidos Pendentes
+                  </h4>
+                  <p className="text-3xl font-bold text-primary mb-1">
                     {getFilteredAnalytics().transaction_stats.pending_requests}
                   </p>
-                  <p className="text-xs opacity-75">
+                  <p className="text-xs text-white/70">
                     {getFilteredAnalytics().transaction_stats.approved_requests}{' '}
                     aprovados
                   </p>

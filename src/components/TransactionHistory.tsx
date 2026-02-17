@@ -138,19 +138,19 @@ export default function TransactionHistory({
   return (
     <div className={`${className}`}>
       {/* Filters Section */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 className="font-bold text-gray-900 mb-4">Filtros</h3>
+      <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] rounded-xl shadow-lg p-4 mb-4 border-2 border-primary/30">
+        <h3 className="font-bold text-primary mb-4">🔍 Filtros</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Period Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white/80 mb-2">
               Período
             </label>
             <select
               value={selectedPeriod}
               onChange={e => setSelectedPeriod(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-[#0D2818] text-white border-2 border-primary/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="all">Todo o histórico</option>
               <option value="7">Últimos 7 dias</option>
@@ -161,13 +161,13 @@ export default function TransactionHistory({
 
           {/* Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white/80 mb-2">
               Tipo
             </label>
             <select
               value={selectedType}
               onChange={e => setSelectedType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-[#0D2818] text-white border-2 border-primary/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="all">Todos os tipos</option>
               <option value="earning">Ganhos</option>
@@ -182,13 +182,13 @@ export default function TransactionHistory({
 
           {/* Category Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white/80 mb-2">
               Categoria
             </label>
             <select
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-[#0D2818] text-white border-2 border-primary/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="all">Todas as categorias</option>
               {/* TODO: Load categories dynamically from database */}
@@ -197,12 +197,18 @@ export default function TransactionHistory({
         </div>
 
         {/* Results Summary */}
-        <div className="mt-3 text-sm text-gray-600">
+        <div className="mt-3 text-sm text-white/70">
           {loading ? (
             <span>Carregando...</span>
           ) : (
             <span>
-              Mostrando {transactions.length} de {totalCount} transações
+              Mostrando{' '}
+              <span className="text-primary font-semibold">
+                {transactions.length}
+              </span>{' '}
+              de{' '}
+              <span className="text-primary font-semibold">{totalCount}</span>{' '}
+              transações
             </span>
           )}
         </div>
@@ -211,12 +217,12 @@ export default function TransactionHistory({
       {/* Transactions List */}
       <div className="space-y-3">
         {transactions.length === 0 && !loading ? (
-          <div className="bg-white rounded-xl p-8 text-center">
+          <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] rounded-xl p-8 text-center border-2 border-primary/30">
             <div className="text-4xl mb-3">📭</div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-semibold text-primary mb-2">
               Nenhuma transação encontrada
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-white/70">
               Tente ajustar os filtros ou aguarde novas transações
             </p>
           </div>
@@ -224,27 +230,27 @@ export default function TransactionHistory({
           transactions.map(transaction => (
             <div
               key={transaction.id}
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center space-x-3"
+              className="bg-gradient-to-br from-[#1A4731]/40 to-[#0D2818]/40 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-primary/50 transition-all border-2 border-primary/20 flex items-center space-x-3"
             >
               <div className="text-2xl">
                 {getTransactionIcon(transaction.type)}
               </div>
               <div className="flex-1">
-                <div className="font-medium text-gray-900">
+                <div className="font-medium text-white">
                   {transaction.description || transaction.category}
                 </div>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-white/60">
                   {formatDate(transaction.created_at)}
                 </div>
                 {transaction.category && (
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-white/50 mt-1">
                     📁 {transaction.category}
                   </div>
                 )}
               </div>
               <div
                 className={`font-bold text-lg ${
-                  isIncome(transaction.type) ? 'text-green-600' : 'text-red-600'
+                  isIncome(transaction.type) ? 'text-success' : 'text-error'
                 }`}
               >
                 {isIncome(transaction.type) ? '+' : '-'}R${' '}
@@ -261,7 +267,7 @@ export default function TransactionHistory({
           <button
             onClick={() => loadTransactions(false)}
             disabled={loading}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-8 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary text-primary font-semibold py-3 px-8 rounded-xl hover:shadow-xl hover:border-primary/70 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -277,8 +283,8 @@ export default function TransactionHistory({
 
       {/* End of list message */}
       {!hasMore && transactions.length > 0 && (
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <div className="inline-block bg-gray-100 rounded-full px-4 py-2">
+        <div className="mt-6 text-center text-sm text-white/70">
+          <div className="inline-block bg-[#1A4731] border border-primary/30 rounded-full px-4 py-2">
             ✅ Você viu todas as transações
           </div>
         </div>
