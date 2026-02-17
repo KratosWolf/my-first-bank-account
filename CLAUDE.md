@@ -7,13 +7,12 @@
 
 ## 🧠 IDENTIDADE DO PROJETO
 
-- **Nome do Projeto:** My First Bank Account (MyFirstBA2)
-- **Descrição:** App educacional de finanças pessoais para crianças. Os pais criam contas bancárias simuladas para os filhos, com saldo, transações, rendimentos (juros configuráveis), sonhos/metas de economia, e um dashboard completo. Ferramenta pedagógica para ensinar educação financeira na prática.
+- **Nome do Projeto:** MyFirstBA2 (My First Bank Account)
+- **Descrição:** App educacional de finanças pessoais para crianças — pais criam contas bancárias simuladas com transações, juros, metas/sonhos e empréstimos educativos.
 - **Tipo:** web-app
-- **Tech Stack Principal:** Next.js 14 + React 18 + Supabase + NextAuth + Tailwind CSS 4
-- **Repositório:** GitHub (KratosWolf)
-- **Supabase Project:** mqcfdwyhbtvaclslured (21 tabelas)
-- **Pasta Local:** /Users/tiagofernandes/Desktop/VIBE/MyFirstBA2
+- **Tech Stack Principal:** Next.js 14 + TypeScript + Tailwind CSS 4 + Supabase
+- **Repositório:** https://github.com/KratosWolf/my-first-bank-account.git
+- **Branch ativa:** develop (Fase 2)
 - **Dono do Projeto:** Tiago (empreendedor, perfil estratégico, não-técnico)
 
 ---
@@ -32,18 +31,19 @@
 
 Antes de avançar para o próximo item, SEMPRE verifique:
 
-- [ ] O app compila sem erros (`npm run build`)?
+- [ ] O app compila sem erros?
 - [ ] A funcionalidade implementada funciona como esperado?
-- [ ] O código foi testado (pelo menos teste manual no browser)?
+- [ ] O código foi testado (pelo menos teste manual)?
 - [ ] Foi feito commit com mensagem descritiva?
 - [ ] O PROJECT_PLAN.md foi atualizado?
+- [ ] Os critérios de "done" da task foram todos atendidos?
 
 Só prossiga quando TODOS os itens estiverem ✅.
 
 ### Regra 3: Comunicação Clara
 
 - Explique decisões técnicas em linguagem simples e direta.
-- Antes de executar qualquer comando destrutivo (deletar, resetar, alterar banco/migrations), PERGUNTE.
+- Antes de executar qualquer comando destrutivo (deletar, resetar, alterar estrutura), PERGUNTE.
 - Quando houver mais de uma abordagem, apresente opções com prós e contras ANTES de implementar.
 - Use analogias do dia a dia quando explicar conceitos técnicos.
 - No início de cada interação, diga: "Estamos na Fase X, trabalhando em [item]."
@@ -51,7 +51,7 @@ Só prossiga quando TODOS os itens estiverem ✅.
 ### Regra 4: Qualidade de Código
 
 - Código limpo, organizado e com comentários explicativos nos trechos importantes.
-- Siga os padrões de nomenclatura do Next.js / React / TypeScript.
+- Siga os padrões de nomenclatura da tech stack escolhida.
 - Remova código comentado que não esteja em uso — nada de "lixo".
 - Trate erros adequadamente — nunca ignore exceções silenciosamente.
 - Separe responsabilidades: um arquivo não deve fazer "tudo".
@@ -62,39 +62,60 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - Padrão: `tipo: descrição curta`
   - `feat:` nova funcionalidade | `fix:` correção | `docs:` documentação
   - `refactor:` refatoração | `style:` formatação | `test:` testes | `chore:` manutenção
-  - Exemplo: `fix: corrige cálculo de juros para usar taxa mensal configurável`
-- Branches: `main` (produção) → `develop` (desenvolvimento) → `feature/nome`
-- NUNCA faça push direto na `main`.
+  - Exemplo: `feat: adiciona tela de login com Google OAuth`
+- **Branch ativa:** develop (Fase 2)
+- **NUNCA** faça push direto na `main`. Merge develop → main apenas ao final da fase.
 
-### Regra 6: Banco de Dados (Supabase)
+### Regra 6: Consistência Código × Banco × UI
 
-- **NUNCA** altere tabelas diretamente no dashboard do Supabase.
-- Toda alteração de schema deve ser feita via migration SQL documentada.
-- Antes de rodar qualquer migration, MOSTRE o SQL para aprovação.
-- Mantenha backup do schema atual antes de alterações.
-- RLS (Row Level Security) deve estar ativo em TODAS as tabelas.
+- **NUNCA** crie referência no código para tabela/coluna que não existe no banco.
+- **NUNCA** crie tabela no banco sem código correspondente que a use.
+- **NUNCA** mostre seção na UI que depende de dados/tabelas inexistentes.
+- Ao criar/alterar tabelas, atualize a seção ESTADO DO BANCO abaixo E no PROJECT_PLAN.md.
+- Ao renomear colunas, faça busca global para atualizar TODAS as referências no código.
 
 ---
 
 ## 📋 FASES DO PROJETO (resumo)
 
-> ⚠️ PROJETO EXISTENTE EM EVOLUÇÃO — não é um projeto novo.
 > Detalhamento completo em PROJECT_PLAN.md
 
-### FASE 1 — Correção de Bugs ⬅️ FASE ATUAL
+### FASE 1 — Correção de Bugs ✅ COMPLETA (2026-02-17)
 
-**Objetivo:** Corrigir bugs existentes e estabilizar funcionalidades
+- ✅ 7/7 tasks concluídas
+- App estável, juros corrigidos, dependências atualizadas
 
-- [ ] 1.0 Organização do projeto (mover .md antigos, scripts soltos)
-- [ ] 1.1 Histórico de transações completo (com filtros)
-- [ ] 1.2 Taxa de juros configurável (sem teto fixo)
-- [ ] 1.3 Juros nos sonhos/metas de economia
-- [ ] 1.4 Keep-alive do Supabase (investigar e corrigir)
-- [ ] 1.5 Testes e validação de todas as correções
+### FASE 2 — Redesign Visual + Empréstimos ⬅️ FASE ATUAL
 
-**NÃO inclui (fases futuras):** Redesign visual, onboarding, novas features
+**Objetivo:** Visual novo (verde/amarelo/branco) + sistema completo de empréstimos educativos
 
-### FASE 2 — Redesign Visual Completo | 🔒 Bloqueada
+**BLOCO A — Fundação:**
+
+- [ ] 2.1 Setup do tema centralizado (cores, tokens, Tailwind config)
+- [ ] 2.2 Componentes base redesenhados (Button, Card, Input, Badge, Modal)
+
+**BLOCO B — Telas Redesenhadas:**
+
+- [ ] 2.3 Tela de Login
+- [ ] 2.4 Dashboard dos pais
+- [ ] 2.5 Tela de conta da criança
+- [ ] 2.6 Histórico de transações
+- [ ] 2.7 Configuração de juros
+- [ ] 2.8 Sonhos/metas
+- [ ] 2.9 Navegação e layout
+
+**BLOCO C — Empréstimos (NOVA FEATURE):**
+
+- [ ] 2.10 Schema do banco (tabelas loans + loan_installments)
+- [ ] 2.11 Tela de pedido (visão criança)
+- [ ] 2.12 Aprovação + empréstimo (visão pai)
+- [ ] 2.13 Dashboard de empréstimo ativo
+
+**BLOCO D — Polish:**
+
+- [ ] 2.14 Testes, responsividade e deploy na Vercel
+
+**NÃO inclui (fases futuras):** Onboarding (Fase 3), Notificações, Gamificação, PWA, Monetização (Fase 4).
 
 ### FASE 3 — Onboarding Profissional | 🔒 Bloqueada
 
@@ -102,127 +123,123 @@ Só prossiga quando TODOS os itens estiverem ✅.
 
 ---
 
+## 🗄️ ESTADO DO BANCO (manter atualizado)
+
+> ⚠️ Esta seção é a fonte de verdade sobre o banco de dados.
+> Atualizar SEMPRE que criar/alterar/remover tabelas ou colunas.
+
+### Tabelas Ativas
+
+| Tabela                | Descrição                           | Última alteração |
+| --------------------- | ----------------------------------- | ---------------- |
+| accounts              | Contas bancárias das crianças       | 2026-02-17       |
+| transactions          | Histórico (inclui goal_interest)    | 2026-02-17       |
+| interest_config       | Taxa de juros (monthly_rate 0-100%) | 2026-02-17       |
+| savings_goals / goals | Sonhos/metas com juros              | 2026-02-17       |
+| children              | Perfis das crianças                 | Original         |
+| users / profiles      | Pais/responsáveis                   | Original         |
+| purchase_requests     | Pedidos de compra (LoanService)     | Original         |
+| [+ outras]            | Mapear quando necessário            | —                |
+
+### Tabelas Planejadas (Fase 2)
+
+| Tabela            | Task | Descrição                                                |
+| ----------------- | ---- | -------------------------------------------------------- |
+| loans             | 2.10 | Empréstimos ativos (child_id, amount, parcelas, status)  |
+| loan_installments | 2.10 | Parcelas individuais (loan_id, amount, due_date, status) |
+
+### Reconciliação (última verificação: 2026-02-17)
+
+| Feature na UI | Código referencia     | Tabela no banco                  | Status              |
+| ------------- | --------------------- | -------------------------------- | ------------------- |
+| Dashboard     | dashboard page        | accounts, children, transactions | ✅ OK               |
+| Transações    | TransactionService    | transactions                     | ✅ OK               |
+| Juros         | interestService       | interest_config                  | ✅ OK               |
+| Sonhos/Metas  | goals                 | savings_goals/goals              | ✅ OK               |
+| Pedidos       | LoanService           | purchase_requests                | ✅ OK               |
+| Empréstimos   | LoanService (parcial) | loans (NÃO EXISTE)               | ⚠️ Fase 2 task 2.10 |
+
+---
+
+## 🎨 DESIGN — Fase 2
+
+### Paleta de Cores
+
+| Uso                                          | Hex       |
+| -------------------------------------------- | --------- |
+| Background principal (verde escuro)          | #0D2818   |
+| Background secundário (verde médio)          | #1A4731   |
+| Cards/containers                             | #1A4731CC |
+| Primária — CTAs, destaques (amarelo/dourado) | #F5B731   |
+| Secundária (amarelo claro)                   | #FFD966   |
+| Texto principal (branco)                     | #FFFFFF   |
+| Texto secundário                             | #FFFFFFB3 |
+| Sucesso/positivo                             | #22C55E   |
+| Erro/negativo                                | #EF4444   |
+
+### Conceito
+
+- **Pais:** profissional, limpo, app bancário real (ref: ArobixBank)
+- **Crianças:** lúdico, animações, mascote porquinho, micro-interações
+
+---
+
 ## 🗂️ ESTRUTURA DO PROJETO
 
 ```
 MyFirstBA2/
-├── CLAUDE.md                ← Este arquivo (lido automaticamente)
-├── PROJECT_PLAN.md          ← Plano detalhado com fases
-├── README.md                ← Documentação pública
-├── .env.local               ← Credenciais (NUNCA commitar)
-├── .gitignore
-├── .claude/
-│   ├── settings.local.json  ← Config do Claude Code
-│   └── skills/              ← Skills automáticas (10 skills)
-│       ├── code-cleanup/
-│       ├── code-review/
-│       ├── dependency-update/
-│       ├── git-workflow/
-│       ├── pre-launch/
-│       ├── project-audit/
-│       ├── project-setup/
-│       ├── secret-scan/
-│       ├── session-workflow/
-│       └── supabase-setup/
-├── docs/
-│   └── archive/             ← Documentação histórica (fases anteriores)
-│       ├── AUDIT_REPORT.md
-│       ├── AUDITORIA_FINAL_30NOV2025.md
-│       ├── CORRECOES_FASE_2.5.1.md
-│       ├── CRON_JOBS_SETUP.md
-│       ├── DIAGNOSTICO_*.md
-│       ├── FASE_*.md
-│       ├── GUIA_*.md
-│       ├── MYFIRSTBANKACCOUNT_MASTERPLAN_V6.md
-│       ├── PROBLEMA_ATUAL.md
-│       ├── PROJECT_SUMMARY.md
-│       ├── ROTEIRO_TESTE_COMPLETO.md
-│       ├── SISTEMA_REALIZACAO_SONHOS.md
-│       └── TODO.md
+├── CLAUDE.md              ← Este arquivo (lido automaticamente)
+├── PROJECT_PLAN.md        ← Plano detalhado com fases
+├── README.md              ← Documentação pública
+├── .claude/skills/        ← Skills automáticas
 ├── src/
-│   ├── app/                 ← Rotas e páginas (App Router)
-│   ├── components/          ← Componentes reutilizáveis
-│   ├── lib/                 ← Utilitários, Supabase client, helpers
-│   ├── services/            ← API calls e lógica de negócio
-│   └── styles/              ← Estilos globais e tema
-├── components/              ← Componentes (pasta legacy — avaliar merge com src/)
-├── database/                ← Scripts de banco
-├── pages/                   ← Pages Router (legacy — avaliar migração para App Router)
-├── scripts/                 ← Scripts utilitários (check-*.js, setup-*.js, etc.)
-├── public/                  ← Assets estáticos
-└── supabase/
-    └── migrations/          ← SQL migrations (schema changes)
+│   ├── app/               ← Rotas (App Router)
+│   ├── components/        ← Componentes reutilizáveis
+│   ├── lib/               ← Supabase client, helpers, utils
+│   ├── services/          ← Lógica de negócio
+│   └── styles/            ← Estilos globais
+├── components/            ← Pasta legacy (avaliar merge)
+├── database/              ← Scripts de banco
+├── supabase/migrations/   ← SQL migrations
+└── public/                ← Assets estáticos
 ```
-
-### ⚠️ Observações sobre a estrutura atual
-
-- Existem **duas pastas de componentes**: `components/` (raiz) e `src/components/`. Avaliar na Fase 2 se faz sentido unificar.
-- Existe a pasta `pages/` (Pages Router) além de `src/app/` (App Router). Avaliar se há rotas duplicadas.
-- Scripts soltos na raiz (`check-*.js`, `setup-*.js`, `test-*.js`, `execute-sql.js`) devem ficar em `scripts/`.
-- Arquivos `.sql` soltos na raiz devem ir para `database/` ou `supabase/migrations/`.
-
-### 📁 docs/archive/ — Histórico do Projeto
-
-A pasta `docs/archive/` contém toda a documentação das fases anteriores (Ago-Nov 2025). Estes arquivos são **referência histórica** — úteis para consultar decisões passadas, mas NÃO são a fonte de verdade atual. A fonte de verdade é este `CLAUDE.md` + `PROJECT_PLAN.md`.
 
 ---
 
 ## 🔧 PADRÕES TÉCNICOS
 
-### Banco de Dados (Supabase PostgreSQL)
+### Banco de Dados (Supabase)
 
-- **Projeto:** mqcfdwyhbtvaclslured
-- **21 tabelas** existentes (incluindo: accounts, transactions, interest_config, goals, etc.)
-- RLS ativo em todas as tabelas
-- Toda alteração via migration SQL em `supabase/migrations/`
-- Naming: snake_case para tabelas e colunas
+- RLS em todas as tabelas
+- Migrations em `supabase/migrations/`
+- Credenciais em variáveis de ambiente (.env.local)
+- Projeto Supabase: mqcfdwyhbtvaclslured
 
-### Sistema de Juros
+### Autenticação
 
-**Taxa Padrão:** 1.0% ao mês
-
-- Taxa educacional realista para ensinar conceito de rendimento
-- Configurável pelos pais no range 0-100% (mas recomendado manter em ~1%)
-- Aplicado sobre:
-  - Saldo principal da criança
-  - Saldo de cada sonho/meta (goals)
-- Regra de carência: 30 dias mínimos para dinheiro render
-- Cálculo automático via GitHub Actions (1º dia de cada mês)
-
-**Histórico:**
-
-- Anteriormente estava em 9.9% ao mês (muito alto)
-- Corrigido para 1.0% em 2026-02-17
-
-### Autenticação (NextAuth + Google OAuth)
-
-- Login via Google OAuth configurado
-- Sessões gerenciadas por NextAuth
-- Tokens e secrets em `.env.local` (NUNCA commitar)
-- Middleware de proteção de rotas ativo
+- NextAuth + Google OAuth
+- Sessão verificada via NextAuth
+- Tokens e secrets em .env.local
 
 ### Segurança
 
-- Validar TODOS os inputs do usuário.
-- Nunca expor chaves de API no lado do cliente (usar NEXT*PUBLIC* apenas para keys públicas).
-- HTTPS sempre. Sanitizar dados antes do banco.
-- Credenciais e secrets APENAS em variáveis de ambiente (NUNCA commitar).
+- Validar TODOS os inputs do usuário
+- Nunca expor chaves de API no lado do cliente
+- HTTPS sempre. Sanitizar dados antes do banco
+- Credenciais APENAS em variáveis de ambiente (NUNCA commitar)
 
 ---
 
 ## 📝 DECISÕES TÉCNICAS REGISTRADAS
 
-> Registre aqui para evitar que o Claude Code refaça escolhas já discutidas.
-
-| Data       | Decisão                                                             | Motivo                                                    |
-| ---------- | ------------------------------------------------------------------- | --------------------------------------------------------- |
-| 2026-02-17 | Taxa de juros configurável pelo pai (sem teto)                      | Ferramenta educacional, não precisa refletir mercado real |
-| 2026-02-17 | Sonhos/metas devem render juros igual ao saldo                      | Incentivo para criança guardar dinheiro nos sonhos        |
-| 2026-02-17 | Onboarding: 1-2 responsáveis flexível                               | Cobre configurações familiares diversas sem complicar     |
-| 2026-02-17 | Dados da criança: nome + data nascimento + avatar + apelido         | Suficiente para personalização sem ser invasivo           |
-| 2026-02-17 | Prioridade: bugs → redesign → onboarding                            | Estabilizar o que existe antes de adicionar/mudar         |
-| 2026-02-17 | Paleta redesign: verde escuro + amarelo/dourado + branco            | Aprovado com referências (porquinho + ArobixBank)         |
-| 2026-02-17 | Conceito redesign: profissional pais + divertido filhos + animações | Equilíbrio entre credibilidade e engajamento              |
+| Data       | Decisão                                      | Motivo                                               |
+| ---------- | -------------------------------------------- | ---------------------------------------------------- |
+| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)         | Educacional, taxa mensal é mais intuitiva            |
+| 2026-02-17 | Goals rendem juros separados                 | Transparência: cada goal tem transações rastreáveis  |
+| 2026-02-17 | LoanService usa purchase_requests            | Já existia, CRUD funcional, mantido como abstração   |
+| 2026-02-17 | Empréstimo com saldo separado (não negativo) | Mais educativo e seguro tecnicamente                 |
+| 2026-02-17 | Sem juros em empréstimos (por enquanto)      | Simplicidade para MVP de empréstimos                 |
+| 2026-02-17 | Deploy Vercel no final da Fase 2             | App precisa ter visual novo antes de ir pra produção |
 
 ---
 
@@ -236,18 +253,19 @@ A pasta `docs/archive/` contém toda a documentação das fases anteriores (Ago-
 
 ---
 
-## Comandos
-
-- `npm run dev` — rodar em dev (localhost:3000)
-- `npm run build` — build de produção
-- `npm run lint` — verificar código
-
-## Workflow por Sessão
+## 🔄 WORKFLOW POR SESSÃO
 
 1. Ler `PROJECT_PLAN.md` → identificar próxima tarefa
 2. **Plan Mode** (Shift+Tab 2x) → planejar antes de codar
 3. Implementar a tarefa
-4. Testar (`npm run build` + teste manual no browser)
-5. Commit → push para develop
-6. Atualizar status no `PROJECT_PLAN.md`
-7. Se contexto ficar grande → `/clear` e retomar
+4. Verificar critérios de "done" da task
+5. Testar
+6. Secret scan → commit → push (para develop)
+7. Atualizar status no `PROJECT_PLAN.md`
+8. Atualizar ESTADO DO BANCO se houve mudança no banco
+9. Se contexto ficar grande → `/clear` e retomar
+
+## 📦 Skills Disponíveis
+
+As skills em `.claude/skills/` são carregadas automaticamente quando relevantes.
+Para ver todas: listar a pasta `.claude/skills/`.

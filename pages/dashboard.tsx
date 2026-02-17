@@ -9,6 +9,9 @@ import { ChildrenService } from '../src/lib/services/childrenService';
 import { LoanService } from '../src/lib/services/loanService';
 import type { Child } from '../src/lib/supabase';
 import { calculateAge } from '../src/lib/utils/date';
+import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -758,11 +761,36 @@ export default function DashboardPage() {
   // Show loading state while checking authentication
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-blue-600">Verificando autenticação...</p>
-        </div>
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <Card variant="elevated" padding="lg" className="max-w-md w-full">
+          <CardBody>
+            <div className="text-center">
+              <svg
+                className="animate-spin h-16 w-16 text-primary mx-auto mb-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <p className="text-lg font-semibold text-text-primary">
+                Verificando autenticação...
+              </p>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     );
   }
@@ -773,74 +801,59 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-bg-primary">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-bg-secondary shadow-lg border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            {/* User info */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-2xl shadow-lg">
                 {user?.avatar || '👨‍👩‍👧‍👦'}
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  🏦 Banco da Família - Dashboard Parental
+                <h1 className="text-xl font-bold text-text-primary">
+                  🏦 Banco da Família
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-text-secondary">
                   Olá, {user?.userName || user?.name || 'Usuário'}
                 </p>
               </div>
             </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                title="Sair da conta"
-              >
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={handleLogout}>
                 🚪 Sair
-              </button>
-              <button
-                onClick={() => {
-                  if (
-                    confirm(
-                      'Limpar todos os dados corrompidos e resetar para dados padrão?'
-                    )
-                  ) {
-                    ChildrenService.clearCorruptedData();
-                    window.location.reload();
-                  }
-                }}
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
-                title="Limpar dados corrompidos"
-              >
-                🧹 Limpar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsCategoriesModalOpen(true)}
-                className="px-4 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600"
               >
                 🏷️ Categorias
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsInterestModalOpen(true)}
-                className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
-                title="Configurar rendimento automático"
               >
                 💰 Juros
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsAllowanceModalOpen(true)}
-                className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
-                title="Configurar mesada automática"
               >
                 📅 Mesada
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => (window.location.href = '/')}
-                className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 🏠 Início
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -850,458 +863,419 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Goal Fulfillment Requests Section */}
         {pendingFulfillments.length > 0 && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-300 shadow-lg mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-amber-800 flex items-center gap-2">
-                🎁 Pedidos de Realização de Sonhos
-                <span className="bg-red-500 text-white text-sm px-2 py-1 rounded-full animate-pulse">
-                  {pendingFulfillments.length}
-                </span>
-              </h2>
-              <button
-                onClick={loadPendingFulfillments}
-                className="px-3 py-1 bg-amber-500 text-white rounded text-sm hover:bg-amber-600"
-              >
-                🔄 Atualizar
-              </button>
-            </div>
+          <Card
+            variant="elevated"
+            padding="lg"
+            className="mb-6 border-2 border-primary"
+          >
+            <CardHeader
+              title={`🎁 Pedidos de Realização de Sonhos`}
+              subtitle={`${pendingFulfillments.length} sonhos aguardando aprovação`}
+              action={
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={loadPendingFulfillments}
+                >
+                  🔄 Atualizar
+                </Button>
+              }
+            />
+            <CardBody>
+              <div className="space-y-4">
+                {pendingFulfillments.map(goal => {
+                  const childName = goal.children?.name || 'Criança';
+                  const childAvatar = goal.children?.avatar || '👶';
+                  const percentage = Math.round(
+                    (goal.current_amount / goal.target_amount) * 100
+                  );
 
-            <div className="space-y-4">
-              {pendingFulfillments.map(goal => {
-                const childName = goal.children?.name || 'Criança';
-                const childAvatar = goal.children?.avatar || '👶';
-                const percentage = Math.round(
-                  (goal.current_amount / goal.target_amount) * 100
-                );
+                  return (
+                    <Card
+                      key={goal.id}
+                      variant="default"
+                      padding="md"
+                      className="border border-border"
+                    >
+                      <CardBody>
+                        <div className="flex items-start justify-between gap-4 flex-col md:flex-row">
+                          <div className="flex items-start gap-4 flex-1">
+                            {/* Child Avatar */}
+                            <div className="text-4xl">{childAvatar}</div>
 
-                return (
-                  <div
-                    key={goal.id}
-                    className="bg-white rounded-lg shadow-md p-5 border border-amber-200"
+                            {/* Goal Info */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-3">
+                                <h3 className="font-bold text-lg text-text-primary">
+                                  {childName}
+                                </h3>
+                                <Badge variant="info" size="sm">
+                                  Criança
+                                </Badge>
+                              </div>
+
+                              {/* Goal Details */}
+                              <div className="bg-bg-secondary border-l-4 border-primary rounded-lg p-4 mb-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-2xl">
+                                    {goal.emoji || '🎯'}
+                                  </span>
+                                  <h4 className="font-bold text-text-primary">
+                                    {goal.title}
+                                  </h4>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <span className="font-medium text-text-secondary">
+                                      Valor do sonho:
+                                    </span>
+                                    <p className="text-success font-bold">
+                                      R$ {goal.target_amount.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-text-secondary">
+                                      Valor economizado:
+                                    </span>
+                                    <p className="text-primary font-bold">
+                                      R$ {goal.current_amount.toFixed(2)} (
+                                      {percentage}%)
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Progress Bar */}
+                              <div className="mb-3">
+                                <div className="flex justify-between text-xs text-text-secondary mb-1">
+                                  <span>Progresso</span>
+                                  <span className="font-semibold">
+                                    {percentage}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-bg-secondary rounded-full h-2 border border-border">
+                                  <div
+                                    className="bg-gradient-to-r from-success to-primary h-full rounded-full transition-all"
+                                    style={{
+                                      width: `${Math.min(percentage, 100)}%`,
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
+                            <Button
+                              variant="primary"
+                              fullWidth
+                              onClick={() =>
+                                handleFulfillmentDecision(
+                                  goal.id,
+                                  'approve',
+                                  goal.title,
+                                  childName
+                                )
+                              }
+                            >
+                              ✅ APROVAR
+                            </Button>
+                            <Button
+                              variant="danger"
+                              fullWidth
+                              onClick={() =>
+                                handleFulfillmentDecision(
+                                  goal.id,
+                                  'reject',
+                                  goal.title,
+                                  childName
+                                )
+                              }
+                            >
+                              ❌ RECUSAR
+                            </Button>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
+        {/* Children Section */}
+        <Card variant="elevated" padding="lg" className="mb-6">
+          <CardHeader
+            title="Crianças Cadastradas"
+            subtitle={`${children.length} ${children.length === 1 ? 'criança' : 'crianças'} no sistema`}
+            action={
+              <Button variant="primary" onClick={openAddChildModal}>
+                + Adicionar Criança
+              </Button>
+            }
+          />
+          <CardBody>
+            {children.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
+                <h3 className="text-xl font-bold text-text-primary mb-2">
+                  Nenhuma criança cadastrada
+                </h3>
+                <p className="text-text-secondary mb-6">
+                  Adicione a primeira criança para começar
+                </p>
+                <Button variant="primary" onClick={openAddChildModal}>
+                  + Adicionar Primeira Criança
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {children.map(child => (
+                  <Card
+                    key={child.id}
+                    variant="default"
+                    padding="md"
+                    hover
+                    className="cursor-pointer border border-border"
+                    onClick={() => handleViewChildDashboard(child.id)}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4 flex-1">
-                        {/* Child Avatar */}
-                        <div className="text-4xl">{childAvatar}</div>
-
-                        {/* Goal Info */}
+                    <CardBody>
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="text-4xl">{child.avatar}</div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-bold text-lg text-gray-900">
-                              {childName}
-                            </h3>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                              Criança
-                            </span>
+                          <h3 className="font-bold text-lg text-text-primary">
+                            {child.name}
+                          </h3>
+                          <p className="text-sm text-text-secondary">
+                            {child.birth_date
+                              ? `${calculateAge(child.birth_date)} anos`
+                              : 'Idade não definida'}
+                          </p>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant="primary" size="sm">
+                              Nível {child.level}
+                            </Badge>
+                            <Badge variant="neutral" size="sm">
+                              {child.xp} XP
+                            </Badge>
                           </div>
-
-                          {/* Goal Details */}
-                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded p-4 mb-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-2xl">
-                                {goal.emoji || '🎯'}
-                              </span>
-                              <h4 className="font-bold text-gray-900">
-                                {goal.title}
-                              </h4>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <span className="font-medium text-gray-700">
-                                  Valor do sonho:
-                                </span>
-                                <p className="text-green-600 font-bold">
-                                  R$ {goal.target_amount.toFixed(2)}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-700">
-                                  Valor economizado:
-                                </span>
-                                <p className="text-blue-600 font-bold">
-                                  R$ {goal.current_amount.toFixed(2)} (
-                                  {percentage}%)
-                                </p>
-                              </div>
-                              <div className="col-span-2">
-                                <span className="font-medium text-gray-700">
-                                  Solicitado em:
-                                </span>
-                                <p className="text-gray-600">
-                                  {new Date(
-                                    goal.fulfillment_requested_at
-                                  ).toLocaleString('pt-BR', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Progress Bar */}
-                          <div className="mb-3">
-                            <div className="flex justify-between text-xs text-gray-600 mb-1">
-                              <span>Progresso</span>
-                              <span className="font-semibold">
-                                {percentage}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
-                                style={{
-                                  width: `${Math.min(percentage, 100)}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-
-                          {/* Info Box */}
-                          <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                            <p className="text-blue-700 text-sm">
-                              💡 {childName} completou este sonho e está
-                              solicitando que você realize a compra de{' '}
-                              <strong>{goal.title}</strong>
-                            </p>
-                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              openEditChildModal(child);
+                            }}
+                            className="px-2 py-1 text-xs bg-bg-secondary text-text-primary rounded hover:bg-primary hover:text-bg-primary transition-colors"
+                            title="Editar criança"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleDeleteChild(child.id);
+                            }}
+                            className="px-2 py-1 text-xs bg-error text-white rounded hover:bg-red-700 transition-colors"
+                            title="Excluir criança"
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex flex-col gap-2 ml-4">
-                        <button
-                          onClick={() =>
-                            handleFulfillmentDecision(
-                              goal.id,
-                              'approve',
-                              goal.title,
-                              childName
-                            )
-                          }
-                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap"
-                        >
-                          ✅ APROVAR
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleFulfillmentDecision(
-                              goal.id,
-                              'reject',
-                              goal.title,
-                              childName
-                            )
-                          }
-                          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap"
-                        >
-                          ❌ RECUSAR
-                        </button>
+                      <div className="border-t border-border pt-4">
+                        <div className="text-center mb-3">
+                          <p className="text-3xl font-bold text-success">
+                            R$ {child.balance.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-text-secondary font-medium">
+                            Saldo atual
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleOpenTransactionModal(child, 'add');
+                            }}
+                            className="flex-1 px-3 py-2 text-sm bg-success text-white rounded-lg hover:bg-green-700 font-semibold transition-colors"
+                            title="Adicionar dinheiro"
+                          >
+                            +💰
+                          </button>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleOpenTransactionModal(child, 'remove');
+                            }}
+                            className="flex-1 px-3 py-2 text-sm bg-error text-white rounded-lg hover:bg-red-700 font-semibold transition-colors"
+                            title="Remover dinheiro"
+                          >
+                            -💰
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Crianças Cadastradas
-            </h2>
-            <button
-              onClick={openAddChildModal}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              + Adicionar Criança
-            </button>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {children.map(child => (
-              <div
-                key={child.id}
-                onClick={() => handleViewChildDashboard(child.id)}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-blue-400 transition-all bg-white cursor-pointer"
-                title={`Clique para ver o dashboard de ${child.name}`}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="text-3xl">{child.avatar}</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900">{child.name}</h3>
-                    <p className="text-sm font-semibold text-gray-800">
-                      {child.birth_date
-                        ? `${calculateAge(child.birth_date)} anos`
-                        : 'Idade não definida'}{' '}
-                      • Nível {child.level} • {child.xp} XP
-                    </p>
-                    <p className="text-xs font-medium text-gray-700">
-                      PIN: ••••{' '}
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          alert(`PIN: ${child.pin}`);
-                        }}
-                        className="text-blue-500 hover:text-blue-700"
-                        title="Visualizar PIN"
-                      >
-                        👁️
-                      </button>
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        openEditChildModal(child);
-                      }}
-                      className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
-                      title="Editar criança"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleDeleteChild(child.id);
-                      }}
-                      className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                      title="Excluir criança"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-600">
-                    R$ {child.balance.toFixed(2)}
-                  </p>
-                  <p className="text-xs font-semibold text-gray-800 mb-2">
-                    Saldo atual
-                  </p>
-                  <div className="flex gap-1 justify-end">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleOpenTransactionModal(child, 'add');
-                      }}
-                      className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-                      title="Adicionar dinheiro"
-                    >
-                      +💰
-                    </button>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleOpenTransactionModal(child, 'remove');
-                      }}
-                      className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                      title="Remover dinheiro"
-                    >
-                      -💰
-                    </button>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleOpenTransactionModal(child, 'add');
-                      }}
-                      className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                      title="Transação customizada"
-                    >
-                      💰
-                    </button>
-                  </div>
-                </div>
+                    </CardBody>
+                  </Card>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </CardBody>
+        </Card>
 
-          {/* Pending Approvals Section - INTEGRATED */}
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900">
-                ⏰ Pedidos Aguardando Aprovação
-              </h3>
-              <button
+        {/* Pending Approvals Section */}
+        <Card variant="elevated" padding="lg" className="mb-6">
+          <CardHeader
+            title="⏰ Pedidos Aguardando Aprovação"
+            subtitle={`${pendingRequests.length} ${pendingRequests.length === 1 ? 'pedido pendente' : 'pedidos pendentes'}`}
+            action={
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={loadPendingRequests}
-                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
               >
                 🔄 Atualizar
-              </button>
-            </div>
-
+              </Button>
+            }
+          />
+          <CardBody>
             {loadingRequests ? (
-              <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-                <div className="text-2xl mb-2">⏳</div>
-                <p className="text-gray-600">Carregando pedidos...</p>
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">⏳</div>
+                <p className="text-text-secondary">Carregando pedidos...</p>
               </div>
             ) : pendingRequests.length > 0 ? (
               <div className="space-y-4">
-                {pendingRequests.map((request, index) => {
+                {pendingRequests.map(request => {
                   // Find child info for each request
                   const child = children.find(
                     c => c.id === request.child_id
                   ) || { name: 'Criança', avatar: '👶', balance: 0 };
 
                   return (
-                    <div
+                    <Card
                       key={request.id}
-                      className="bg-white rounded-xl shadow-sm p-6"
+                      variant="default"
+                      padding="md"
+                      className="border border-border"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4">
-                          <div className="text-3xl">{child.avatar}</div>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="font-semibold text-lg text-gray-900">
-                                {child.name}
-                              </h4>
-                              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                                Saldo: R$ {child.balance.toFixed(2)}
-                              </span>
-                            </div>
-
-                            <div
-                              className={`border-l-4 p-4 mb-4 ${
-                                request.type === 'loan'
-                                  ? 'bg-blue-50 border-blue-400'
-                                  : 'bg-yellow-50 border-yellow-400'
-                              }`}
-                            >
-                              <div className="space-y-1">
-                                <p>
-                                  <span className="font-medium">
-                                    {request.type === 'loan'
-                                      ? '💰 Empréstimo:'
-                                      : '🛒 Pedido:'}
-                                  </span>{' '}
-                                  {request.reason || request.description}
-                                </p>
-                                <p>
-                                  <span className="font-medium">Valor:</span> R${' '}
-                                  {request.amount.toFixed(2)}
-                                </p>
-                                <p>
-                                  <span className="font-medium">
-                                    Categoria:
-                                  </span>
-                                  {request.categoryIcon &&
-                                    ` ${request.categoryIcon}`}{' '}
-                                  {request.category}
-                                </p>
-                                <p>
-                                  <span className="font-medium">Data:</span>{' '}
-                                  {request.type === 'loan'
-                                    ? new Date(
-                                        request.requestedAt
-                                      ).toLocaleDateString('pt-BR', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
-                                    : new Date(
-                                        request.created_at
-                                      ).toLocaleDateString('pt-BR', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })}
-                                </p>
-                                {request.type === 'loan' && (
-                                  <p>
-                                    <span className="font-medium">Tipo:</span>
-                                    <span className="text-blue-600 font-bold">
-                                      {' '}
-                                      EMPRÉSTIMO
-                                    </span>
-                                  </p>
-                                )}
+                      <CardBody>
+                        <div className="flex flex-col md:flex-row items-start justify-between gap-4">
+                          <div className="flex items-start gap-4 flex-1">
+                            <div className="text-3xl">{child.avatar}</div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-3">
+                                <h4 className="font-semibold text-lg text-text-primary">
+                                  {child.name}
+                                </h4>
+                                <Badge variant="info" size="sm">
+                                  R$ {child.balance.toFixed(2)}
+                                </Badge>
                               </div>
-                            </div>
 
-                            {/* Balance Check - apenas para compras */}
-                            {request.type !== 'loan' &&
-                              child.balance < request.amount && (
-                                <div className="bg-red-50 border border-red-200 rounded p-2 mb-3">
-                                  <p className="text-red-700 text-sm">
-                                    ⚠️ Saldo insuficiente! Faltam R${' '}
-                                    {(request.amount - child.balance).toFixed(
-                                      2
-                                    )}
+                              <div
+                                className={`border-l-4 p-4 mb-3 rounded ${
+                                  request.type === 'loan'
+                                    ? 'bg-bg-secondary border-primary'
+                                    : 'bg-bg-secondary border-warning'
+                                }`}
+                              >
+                                <div className="space-y-1 text-sm">
+                                  <p className="text-text-primary">
+                                    <span className="font-medium">
+                                      {request.type === 'loan'
+                                        ? '💰 Empréstimo:'
+                                        : '🛒 Pedido:'}
+                                    </span>{' '}
+                                    {request.reason || request.description}
                                   </p>
+                                  <p className="text-text-primary">
+                                    <span className="font-medium">Valor:</span>{' '}
+                                    R$ {request.amount.toFixed(2)}
+                                  </p>
+                                  {request.category && (
+                                    <p className="text-text-secondary">
+                                      {request.categoryIcon &&
+                                        `${request.categoryIcon} `}
+                                      {request.category}
+                                    </p>
+                                  )}
                                 </div>
-                              )}
-
-                            {/* Info para empréstimos */}
-                            {request.type === 'loan' && (
-                              <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-3">
-                                <p className="text-blue-700 text-sm">
-                                  💡 Aprovar irá adicionar R${' '}
-                                  {request.amount.toFixed(2)} à conta da criança
-                                </p>
                               </div>
-                            )}
+
+                              {/* Balance Check - apenas para compras */}
+                              {request.type !== 'loan' &&
+                                child.balance < request.amount && (
+                                  <div className="bg-error bg-opacity-10 border border-error rounded p-2 mb-3">
+                                    <p className="text-error text-sm">
+                                      ⚠️ Saldo insuficiente! Faltam R${' '}
+                                      {(request.amount - child.balance).toFixed(
+                                        2
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
+                            <Button
+                              variant="primary"
+                              fullWidth
+                              onClick={() => handleApproval(request, 'approve')}
+                              disabled={
+                                request.type !== 'loan' &&
+                                child.balance < request.amount
+                              }
+                            >
+                              ✅{' '}
+                              {request.type === 'loan'
+                                ? 'EMPRESTAR'
+                                : 'APROVAR'}
+                            </Button>
+                            <Button
+                              variant="danger"
+                              fullWidth
+                              onClick={() => handleApproval(request, 'reject')}
+                            >
+                              ❌ REJEITAR
+                            </Button>
                           </div>
                         </div>
-
-                        <div className="flex flex-col space-y-2 ml-4">
-                          <button
-                            onClick={() => handleApproval(request, 'approve')}
-                            disabled={
-                              request.type !== 'loan' &&
-                              child.balance < request.amount
-                            }
-                            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-                          >
-                            ✅{' '}
-                            {request.type === 'loan' ? 'EMPRESTAR' : 'APROVAR'}
-                          </button>
-                          <button
-                            onClick={() => handleApproval(request, 'reject')}
-                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-                          >
-                            ❌ REJEITAR
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      </CardBody>
+                    </Card>
                   );
                 })}
               </div>
             ) : (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
-                <div className="text-4xl mb-3">🎉</div>
-                <h4 className="text-lg font-semibold text-green-800 mb-2">
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">🎉</div>
+                <h4 className="text-lg font-semibold text-success mb-1">
                   Nenhum Pedido Pendente
                 </h4>
-                <p className="text-green-600">
+                <p className="text-text-secondary">
                   Todas as solicitações foram processadas!
                 </p>
               </div>
             )}
-          </div>
+          </CardBody>
+        </Card>
 
-          {/* Analytics Section */}
-          <div className="mt-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900">
-                📊 Analytics{' '}
-                {selectedChildFilter !== 'all'
-                  ? `- ${children.find(c => c.id === selectedChildFilter)?.name}`
-                  : 'Familiares'}
-              </h3>
-              <div className="flex gap-2">
+        {/* Analytics Section */}
+        <Card variant="elevated" padding="lg">
+          <CardHeader
+            title={`📊 Analytics ${selectedChildFilter !== 'all' ? `- ${children.find(c => c.id === selectedChildFilter)?.name}` : 'Familiares'}`}
+            action={
+              <div className="flex gap-2 flex-wrap">
                 <select
                   value={selectedChildFilter}
                   onChange={e => setSelectedChildFilter(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm"
+                  className="px-3 py-1.5 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="all">Toda a Família</option>
                   {children.map(child => (
@@ -1313,26 +1287,29 @@ export default function DashboardPage() {
                 <select
                   value={selectedPeriod}
                   onChange={e => setSelectedPeriod(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm"
+                  className="px-3 py-1.5 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="7">Últimos 7 dias</option>
                   <option value="30">Últimos 30 dias</option>
                   <option value="90">Últimos 3 meses</option>
                 </select>
               </div>
-            </div>
-
+            }
+          />
+          <CardBody>
             {loadingAnalytics ? (
-              <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-                <div className="text-2xl mb-2">⏳</div>
-                <p className="text-gray-600">Carregando analytics...</p>
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">⏳</div>
+                <p className="text-text-secondary">Carregando analytics...</p>
               </div>
             ) : getFilteredAnalytics() ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Financial Summary */}
-                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg p-4">
-                  <h4 className="text-sm opacity-90">Saldo Total da Família</h4>
-                  <p className="text-2xl font-bold">
+                <div className="bg-gradient-to-br from-success to-green-600 text-white rounded-xl p-6 shadow-lg">
+                  <h4 className="text-sm opacity-90 mb-2">
+                    Saldo Total da Família
+                  </h4>
+                  <p className="text-3xl font-bold mb-1">
                     R${' '}
                     {getFilteredAnalytics().financial_summary.total_family_balance.toFixed(
                       2
@@ -1348,9 +1325,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Transaction Stats */}
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg p-4">
-                  <h4 className="text-sm opacity-90">Transações</h4>
-                  <p className="text-2xl font-bold">
+                <div className="bg-gradient-to-br from-info to-blue-600 text-white rounded-xl p-6 shadow-lg">
+                  <h4 className="text-sm opacity-90 mb-2">Transações</h4>
+                  <p className="text-3xl font-bold mb-1">
                     {
                       getFilteredAnalytics().transaction_stats
                         .total_transactions
@@ -1366,9 +1343,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Goal Stats */}
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg p-4">
-                  <h4 className="text-sm opacity-90">Metas Ativas</h4>
-                  <p className="text-2xl font-bold">
+                <div className="bg-gradient-to-br from-primary to-primary-light text-bg-primary rounded-xl p-6 shadow-lg">
+                  <h4 className="text-sm opacity-90 mb-2">Metas Ativas</h4>
+                  <p className="text-3xl font-bold mb-1">
                     {getFilteredAnalytics().goal_stats.active_goals}
                   </p>
                   <p className="text-xs opacity-75">
@@ -1378,9 +1355,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Pending Requests */}
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-4">
-                  <h4 className="text-sm opacity-90">Pedidos Pendentes</h4>
-                  <p className="text-2xl font-bold">
+                <div className="bg-gradient-to-br from-warning to-orange-600 text-white rounded-xl p-6 shadow-lg">
+                  <h4 className="text-sm opacity-90 mb-2">Pedidos Pendentes</h4>
+                  <p className="text-3xl font-bold mb-1">
                     {getFilteredAnalytics().transaction_stats.pending_requests}
                   </p>
                   <p className="text-xs opacity-75">
@@ -1390,122 +1367,14 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg p-4">
-                    <h4 className="text-sm opacity-90">
-                      Saldo Total da Família
-                    </h4>
-                    <p className="text-2xl font-bold">R$ 239,80</p>
-                    <p className="text-xs opacity-75">Demo data</p>
-                  </div>
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg p-4">
-                    <h4 className="text-sm opacity-90">Transações</h4>
-                    <p className="text-2xl font-bold">12</p>
-                    <p className="text-xs opacity-75">Demo data</p>
-                  </div>
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg p-4">
-                    <h4 className="text-sm opacity-90">Metas Ativas</h4>
-                    <p className="text-2xl font-bold">3</p>
-                    <p className="text-xs opacity-75">Demo data</p>
-                  </div>
-                  <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-4">
-                    <h4 className="text-sm opacity-90">Pedidos Pendentes</h4>
-                    <p className="text-2xl font-bold">2</p>
-                    <p className="text-xs opacity-75">Demo data</p>
-                  </div>
-                </div>
+              <div className="text-center py-8">
+                <p className="text-text-secondary">
+                  Nenhum dado disponível ainda
+                </p>
               </div>
             )}
-
-            {/* Insights */}
-            {analytics &&
-              analytics.insights &&
-              analytics.insights.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                    💡 Insights
-                  </h4>
-                  <div className="space-y-3">
-                    {analytics.insights.map((insight, index) => (
-                      <div
-                        key={index}
-                        className={`p-3 rounded-lg border-l-4 ${
-                          insight.type === 'success'
-                            ? 'bg-green-50 border-green-500 text-green-800'
-                            : insight.type === 'warning'
-                              ? 'bg-yellow-50 border-yellow-500 text-yellow-800'
-                              : 'bg-blue-50 border-blue-500 text-blue-800'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <span className="text-xl">{insight.icon}</span>
-                          <div>
-                            <h5 className="font-semibold">{insight.title}</h5>
-                            <p className="text-sm">{insight.description}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            {/* Category Spending */}
-            {analytics &&
-              analytics.category_spending &&
-              analytics.category_spending.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                    📈 Gastos por Categoria
-                  </h4>
-                  <div className="space-y-3">
-                    {analytics.category_spending
-                      .slice(0, 5)
-                      .map((category, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-lg">
-                              {category.category === 'Jogos'
-                                ? '🎮'
-                                : category.category === 'Roupas'
-                                  ? '👕'
-                                  : category.category === 'Livros'
-                                    ? '📚'
-                                    : category.category === 'Sonhos'
-                                      ? '🎯'
-                                      : '💰'}
-                            </span>
-                            <span className="text-sm font-medium">
-                              {category.category}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-semibold">
-                              R$ {category.amount.toFixed(2)}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {category.percentage}% do total
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-          </div>
-
-          {/* Status do Sistema */}
-          <div className="mt-8 p-4 bg-green-50 rounded-lg">
-            <p className="text-green-800 text-sm text-center font-semibold">
-              ✅ Dashboard Parental Unificado: Crianças + Aprovações + Analytics
-              100% Funcional
-            </p>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Child Modal */}
@@ -1537,132 +1406,127 @@ export default function DashboardPage() {
 
       {/* Transaction Modal */}
       {showTransactionModal && selectedChild && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <div className="mb-4">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {transactionType === 'add'
-                  ? '💰 Adicionar Dinheiro'
-                  : '💸 Remover Dinheiro'}
-              </h3>
-              <div className="flex items-center gap-2 text-gray-600">
-                <span className="text-2xl">{selectedChild.avatar}</span>
-                <span className="font-semibold">{selectedChild.name}</span>
-                <span className="text-sm">
-                  • Saldo atual: R$ {selectedChild.balance.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {/* Quick Amount Buttons */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Valores sugeridos:
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  <button
-                    onClick={() => handleQuickAmount(10)}
-                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
-                  >
-                    R$ 10
-                  </button>
-                  <button
-                    onClick={() => handleQuickAmount(20)}
-                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
-                  >
-                    R$ 20
-                  </button>
-                  <button
-                    onClick={() => handleQuickAmount(50)}
-                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
-                  >
-                    R$ 50
-                  </button>
-                  <button
-                    onClick={() => handleQuickAmount(100)}
-                    className="px-3 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg border border-gray-300 hover:bg-purple-100 hover:text-purple-700 transition-all"
-                  >
-                    R$ 100
-                  </button>
+        <div className="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <Card
+            variant="elevated"
+            padding="lg"
+            className="max-w-md w-full animate-fade-in"
+          >
+            <CardBody>
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-text-primary mb-2">
+                  {transactionType === 'add'
+                    ? '💰 Adicionar Dinheiro'
+                    : '💸 Remover Dinheiro'}
+                </h3>
+                <div className="flex items-center gap-2 text-text-secondary">
+                  <span className="text-2xl">{selectedChild.avatar}</span>
+                  <span className="font-semibold">{selectedChild.name}</span>
+                  <span className="text-sm">
+                    • Saldo: R$ {selectedChild.balance.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
-              {/* Amount Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Valor (R$):
-                </label>
-                <input
-                  type="number"
-                  value={transactionAmount}
-                  onChange={e => setTransactionAmount(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              <div className="space-y-4">
+                {/* Quick Amount Buttons */}
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Valores sugeridos:
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[10, 20, 50, 100].map(amount => (
+                      <button
+                        key={amount}
+                        onClick={() => handleQuickAmount(amount)}
+                        className="px-3 py-2 bg-bg-secondary text-text-primary font-semibold text-sm rounded-lg border border-border hover:bg-primary hover:text-bg-primary transition-all"
+                      >
+                        R$ {amount}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Amount Input */}
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Valor (R$):
+                  </label>
+                  <input
+                    type="number"
+                    value={transactionAmount}
+                    onChange={e => setTransactionAmount(e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    className="w-full px-4 py-2.5 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                {/* Description Input */}
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Descrição:
+                  </label>
+                  <input
+                    type="text"
+                    value={transactionDescription}
+                    onChange={e => setTransactionDescription(e.target.value)}
+                    placeholder="Ex: Mesada semanal, Presente do vovô..."
+                    className="w-full px-4 py-2.5 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                {/* Preview */}
+                {transactionAmount && (
+                  <div
+                    className={`p-3 rounded-lg ${
+                      transactionType === 'add'
+                        ? 'bg-success bg-opacity-10 border border-success'
+                        : 'bg-error bg-opacity-10 border border-error'
+                    }`}
+                  >
+                    <p
+                      className={`text-sm font-medium ${
+                        transactionType === 'add'
+                          ? 'text-success'
+                          : 'text-error'
+                      }`}
+                    >
+                      Novo saldo: R${' '}
+                      {transactionType === 'add'
+                        ? (
+                            selectedChild.balance +
+                            parseFloat(transactionAmount || '0')
+                          ).toFixed(2)
+                        : (
+                            selectedChild.balance -
+                            parseFloat(transactionAmount || '0')
+                          ).toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Description Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Descrição:
-                </label>
-                <input
-                  type="text"
-                  value={transactionDescription}
-                  onChange={e => setTransactionDescription(e.target.value)}
-                  placeholder="Ex: Mesada semanal, Presente do vovô..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Preview */}
-              {transactionAmount && (
-                <div
-                  className={`p-3 rounded-lg ${
-                    transactionType === 'add'
-                      ? 'bg-green-50 border border-green-200'
-                      : 'bg-red-50 border border-red-200'
-                  }`}
+              {/* Actions */}
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setShowTransactionModal(false)}
                 >
-                  <p className="text-sm font-medium">
-                    Novo saldo: R${' '}
-                    {transactionType === 'add'
-                      ? (
-                          selectedChild.balance +
-                          parseFloat(transactionAmount || '0')
-                        ).toFixed(2)
-                      : (
-                          selectedChild.balance -
-                          parseFloat(transactionAmount || '0')
-                        ).toFixed(2)}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowTransactionModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveTransaction}
-                className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
-                  transactionType === 'add'
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-red-600 hover:bg-red-700 text-white'
-                }`}
-              >
-                {transactionType === 'add' ? '✅ Adicionar' : '✅ Remover'}
-              </button>
-            </div>
-          </div>
+                  Cancelar
+                </Button>
+                <Button
+                  variant={transactionType === 'add' ? 'primary' : 'danger'}
+                  fullWidth
+                  onClick={handleSaveTransaction}
+                >
+                  {transactionType === 'add' ? '✅ Adicionar' : '✅ Remover'}
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         </div>
       )}
     </div>
