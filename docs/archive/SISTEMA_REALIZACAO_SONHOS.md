@@ -214,6 +214,7 @@ Sistema que permite crianças solicitarem a realização de sonhos quando comple
 2. Encontrar o sonho "Teste de Realização"
 
 3. Verificar estado:
+
    ```
    ✅ Sonho realizado! 🎉
    ```
@@ -241,6 +242,7 @@ Repita os mesmos passos, mas no **Passo 5**, clique em **"❌ RECUSAR"**.
    ```
 
 2. Na tela da criança:
+
    ```
    ❌ Não aprovado pelos pais
    ```

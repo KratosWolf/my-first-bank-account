@@ -14,7 +14,7 @@ async function fixChildren() {
     .from('children')
     .update({ age: 9, avatar: '👦' })
     .eq('name', 'Rafael');
-  
+
   if (error1) console.log('❌ Erro Rafael:', error1.message);
   else console.log('✅ Rafael corrigido: 9 anos, 👦');
 
@@ -23,7 +23,7 @@ async function fixChildren() {
     .from('children')
     .update({ age: 10, avatar: '👦' })
     .eq('name', 'Gabriel');
-  
+
   if (error2) console.log('❌ Erro Gabriel:', error2.message);
   else console.log('✅ Gabriel corrigido: 10 anos, 👦');
 

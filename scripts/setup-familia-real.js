@@ -11,11 +11,26 @@ async function setupFamiliaReal() {
 
   // 1. Limpar dados antigos
   console.log('🧹 Limpando dados antigos...');
-  await supabase.from('purchase_requests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  await supabase.from('transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  await supabase.from('goals').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  await supabase.from('children').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  await supabase.from('families').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  await supabase
+    .from('purchase_requests')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+  await supabase
+    .from('transactions')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+  await supabase
+    .from('goals')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+  await supabase
+    .from('children')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+  await supabase
+    .from('families')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
   console.log('✅ Dados antigos removidos\n');
 
   // 2. Criar família (tentar com apenas colunas obrigatórias)
@@ -24,7 +39,7 @@ async function setupFamiliaReal() {
     .from('families')
     .insert({
       parent_name: 'Tiago e Helena',
-      parent_email: 'tiago@familiareal.com'
+      parent_email: 'tiago@familiareal.com',
     })
     .select()
     .single();
@@ -39,14 +54,14 @@ async function setupFamiliaReal() {
 
   // 3. Criar filhos
   console.log('👶 Criando filhos...');
-  
+
   const { data: rafael, error: rafaelError } = await supabase
     .from('children')
     .insert({
       family_id: family.id,
       name: 'Rafael',
       pin: '1234',
-      avatar: '👦'
+      avatar: '👦',
     })
     .select()
     .single();
@@ -63,7 +78,7 @@ async function setupFamiliaReal() {
       family_id: family.id,
       name: 'Gabriel',
       pin: '5678',
-      avatar: '🧒'
+      avatar: '🧒',
     })
     .select()
     .single();
@@ -88,4 +103,6 @@ async function setupFamiliaReal() {
   console.log('🌐 URL: http://localhost:3002');
 }
 
-setupFamiliaReal().then(() => process.exit(0)).catch(console.error);
+setupFamiliaReal()
+  .then(() => process.exit(0))
+  .catch(console.error);

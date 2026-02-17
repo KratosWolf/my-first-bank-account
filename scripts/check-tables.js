@@ -8,9 +8,16 @@ const supabase = createClient(
 
 async function checkTables() {
   console.log('🔍 Verificando tabelas existentes...\n');
-  
-  const tables = ['families', 'children', 'transactions', 'goals', 'purchase_requests', 'badges'];
-  
+
+  const tables = [
+    'families',
+    'children',
+    'transactions',
+    'goals',
+    'purchase_requests',
+    'badges',
+  ];
+
   for (const table of tables) {
     const { data, error } = await supabase.from(table).select('count').limit(1);
     if (error) {

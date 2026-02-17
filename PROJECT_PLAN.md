@@ -1,0 +1,384 @@
+# PROJECT_PLAN.md — My First Bank Account (MyFirstBA2)
+
+> Este documento é a fonte única de verdade sobre o que será construído,
+> em que ordem, e com que tecnologias. Deve ser mantido atualizado.
+> ⚠️ PROJETO EXISTENTE EM EVOLUÇÃO — não é um projeto novo.
+
+---
+
+## 📌 VISÃO GERAL
+
+### O que é este projeto?
+
+App educacional de finanças pessoais para crianças. Os pais criam contas bancárias simuladas para os filhos, com saldo, transações (depósitos, saques, presentes), rendimentos por juros configuráveis, e sonhos/metas de economia. O objetivo é ensinar educação financeira na prática, de forma lúdica e engajante. Pensado para futura comercialização.
+
+### Público-alvo
+
+- **Pais/responsáveis** — gerenciam as contas, configuram juros, fazem depósitos/saques
+- **Crianças (filhos)** — visualizam saldo, transações, acompanham sonhos, veem rendimentos
+
+### Resultado esperado
+
+App funcional com bugs corrigidos, visual redesenhado (verde escuro + amarelo/dourado + branco), e fluxo de onboarding profissional para futura comercialização.
+
+### Situação Atual (Fev 2026)
+
+- App funcional com 21 tabelas no Supabase
+- Login com Google OAuth via NextAuth
+- Dashboard de pais + visão de crianças
+- Transações, juros (com bugs), sonhos/metas
+- 138 arquivos, ~31K linhas de código
+- 0% test coverage, 28 dependências desatualizadas
+- Supabase projeto: mqcfdwyhbtvaclslured (restaurado após auto-pause)
+
+---
+
+## 🛠️ TECH STACK
+
+### Stack Atual
+
+| Camada         | Tecnologia              | Motivo                         |
+| -------------- | ----------------------- | ------------------------------ |
+| Frontend       | Next.js 14 + React 18   | App Router, SSR, boa DX        |
+| Linguagem      | TypeScript              | Type safety                    |
+| Styling        | Tailwind CSS 4          | Utility-first, produtivo       |
+| Backend/BaaS   | Supabase                | Auth + DB + Storage integrados |
+| Banco de Dados | PostgreSQL via Supabase | Relacional com RLS             |
+| Autenticação   | NextAuth + Google OAuth | Sem fricção para pais          |
+| Hospedagem     | Vercel (provável)       | Melhor para Next.js            |
+| Versionamento  | GitHub                  | Padrão                         |
+
+### Dependências Principais
+
+```
+next: 14.x
+react: 18.x
+@supabase/supabase-js
+@supabase/ssr
+next-auth
+tailwindcss: 4.x
+typescript
+```
+
+---
+
+## 📋 FASES DO PROJETO
+
+---
+
+### FASE 1 — Correção de Bugs ⬅️ FASE ATUAL
+
+**Objetivo:** Corrigir todos os bugs identificados e estabilizar o app antes de qualquer mudança visual ou funcional nova.
+**Prazo estimado:** 1-2 semanas
+
+| #   | Funcionalidade                   | Status      | Notas                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0 | Organização do projeto           | ✅ Completo | Movidos 24 arquivos .md para `docs/archive/`, 8 scripts para `scripts/`, 3 arquivos .sql para `database/`. Raiz limpa mantendo apenas CLAUDE.md, PROJECT_PLAN.md, README.md e configs (.js).                                                                                                                                                                                               |
+| 1.1 | Histórico de transações completo | ⬜ Pendente | Atualmente só mostra último mês. Implementar: visualização completa, filtro por período (mês/ano), filtro por tipo de transação (depósito, saque, presente, rendimento), paginação ou scroll infinito                                                                                                                                                                                      |
+| 1.2 | Taxa de juros configurável       | ⬜ Pendente | **BUG ATUAL:** Tela de config mostra "Taxa Anual 9.9%" com "Mensal Calculada 0.825%", mas na prática aplica 9.9% sobre o saldo mensal. **CORREÇÃO:** Remover conceito de "taxa anual". O campo deve ser "Taxa Mensal (%)" — o pai digita o valor que quiser (ex: 1%, 5%, 10%, 50%). Sem teto fixo. Remover/ajustar migration `003_fix_interest_config_columns.sql`. Atualizar label na UI. |
+| 1.3 | Juros nos sonhos/metas           | ⬜ Pendente | Atualmente sonhos/metas NÃO rendem juros. O dinheiro guardado num sonho deve render a mesma taxa configurada pelo pai. Atualizar lógica de cálculo de juros para incluir saldo dos sonhos. Mostrar rendimento separado no extrato do sonho.                                                                                                                                                |
+| 1.4 | Keep-alive do Supabase           | ⬜ Pendente | Projeto pausou após 7 dias (free tier). Investigar: existia algum mecanismo (cron job? edge function? scheduled API call?) que falhou? Implementar solução robusta: cron job externo (UptimeRobot, GitHub Actions, ou similar) que faz ping no Supabase a cada 5 dias. Documentar a solução.                                                                                               |
+| 1.5 | Audit de dependências            | ⬜ Pendente | 28 dependências desatualizadas. Atualizar as críticas (segurança). Não precisa atualizar tudo — só o que impacta segurança e funcionamento.                                                                                                                                                                                                                                                |
+| 1.6 | Testes e validação               | ⬜ Pendente | Testar manualmente todos os fluxos corrigidos. Verificar: histórico completo, juros aplicados corretamente, juros nos sonhos, keep-alive ativo.                                                                                                                                                                                                                                            |
+
+**Critério de conclusão:** Todos os bugs corrigidos, app funcionando sem erros, juros calculados corretamente, histórico completo visível.
+
+---
+
+### FASE 2 — Redesign Visual Completo
+
+**Objetivo:** Transformar toda a interface com nova identidade visual inspirada nas referências aprovadas.
+**Status:** 🔒 Bloqueada — só inicia após Fase 1 completa e aprovada.
+
+#### Paleta de Cores Aprovada
+
+| Uso                            | Cor                     | Hex (sugerido) |
+| ------------------------------ | ----------------------- | -------------- |
+| Background principal           | Verde escuro            | #0D2818        |
+| Background secundário          | Verde médio escuro      | #1A4731        |
+| Cards/containers               | Verde com transparência | #1A4731CC      |
+| Cor primária (CTAs, destaques) | Amarelo/dourado         | #F5B731        |
+| Cor secundária                 | Amarelo claro           | #FFD966        |
+| Texto principal                | Branco                  | #FFFFFF        |
+| Texto secundário               | Branco com opacidade    | #FFFFFFB3      |
+| Sucesso/positivo               | Verde claro             | #22C55E        |
+| Erro/negativo                  | Vermelho                | #EF4444        |
+
+#### Conceito Visual
+
+- **Para pais:** Visual profissional, limpo, como um app bancário real (referência ArobixBank)
+- **Para crianças:** Elementos lúdicos, animações, mascote porquinho, micro-interações
+- **Equilíbrio:** Credibilidade para adultos + engajamento para crianças
+
+| #    | Funcionalidade                  | Status | Notas                                                                                                          |
+| ---- | ------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| 2.1  | Setup do tema centralizado      | 🔒     | Criar arquivo de tema com todas as cores, fontes, espaçamentos. Componentes base (Button, Card, Input, Badge). |
+| 2.2  | Tela de Login redesenhada       | 🔒     | Nova paleta, animação do porquinho, visual premium                                                             |
+| 2.3  | Dashboard dos pais              | 🔒     | Cards modernos, gráficos com nova paleta, layout profissional                                                  |
+| 2.4  | Tela de conta da criança        | 🔒     | Saldo animado, transações com ícones, visual lúdico                                                            |
+| 2.5  | Tela de transações/histórico    | 🔒     | Lista com filtros, categorias coloridas, paginação                                                             |
+| 2.6  | Tela de configuração de juros   | 🔒     | Slider ou input limpo, preview de rendimento                                                                   |
+| 2.7  | Tela de sonhos/metas            | 🔒     | Progress bar animada, ícones de conquista, celebração ao atingir                                               |
+| 2.8  | Componentes de navegação        | 🔒     | Bottom nav, header, sidebar (se aplicável)                                                                     |
+| 2.9  | Micro-interações e animações    | 🔒     | Transições suaves, feedback visual, celebrações                                                                |
+| 2.10 | Testes visuais e responsividade | 🔒     | Testar em mobile e desktop, dark/light consistency                                                             |
+
+---
+
+### FASE 3 — Onboarding Profissional
+
+**Objetivo:** Criar fluxo completo de cadastro e configuração inicial, pensando em comercialização futura.
+**Status:** 🔒 Bloqueada — só inicia após Fase 2 completa e aprovada.
+
+#### Fluxo do Onboarding
+
+```
+1. Tela de boas-vindas → branding, proposta de valor
+2. Criar conta do responsável → Google OAuth ou email/senha
+3. Perfil do responsável → nome, relação com criança (pai/mãe/avô/tio/outro)
+4. Adicionar segundo responsável? → opcional, convite por email
+5. Adicionar filho(a) → nome + data nascimento + avatar + apelido
+6. Adicionar mais filhos? → repetir step 5
+7. Configuração inicial → taxa de juros, saldo inicial (opcional)
+8. Tour/tutorial → mostrar funcionalidades principais
+9. Dashboard → app pronto para usar
+```
+
+#### Dados do Responsável
+
+- Nome completo
+- Email (via OAuth ou manual)
+- Relação com a criança (pai/mãe/padrasto/madrasta/avô/avó/tio/tia/outro)
+- Foto (opcional, via OAuth)
+
+#### Dados da Criança
+
+- Nome
+- Data de nascimento
+- Avatar (seleção de opções pré-definidas)
+- Apelido (como aparece no app)
+
+#### Configuração da Família
+
+- 1 ou 2 responsáveis por família
+- Cada responsável pode gerenciar todos os filhos da família
+- Convite do segundo responsável por email
+
+| #   | Funcionalidade                  | Status | Notas                                                                         |
+| --- | ------------------------------- | ------ | ----------------------------------------------------------------------------- |
+| 3.1 | Schema do banco para onboarding | 🔒     | Tabelas: families, guardians, guardian_invites. Ajustes em children/accounts. |
+| 3.2 | Tela de boas-vindas             | 🔒     | Branding, animação, CTA                                                       |
+| 3.3 | Signup do responsável           | 🔒     | Google OAuth + email/senha                                                    |
+| 3.4 | Perfil do responsável           | 🔒     | Nome, relação, foto                                                           |
+| 3.5 | Convite do segundo responsável  | 🔒     | Envio por email, aceitação                                                    |
+| 3.6 | Cadastro de filho(a)            | 🔒     | Nome, nascimento, avatar, apelido                                             |
+| 3.7 | Configuração inicial            | 🔒     | Taxa de juros, saldo inicial                                                  |
+| 3.8 | Tour/tutorial interativo        | 🔒     | Highlights das funcionalidades                                                |
+| 3.9 | Testes do fluxo completo        | 🔒     | Testar todos os caminhos do onboarding                                        |
+
+---
+
+### FASE 4 — Melhorias Futuras
+
+**Objetivo:** Features adicionais identificadas durante o uso.
+**Status:** 🔒 Bloqueada
+
+| #   | Funcionalidade       | Status | Notas                                          |
+| --- | -------------------- | ------ | ---------------------------------------------- |
+| 4.1 | Testes automatizados | 🔒     | Coverage mínima para fluxos críticos           |
+| 4.2 | Notificações         | 🔒     | Push/email para rendimentos, metas atingidas   |
+| 4.3 | Gamificação          | 🔒     | Conquistas, streaks de economia, badges        |
+| 4.4 | Multi-idioma         | 🔒     | PT-BR (padrão) + EN                            |
+| 4.5 | PWA / App mobile     | 🔒     | Progressive Web App para instalar no celular   |
+| 4.6 | Monetização          | 🔒     | Plano premium, famílias adicionais, etc.       |
+| 4.7 | Outros bugs/features | 🔒     | Itens identificados durante uso (lista aberta) |
+
+---
+
+## 🏗️ ARQUITETURA
+
+### Estrutura de Pastas Atual
+
+```
+MyFirstBA2/
+├── CLAUDE.md                ← Instruções para Claude Code
+├── PROJECT_PLAN.md          ← Este arquivo (plano detalhado)
+├── README.md
+├── .claude/
+│   ├── settings.local.json  ← Config do Claude Code
+│   └── skills/              ← 10 skills automáticas
+├── docs/
+│   └── archive/             ← Documentação histórica (fases Ago-Nov 2025)
+├── src/
+│   ├── app/                 ← Rotas (App Router)
+│   │   ├── api/             ← API routes (auth, transactions, interest, etc.)
+│   │   ├── dashboard/       ← Painel dos pais
+│   │   ├── child/           ← Visão da criança
+│   │   ├── settings/        ← Configurações
+│   │   └── login/           ← Tela de login
+│   ├── components/          ← Componentes reutilizáveis
+│   ├── lib/                 ← Supabase client, helpers, utils
+│   ├── services/            ← Lógica de negócio
+│   └── styles/              ← Estilos globais
+├── components/              ← Componentes (pasta legacy — avaliar merge)
+├── database/                ← Scripts de banco
+├── pages/                   ← Pages Router (legacy — avaliar migração)
+├── scripts/                 ← Scripts utilitários
+├── public/                  ← Assets estáticos
+└── supabase/
+    └── migrations/          ← SQL migrations
+```
+
+### Banco de Dados (Supabase — 21 tabelas)
+
+```
+Tabelas conhecidas (a investigar estrutura completa na Fase 1):
+- accounts              ← Contas bancárias das crianças
+- transactions          ← Histórico de transações
+- interest_config       ← Configuração de taxa de juros
+- savings_goals         ← Sonhos/metas de economia
+- children              ← Perfis das crianças
+- users / profiles      ← Usuários (pais/responsáveis)
+- [+ outras tabelas a mapear]
+
+⚠️ PRIMEIRO PASSO DA FASE 1: Mapear todas as 21 tabelas,
+   seus campos e relacionamentos antes de fazer qualquer alteração.
+```
+
+### Fluxos Principais
+
+```
+1. Pai abre o app → Verifica sessão (NextAuth) → Login Google ou Dashboard
+2. Dashboard → Lista de filhos → Selecionar filho → Ver conta
+3. Conta do filho → Saldo + Transações + Sonhos + Rendimentos
+4. Pai configura juros → Taxa mensal (%) → Aplicada automaticamente
+5. Filho cria sonho → Define valor + prazo → Acompanha progresso
+6. Rendimento mensal → Calculado sobre saldo + saldo dos sonhos
+```
+
+---
+
+## 🔧 DETALHAMENTO TÉCNICO — FASE 1
+
+### 1.1 Histórico de Transações Completo
+
+**Problema:** Só mostra transações do último mês.
+**Solução:**
+
+- Query sem filtro de data (ou com paginação: 50 por página)
+- Adicionar filtros na UI: por período (mês/ano), por tipo (depósito, saque, presente, rendimento)
+- Scroll infinito ou botão "carregar mais"
+- Ordenação: mais recente primeiro (padrão)
+
+### 1.2 Taxa de Juros Configurável
+
+**Problema:** UI mostra "Taxa Anual" mas aplica como mensal. Teto fixo de 9.9%.
+**Solução:**
+
+- Alterar label para "Taxa Mensal (%)"
+- Remover teto máximo (ou colocar teto alto tipo 100% para evitar erros de digitação)
+- Atualizar coluna no banco: remover constraint de máximo
+- Recalcular toda a lógica de juros para usar diretamente o valor inserido como taxa mensal
+- Migration SQL: `ALTER TABLE interest_config ...`
+
+### 1.3 Juros nos Sonhos/Metas
+
+**Problema:** Dinheiro guardado em sonhos não rende.
+**Solução:**
+
+- No cálculo mensal de juros, somar: saldo da conta + saldo de todos os sonhos ativos
+- OU calcular juros separadamente: X sobre saldo principal, Y sobre cada sonho
+- Registrar rendimento dos sonhos como transação separada no extrato do sonho
+- Exibir na UI: "Seu sonho rendeu R$ X,XX este mês!"
+
+### 1.4 Keep-alive do Supabase
+
+**Problema:** Projeto pausou (free tier pausa após 7 dias sem uso).
+**Solução:**
+
+- Opção A: GitHub Actions — cron job que faz `SELECT 1` no banco a cada 5 dias
+- Opção B: UptimeRobot — ping no health endpoint do app
+- Opção C: Supabase Edge Function com schedule
+- Recomendação: GitHub Actions (gratuito, controlado, visível no repo)
+
+---
+
+## 📐 SCHEMA DE BANCO — ALTERAÇÕES PREVISTAS
+
+### Fase 1 — Alterações
+
+```sql
+-- 1.2: Remover teto da taxa de juros e mudar label
+ALTER TABLE interest_config
+  ALTER COLUMN annual_rate TYPE DECIMAL(10,4);
+-- Remover constraint de máximo se existir
+-- Adicionar coluna monthly_rate se não existir
+-- OU renomear annual_rate para monthly_rate
+
+-- 1.3: Registrar rendimentos dos sonhos
+-- Verificar se savings_goals tem campo para tracking de juros
+-- Pode precisar de tabela savings_goals_interest ou coluna adicional
+
+-- ⚠️ INVESTIGAR PRIMEIRO: Mapear schema completo antes de alterar
+```
+
+### Fase 3 — Novas Tabelas (Onboarding)
+
+```sql
+-- Tabela de famílias
+CREATE TABLE families (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT, -- "Família Fernandes"
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabela de responsáveis (guardians)
+CREATE TABLE guardians (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id), -- liga ao NextAuth/Supabase user
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  relationship TEXT NOT NULL, -- 'pai', 'mãe', 'avô', 'avó', 'tio', 'tia', 'outro'
+  avatar_url TEXT,
+  is_primary BOOLEAN DEFAULT false, -- primeiro responsável cadastrado
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabela de convites
+CREATE TABLE guardian_invites (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  invited_by UUID REFERENCES guardians(id),
+  email TEXT NOT NULL,
+  status TEXT DEFAULT 'pending', -- 'pending', 'accepted', 'expired'
+  token TEXT UNIQUE NOT NULL, -- token único para o link de convite
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '7 days'
+);
+
+-- Alterar children para vincular à família
+ALTER TABLE children ADD COLUMN family_id UUID REFERENCES families(id);
+ALTER TABLE children ADD COLUMN nickname TEXT;
+ALTER TABLE children ADD COLUMN avatar_preset TEXT; -- 'astronaut', 'princess', 'dinosaur', etc.
+
+-- RLS para todas as novas tabelas
+ALTER TABLE families ENABLE ROW LEVEL SECURITY;
+ALTER TABLE guardians ENABLE ROW LEVEL SECURITY;
+ALTER TABLE guardian_invites ENABLE ROW LEVEL SECURITY;
+
+-- ⚠️ SQL COMPLETO será definido na Fase 3 após investigar schema atual
+```
+
+---
+
+## 📝 HISTÓRICO DE MUDANÇAS
+
+| Data       | Fase  | O que mudou                                           | Motivo                              |
+| ---------- | ----- | ----------------------------------------------------- | ----------------------------------- |
+| 2026-02-17 | Setup | Projeto existente auditado (138 arquivos, 31K linhas) | Evolução planejada                  |
+| 2026-02-17 | Setup | Supabase restaurado após auto-pause                   | Projeto pausou por inatividade      |
+| 2026-02-17 | Setup | Redesign visual aprovado (verde + amarelo + branco)   | Referências: porquinho + ArobixBank |
+| 2026-02-17 | Setup | 5 bugs/features identificados e priorizados           | Bugs → Redesign → Onboarding        |
+| 2026-02-17 | Setup | CLAUDE.md e PROJECT_PLAN.md criados                   | Início da evolução estruturada      |

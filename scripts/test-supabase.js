@@ -11,15 +11,18 @@ async function testConnection() {
   console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   console.log('Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   console.log('\n');
-  
+
   try {
-    const { data, error } = await supabase.from('families').select('count').limit(1);
-    
+    const { data, error } = await supabase
+      .from('families')
+      .select('count')
+      .limit(1);
+
     if (error) {
       console.log('❌ Erro na conexão:', error.message);
       return false;
     }
-    
+
     console.log('✅ Conexão com Supabase OK!\n');
     return true;
   } catch (err) {

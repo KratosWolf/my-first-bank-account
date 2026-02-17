@@ -1,349 +1,237 @@
-# Claude Code Session - My First Bank Account - Sistema Completo
+# CLAUDE.md — Instruções para o Claude Code
 
-## 🎯 Objetivo Final
-Implementar um sistema completo de educação financeira para famílias - "Banco da Família" - com Google OAuth, dashboard parental, sistema de crianças e gamificação.
-
-## 📍 Estado Atual (2025-08-22 - Sessão Completa)
-
-### ✅ IMPLEMENTADO COM SUCESSO NESTA SESSÃO:
-
-#### 🔐 Sistema de Autenticação (100% Completo)
-- **Google OAuth** funcionando 100% em desenvolvimento e produção
-- **NextAuth v5** configurado corretamente
-- **Credenciais válidas**: `13158927511-475p7ur6h2c2o9bs3ckh0rsp0emt9653.apps.googleusercontent.com`
-- **URLs de redirect** configuradas no Google Console:
-  - `http://localhost:3000/api/auth/callback/google`
-  - `https://my-first-bank-account.vercel.app/api/auth/callback/google`
-- **Resolução de conflitos**: Sincronizado main branch com sucesso
-
-#### 👶 Sistema de Crianças (Implementado)
-- **Modal de cadastro** funcional com validações
-- **Formulário componentizado** (`ChildForm.tsx`)
-- **Validações robustas**: nome, PIN único de 4 dígitos
-- **Seleção de avatars** com grid visual
-- **Interface responsiva** e user-friendly
-- **Estados de loading** e feedback de erro
-- **Simulação de persistência** (preparado para localStorage)
-
-#### 🎛️ Dashboard Parental Moderno
-- **Interface limpa** e profissional
-- **Header com foto** do usuário e saudação
-- **Grid responsivo** para cards de crianças
-- **Empty state** atrativo quando não há crianças
-- **Botões de ação** bem posicionados
-- **Design system** consistente com Tailwind CSS
-
-#### 🏗️ Arquitetura Refinada
-- **Next.js 15** com App Router (`/src/app` structure)
-- **Componentes modulares** bem organizados
-- **TypeScript** com interfaces bem definidas
-- **SessionProvider** para context global
-- **Estrutura de storage** preparada (`/lib/storage/children.ts`)
-- **Separação de responsabilidades** clara
-
-### 🌐 Ambientes Funcionais:
-
-#### Desenvolvimento:
-- **URL**: http://localhost:3000
-- **Status**: ✅ Funcionando
-- **Google OAuth**: ✅ Configurado
-- **Dashboard**: ✅ Implementado
-
-#### Produção:
-- **URL**: https://my-first-bank-account.vercel.app
-- **Status**: ✅ Funcionando
-- **Google OAuth**: ✅ Configurado
-- **Deploy**: 🔄 Aguardando merge do PR
-
-#### GitHub:
-- **Repositório**: https://github.com/KratosWolf/my-first-bank-account
-- **Branch principal**: `main`
-- **Branch atual**: `feature/complete-google-oauth-dashboard`
-- **Status**: ✅ 100% sincronizado
-
-## 📁 Estrutura de Arquivos Atualizada
-
-```
-/Users/tiagofernandes/Desktop/VIBE/MyFirstBA2/
-├── src/app/
-│   ├── page.tsx (redirecionamento automático)
-│   ├── layout.tsx (com Providers)
-│   ├── auth/signin/page.tsx (login Google moderno)
-│   ├── dashboard/
-│   │   ├── page.tsx (dashboard simplificado)
-│   │   ├── components/
-│   │   │   └── ChildForm.tsx (formulário modal)
-│   │   └── page-complex.tsx.backup (versão anterior)
-│   └── api/auth/[...nextauth]/route.ts
-├── components/
-│   └── Providers.tsx (SessionProvider)
-├── lib/
-│   └── storage/
-│       └── children.ts (serviço de storage completo)
-├── auth.ts (configuração NextAuth v5)
-├── .env.local (variáveis de ambiente)
-└── CLAUDE.md (documentação completa)
-```
-
-## 🔧 Configurações Técnicas
-
-### Variáveis de Ambiente (.env.local):
-```env
-GOOGLE_CLIENT_ID=13158927511-475p7ur6h2c2o9bs3ckh0rsp0emt9653.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
-NEXTAUTH_SECRET=iT0CMNNd8UsZspQiciWdQQyZ/kpbqsmXiQqOH2g4q1w=
-NEXTAUTH_URL=http://localhost:3000
-```
-
-### Google Console - URLs Autorizadas:
-- `http://localhost:3000/api/auth/callback/google`
-- `https://my-first-bank-account.vercel.app/api/auth/callback/google`
-
-### Dependencies Instaladas:
-- `next-auth@beta` (v5.0.0-beta.29)
-- `next` (15.4.5)
-- `react` (19.1.0)
-- `react-dom` (19.1.0)
-
-## 🎯 Próximas Funcionalidades a Implementar
-
-### 1. 👶 Sistema de Crianças Avançado
-- [x] ✅ Modal de cadastro funcional
-- [x] ✅ Validações e formulário componentizado
-- [x] ✅ Seleção de avatars visual
-- [ ] 🔄 Implementar localStorage real (substituir mock)
-- [ ] 🔄 Edição de perfis existentes
-- [ ] 🔄 Exclusão de crianças
-- [ ] 🔄 Upload de avatars customizados
-
-### 2. 💰 Sistema Financeiro
-- [ ] 🔄 Gestão de saldos das crianças
-- [ ] 🔄 Histórico de transações
-- [ ] 🔄 Sistema de mesadas automáticas
-- [ ] 🔄 Juros educativos mensais
-- [ ] 🔄 Transferências entre contas
-
-### 3. 🛒 Sistema de Pedidos
-- [ ] 🔄 Criação de pedidos com categorias
-- [ ] 🔄 Fluxo de aprovação parental
-- [ ] 🔄 Notificações em tempo real
-- [ ] 🔄 Histórico de pedidos
-- [ ] 🔄 Sistema de comentários
-
-### 4. 🎯 Metas e Sonhos
-- [ ] 🔄 Criação de objetivos financeiros
-- [ ] 🔄 Progresso visual com barras
-- [ ] 🔄 Sistema de fundos dedicados
-- [ ] 🔄 Alertas de deadline
-- [ ] 🔄 Metas familiares colaborativas
-
-### 5. 🏆 Gamificação
-- [ ] 🔄 Sistema de níveis e pontos
-- [ ] 🔄 Badges e conquistas
-- [ ] 🔄 Streak system
-- [ ] 🔄 Leaderboard familiar
-- [ ] 🔄 Desafios semanais
-
-### 6. 📊 Analytics e Relatórios
-- [ ] 🔄 Relatórios de gastos por categoria
-- [ ] 🔄 Analytics de comportamento
-- [ ] 🔄 Exportação de dados
-- [ ] 🔄 Insights parentais
-- [ ] 🔄 Dashboard de métricas
-
-## 🚀 Como Continuar
-
-### Para retomar desenvolvimento:
-1. `cd /Users/tiagofernandes/Desktop/VIBE/MyFirstBA2`
-2. `git status` (verificar branch atual)
-3. `npm run dev` (iniciar servidor local)
-4. Acessar http://localhost:3000
-
-### Para fazer deploy:
-1. Criar PR no GitHub do branch `feature/complete-google-oauth-dashboard`
-2. Aguardar CI/CD
-3. Merge para `main` fará deploy automático
-
-### Para adicionar novas funcionalidades:
-1. Escolher próxima funcionalidade da lista acima
-2. Criar novo branch: `git checkout -b feature/nome-da-funcionalidade`
-3. Implementar com testes
-4. Commit e push
-5. Criar PR
-
-## 📝 Notas Importantes
-
-### ✅ Sucessos:
-- Google OAuth funcionando 100% em ambos os ambientes
-- Dashboard parental moderno e responsivo
-- Arquitetura escalável implementada
-- Estrutura de dados preparada
-
-### ⚠️ Pontos de Atenção:
-- Branch protection ativo no GitHub (requer PR)
-- Dependências com versões específicas (React 19, Next 15)
-- Estrutura `/src/app` (não `/app`)
-
-### 🔗 Links Úteis:
-- **Repositório**: https://github.com/KratosWolf/my-first-bank-account
-- **Produção**: https://my-first-bank-account.vercel.app
-- **Google Console**: https://console.cloud.google.com/apis/credentials
-- **Vercel Dashboard**: https://vercel.com/dashboard
-
-## 🎉 Resumo da Sessão
-
-### ✅ Conquistas Principais:
-1. **Resolveu conflitos** do Git e sincronizou com produção
-2. **Implementou sistema de crianças** funcional com modal
-3. **Criou componentes modulares** bem organizados
-4. **Aplicou validações robustas** e feedback visual
-5. **Estabeleceu arquitetura limpa** para expansão futura
-
-### 🚀 Próximos Passos Imediatos:
-1. **Criar PR** para deploy das mudanças
-2. **Implementar localStorage** real (substituir mock)
-3. **Adicionar funcionalidade** de edição/exclusão
-4. **Expandir para sistema financeiro** (saldos, transações)
-
-### 🔧 Status Técnico:
-- **Ambiente local**: ✅ Funcionando (localhost:3000)
-- **Autenticação**: ✅ Google OAuth operacional
-- **Interface**: ✅ Moderna e responsiva
-- **Código**: ✅ Componentizado e escalável
-- **Git**: ✅ Sincronizado e documentado
+> ⚠️ Este arquivo é lido automaticamente pelo Claude Code a cada interação.
+> Todas as regras aqui DEVEM ser seguidas em TODAS as respostas.
 
 ---
 
-## 🎮 NOVA SESSÃO - SISTEMA DE GAMIFICAÇÃO COMPLETO (2025-08-24)
+## 🧠 IDENTIDADE DO PROJETO
 
-### ✅ IMPLEMENTADO NESTA SESSÃO:
-
-#### 🏆 Sistema de Gamificação (100% Completo)
-- **Serviço de Gamificação** (`/src/lib/services/gamification.ts`)
-  - Sistema de badges/conquistas (primeira tarefa, etc.)
-  - Sistema de streaks para tarefas consecutivas  
-  - Progressão de níveis baseada em XP
-  - Fórmula exponencial: Level 1=100XP, Level 2=150XP, Level 3=225XP...
-  - Integração com sistema de recompensas
-
-- **Componente de Celebração** (`/src/components/gamification/AchievementCelebration.tsx`)
-  - Modal animado para celebrar conquistas
-  - Suporte a múltiplas conquistas sequenciais
-  - Diferentes tipos: badge, streak, level
-  - Animações e efeitos visuais com partículas
-  - Interface responsiva e intuitiva
-
-- **Página de Teste** (`/pages/gamification-test.tsx`)
-  - Interface completa para testar gamificação
-  - Simulação de primeira tarefa, streaks, level up
-  - Teste de múltiplas conquistas simultâneas
-  - Criação automática de dados de teste
-  - Console de resultados em tempo real
-
-#### 🔄 Sistema de Tarefas Recorrentes (100% Completo)
-- **Serviço de Tarefas Recorrentes** (`/src/lib/services/recurring-chores.ts`)
-  - Configuração de tarefas diárias, semanais, mensais
-  - Cálculo automático de próximas datas
-  - Geração automática de instâncias de tarefas
-  - Descrições user-friendly dos padrões
-  - Integração com sistema de tarefas existente
-
-- **Página de Teste** (`/pages/recurring-chores-test.tsx`)
-  - Teste de criação de tarefas recorrentes
-  - Simulação de padrões diversos (diário, semanal, mensal)
-  - Interface para configurar dias específicos da semana
-  - Teste de descrições de recorrência
-
-#### 📬 Sistema de Notificações (100% Completo)
-- **Serviço de Notificações** (`/src/lib/services/notifications.ts`)
-  - Notificações para conquistas, level up, streaks
-  - Notificações separadas para crianças e pais
-  - Sistema de prioridades (high, medium, low)
-  - Fallback para notificações em memória
-  - Preparado para real-time com Supabase
-  - Limpeza automática de notificações expiradas
-
-- **Página de Teste** (`/pages/notifications-test.tsx`)
-  - Interface split-screen com resultados e notificações
-  - Teste de todos os tipos de notificação
-  - Visualização separada para pais e crianças
-  - Sistema de prioridades visuais
-  - Indicadores de leitura/não leitura
-
-#### 🔗 Integração Completa
-- **Sistema Unificado**: Gamificação + Tarefas Recorrentes + Notificações
-- **Navegação Integrada**: Links entre todas as páginas de teste
-- **Storage Adapter**: Funciona com Supabase ou localStorage
-- **Fallback Robusto**: Sistema funciona mesmo sem banco de dados
-
-### 📁 Novos Arquivos Criados:
-```
-src/lib/services/
-├── gamification.ts (Sistema de gamificação)
-├── recurring-chores.ts (Tarefas recorrentes)  
-└── notifications.ts (Sistema de notificações)
-
-src/components/gamification/
-└── AchievementCelebration.tsx (Modal de celebração)
-
-pages/
-├── gamification-test.tsx (Teste de gamificação)
-├── recurring-chores-test.tsx (Teste de recorrências)
-└── notifications-test.tsx (Teste de notificações)
-```
-
-### 🌐 URLs de Teste Funcionais:
-- **Gamificação**: http://localhost:3006/gamification-test
-- **Tarefas Recorrentes**: http://localhost:3006/recurring-chores-test  
-- **Notificações**: http://localhost:3006/notifications-test
-
-### 🎯 Características Técnicas:
-
-#### Gamificação:
-- **Badges**: Sistema extensível de conquistas
-- **Streaks**: Tracking de dias consecutivos
-- **Levels**: Progressão exponencial baseada em XP
-- **XP Rewards**: 25 XP (badge), 50 XP (streak), 100 XP (level)
-- **Celebrações**: Modal com animações e efeitos
-
-#### Tarefas Recorrentes:
-- **Padrões**: Daily, Weekly (dias específicos), Monthly (dia específico)
-- **Auto-geração**: Criação automática de tarefas nas datas corretas
-- **Flexibilidade**: Configuração personalizada de horários
-- **Descrições**: Interface amigável para padrões complexos
-
-#### Notificações:
-- **Tipos**: Achievement, Level Up, Streak, Chore Completed
-- **Recipients**: Separação clara entre pais e crianças
-- **Prioridades**: High (conquistas importantes), Medium (streaks), Low (lembretes)
-- **Real-time**: Preparado para Supabase realtime
-- **Persistência**: Fallback para localStorage em desenvolvimento
-
-### ✅ Testes Realizados:
-1. **Sistema de Gamificação**: ✅ Funcionando
-   - Primeira tarefa badge: ✅ Funcional
-   - Sistema de streaks: ✅ Funcional  
-   - Level progression: ✅ Funcional
-   - Múltiplas conquistas: ✅ Funcional
-
-2. **Tarefas Recorrentes**: ✅ Funcionando
-   - Padrões diários: ✅ Configurável
-   - Padrões semanais: ✅ Configurável
-   - Padrões mensais: ✅ Configurável
-   - Descrições automáticas: ✅ Funcionando
-
-3. **Sistema de Notificações**: ✅ Funcionando
-   - Notificações de conquista: ✅ Funcionando
-   - Notificações de level up: ✅ Funcionando
-   - Notificações de streak: ✅ Funcionando
-   - Notificações de tarefa: ✅ Funcionando
+- **Nome do Projeto:** My First Bank Account (MyFirstBA2)
+- **Descrição:** App educacional de finanças pessoais para crianças. Os pais criam contas bancárias simuladas para os filhos, com saldo, transações, rendimentos (juros configuráveis), sonhos/metas de economia, e um dashboard completo. Ferramenta pedagógica para ensinar educação financeira na prática.
+- **Tipo:** web-app
+- **Tech Stack Principal:** Next.js 14 + React 18 + Supabase + NextAuth + Tailwind CSS 4
+- **Repositório:** GitHub (KratosWolf)
+- **Supabase Project:** mqcfdwyhbtvaclslured (21 tabelas)
+- **Pasta Local:** /Users/tiagofernandes/Desktop/VIBE/MyFirstBA2
+- **Dono do Projeto:** Tiago (empreendedor, perfil estratégico, não-técnico)
 
 ---
 
-**Status**: ✅ Sistema de Gamificação Completo implementado com sucesso  
-**Próximo passo**: Sistema está pronto para produção - implementar dashboard de analytics ou leaderboard familiar  
-**Última atualização**: 2025-08-24 17:12 UTC
+## 🚨 REGRAS FUNDAMENTAIS (NUNCA VIOLAR)
+
+### Regra 1: Faseamento Obrigatório
+
+- O projeto é dividido em FASES com escopo definido no PROJECT_PLAN.md.
+- **NUNCA** avance para a próxima fase sem aprovação explícita do Tiago.
+- **NUNCA** implemente funcionalidades que não pertencem à fase atual.
+- Se algo da fase atual depende de uma fase futura, AVISE e PERGUNTE antes.
+- Ao concluir cada item da fase, marque como ✅ no PROJECT_PLAN.md.
+
+### Regra 2: Checkpoints Obrigatórios
+
+Antes de avançar para o próximo item, SEMPRE verifique:
+
+- [ ] O app compila sem erros (`npm run build`)?
+- [ ] A funcionalidade implementada funciona como esperado?
+- [ ] O código foi testado (pelo menos teste manual no browser)?
+- [ ] Foi feito commit com mensagem descritiva?
+- [ ] O PROJECT_PLAN.md foi atualizado?
+
+Só prossiga quando TODOS os itens estiverem ✅.
+
+### Regra 3: Comunicação Clara
+
+- Explique decisões técnicas em linguagem simples e direta.
+- Antes de executar qualquer comando destrutivo (deletar, resetar, alterar banco/migrations), PERGUNTE.
+- Quando houver mais de uma abordagem, apresente opções com prós e contras ANTES de implementar.
+- Use analogias do dia a dia quando explicar conceitos técnicos.
+- No início de cada interação, diga: "Estamos na Fase X, trabalhando em [item]."
+
+### Regra 4: Qualidade de Código
+
+- Código limpo, organizado e com comentários explicativos nos trechos importantes.
+- Siga os padrões de nomenclatura do Next.js / React / TypeScript.
+- Remova código comentado que não esteja em uso — nada de "lixo".
+- Trate erros adequadamente — nunca ignore exceções silenciosamente.
+- Separe responsabilidades: um arquivo não deve fazer "tudo".
+
+### Regra 5: Git e Versionamento
+
+- Commits frequentes com mensagens descritivas em português.
+- Padrão: `tipo: descrição curta`
+  - `feat:` nova funcionalidade | `fix:` correção | `docs:` documentação
+  - `refactor:` refatoração | `style:` formatação | `test:` testes | `chore:` manutenção
+  - Exemplo: `fix: corrige cálculo de juros para usar taxa mensal configurável`
+- Branches: `main` (produção) → `develop` (desenvolvimento) → `feature/nome`
+- NUNCA faça push direto na `main`.
+
+### Regra 6: Banco de Dados (Supabase)
+
+- **NUNCA** altere tabelas diretamente no dashboard do Supabase.
+- Toda alteração de schema deve ser feita via migration SQL documentada.
+- Antes de rodar qualquer migration, MOSTRE o SQL para aprovação.
+- Mantenha backup do schema atual antes de alterações.
+- RLS (Row Level Security) deve estar ativo em TODAS as tabelas.
 
 ---
 
-*💡 Para continuar em nova sessão: mencione "Continue implementação do Banco da Família - sistema completo" e referencie este CLAUDE.md*
+## 📋 FASES DO PROJETO (resumo)
+
+> ⚠️ PROJETO EXISTENTE EM EVOLUÇÃO — não é um projeto novo.
+> Detalhamento completo em PROJECT_PLAN.md
+
+### FASE 1 — Correção de Bugs ⬅️ FASE ATUAL
+
+**Objetivo:** Corrigir bugs existentes e estabilizar funcionalidades
+
+- [ ] 1.0 Organização do projeto (mover .md antigos, scripts soltos)
+- [ ] 1.1 Histórico de transações completo (com filtros)
+- [ ] 1.2 Taxa de juros configurável (sem teto fixo)
+- [ ] 1.3 Juros nos sonhos/metas de economia
+- [ ] 1.4 Keep-alive do Supabase (investigar e corrigir)
+- [ ] 1.5 Testes e validação de todas as correções
+
+**NÃO inclui (fases futuras):** Redesign visual, onboarding, novas features
+
+### FASE 2 — Redesign Visual Completo | 🔒 Bloqueada
+
+### FASE 3 — Onboarding Profissional | 🔒 Bloqueada
+
+### FASE 4 — Melhorias Futuras | 🔒 Bloqueada
+
+---
+
+## 🗂️ ESTRUTURA DO PROJETO
+
+```
+MyFirstBA2/
+├── CLAUDE.md                ← Este arquivo (lido automaticamente)
+├── PROJECT_PLAN.md          ← Plano detalhado com fases
+├── README.md                ← Documentação pública
+├── .env.local               ← Credenciais (NUNCA commitar)
+├── .gitignore
+├── .claude/
+│   ├── settings.local.json  ← Config do Claude Code
+│   └── skills/              ← Skills automáticas (10 skills)
+│       ├── code-cleanup/
+│       ├── code-review/
+│       ├── dependency-update/
+│       ├── git-workflow/
+│       ├── pre-launch/
+│       ├── project-audit/
+│       ├── project-setup/
+│       ├── secret-scan/
+│       ├── session-workflow/
+│       └── supabase-setup/
+├── docs/
+│   └── archive/             ← Documentação histórica (fases anteriores)
+│       ├── AUDIT_REPORT.md
+│       ├── AUDITORIA_FINAL_30NOV2025.md
+│       ├── CORRECOES_FASE_2.5.1.md
+│       ├── CRON_JOBS_SETUP.md
+│       ├── DIAGNOSTICO_*.md
+│       ├── FASE_*.md
+│       ├── GUIA_*.md
+│       ├── MYFIRSTBANKACCOUNT_MASTERPLAN_V6.md
+│       ├── PROBLEMA_ATUAL.md
+│       ├── PROJECT_SUMMARY.md
+│       ├── ROTEIRO_TESTE_COMPLETO.md
+│       ├── SISTEMA_REALIZACAO_SONHOS.md
+│       └── TODO.md
+├── src/
+│   ├── app/                 ← Rotas e páginas (App Router)
+│   ├── components/          ← Componentes reutilizáveis
+│   ├── lib/                 ← Utilitários, Supabase client, helpers
+│   ├── services/            ← API calls e lógica de negócio
+│   └── styles/              ← Estilos globais e tema
+├── components/              ← Componentes (pasta legacy — avaliar merge com src/)
+├── database/                ← Scripts de banco
+├── pages/                   ← Pages Router (legacy — avaliar migração para App Router)
+├── scripts/                 ← Scripts utilitários (check-*.js, setup-*.js, etc.)
+├── public/                  ← Assets estáticos
+└── supabase/
+    └── migrations/          ← SQL migrations (schema changes)
+```
+
+### ⚠️ Observações sobre a estrutura atual
+
+- Existem **duas pastas de componentes**: `components/` (raiz) e `src/components/`. Avaliar na Fase 2 se faz sentido unificar.
+- Existe a pasta `pages/` (Pages Router) além de `src/app/` (App Router). Avaliar se há rotas duplicadas.
+- Scripts soltos na raiz (`check-*.js`, `setup-*.js`, `test-*.js`, `execute-sql.js`) devem ficar em `scripts/`.
+- Arquivos `.sql` soltos na raiz devem ir para `database/` ou `supabase/migrations/`.
+
+### 📁 docs/archive/ — Histórico do Projeto
+
+A pasta `docs/archive/` contém toda a documentação das fases anteriores (Ago-Nov 2025). Estes arquivos são **referência histórica** — úteis para consultar decisões passadas, mas NÃO são a fonte de verdade atual. A fonte de verdade é este `CLAUDE.md` + `PROJECT_PLAN.md`.
+
+---
+
+## 🔧 PADRÕES TÉCNICOS
+
+### Banco de Dados (Supabase PostgreSQL)
+
+- **Projeto:** mqcfdwyhbtvaclslured
+- **21 tabelas** existentes (incluindo: accounts, transactions, interest_config, savings_goals, etc.)
+- RLS ativo em todas as tabelas
+- Toda alteração via migration SQL em `supabase/migrations/`
+- Naming: snake_case para tabelas e colunas
+- Migration pendente conhecida: `003_fix_interest_config_columns.sql` (remover teto de taxa)
+
+### Autenticação (NextAuth + Google OAuth)
+
+- Login via Google OAuth configurado
+- Sessões gerenciadas por NextAuth
+- Tokens e secrets em `.env.local` (NUNCA commitar)
+- Middleware de proteção de rotas ativo
+
+### Segurança
+
+- Validar TODOS os inputs do usuário.
+- Nunca expor chaves de API no lado do cliente (usar NEXT*PUBLIC* apenas para keys públicas).
+- HTTPS sempre. Sanitizar dados antes do banco.
+- Credenciais e secrets APENAS em variáveis de ambiente (NUNCA commitar).
+
+---
+
+## 📝 DECISÕES TÉCNICAS REGISTRADAS
+
+> Registre aqui para evitar que o Claude Code refaça escolhas já discutidas.
+
+| Data       | Decisão                                                             | Motivo                                                    |
+| ---------- | ------------------------------------------------------------------- | --------------------------------------------------------- |
+| 2026-02-17 | Taxa de juros configurável pelo pai (sem teto)                      | Ferramenta educacional, não precisa refletir mercado real |
+| 2026-02-17 | Sonhos/metas devem render juros igual ao saldo                      | Incentivo para criança guardar dinheiro nos sonhos        |
+| 2026-02-17 | Onboarding: 1-2 responsáveis flexível                               | Cobre configurações familiares diversas sem complicar     |
+| 2026-02-17 | Dados da criança: nome + data nascimento + avatar + apelido         | Suficiente para personalização sem ser invasivo           |
+| 2026-02-17 | Prioridade: bugs → redesign → onboarding                            | Estabilizar o que existe antes de adicionar/mudar         |
+| 2026-02-17 | Paleta redesign: verde escuro + amarelo/dourado + branco            | Aprovado com referências (porquinho + ArobixBank)         |
+| 2026-02-17 | Conceito redesign: profissional pais + divertido filhos + animações | Equilíbrio entre credibilidade e engajamento              |
+
+---
+
+## 🆘 QUANDO ALGO DER ERRADO
+
+1. **NÃO** tente resolver silenciosamente refazendo tudo.
+2. **PARE** e explique o problema em linguagem simples.
+3. **MOSTRE** o erro exato e o que significa.
+4. **PROPONHA** 1-2 soluções com prós e contras.
+5. **AGUARDE** aprovação antes de implementar.
+
+---
+
+## Comandos
+
+- `npm run dev` — rodar em dev (localhost:3000)
+- `npm run build` — build de produção
+- `npm run lint` — verificar código
+
+## Workflow por Sessão
+
+1. Ler `PROJECT_PLAN.md` → identificar próxima tarefa
+2. **Plan Mode** (Shift+Tab 2x) → planejar antes de codar
+3. Implementar a tarefa
+4. Testar (`npm run build` + teste manual no browser)
+5. Commit → push para develop
+6. Atualizar status no `PROJECT_PLAN.md`
+7. Se contexto ficar grande → `/clear` e retomar
