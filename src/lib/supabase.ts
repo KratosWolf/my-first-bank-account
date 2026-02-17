@@ -41,7 +41,8 @@ export interface Transaction {
     | 'transfer'
     | 'interest'
     | 'allowance'
-    | 'goal_deposit';
+    | 'goal_deposit'
+    | 'goal_interest';
   amount: number;
   description: string;
   category?: string;

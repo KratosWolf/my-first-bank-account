@@ -172,11 +172,27 @@ A pasta `docs/archive/` contém toda a documentação das fases anteriores (Ago-
 ### Banco de Dados (Supabase PostgreSQL)
 
 - **Projeto:** mqcfdwyhbtvaclslured
-- **21 tabelas** existentes (incluindo: accounts, transactions, interest_config, savings_goals, etc.)
+- **21 tabelas** existentes (incluindo: accounts, transactions, interest_config, goals, etc.)
 - RLS ativo em todas as tabelas
 - Toda alteração via migration SQL em `supabase/migrations/`
 - Naming: snake_case para tabelas e colunas
-- Migration pendente conhecida: `003_fix_interest_config_columns.sql` (remover teto de taxa)
+
+### Sistema de Juros
+
+**Taxa Padrão:** 1.0% ao mês
+
+- Taxa educacional realista para ensinar conceito de rendimento
+- Configurável pelos pais no range 0-100% (mas recomendado manter em ~1%)
+- Aplicado sobre:
+  - Saldo principal da criança
+  - Saldo de cada sonho/meta (goals)
+- Regra de carência: 30 dias mínimos para dinheiro render
+- Cálculo automático via GitHub Actions (1º dia de cada mês)
+
+**Histórico:**
+
+- Anteriormente estava em 9.9% ao mês (muito alto)
+- Corrigido para 1.0% em 2026-02-17
 
 ### Autenticação (NextAuth + Google OAuth)
 

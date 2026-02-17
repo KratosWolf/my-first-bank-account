@@ -10,17 +10,54 @@ import type {
 export class TransactionService {
   // ============ TRANSACTION OPERATIONS ============
 
-  // Get all transactions for a child
+  // Get all transactions for a child with advanced filters and pagination
   static async getChildTransactions(
     childId: string,
-    limit = 50
+    options?: {
+      limit?: number;
+      offset?: number;
+      startDate?: string; // ISO string format
+      endDate?: string; // ISO string format
+      type?: Transaction['type'] | Transaction['type'][]; // Filter by transaction type(s)
+      category?: string; // Filter by category
+    }
   ): Promise<Transaction[]> {
-    const { data, error } = await supabase
+    let query = supabase
       .from('transactions')
       .select('*')
-      .eq('child_id', childId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .eq('child_id', childId);
+
+    // Apply date filters
+    if (options?.startDate) {
+      query = query.gte('created_at', options.startDate);
+    }
+    if (options?.endDate) {
+      query = query.lte('created_at', options.endDate);
+    }
+
+    // Apply type filter (single or multiple types)
+    if (options?.type) {
+      if (Array.isArray(options.type)) {
+        query = query.in('type', options.type);
+      } else {
+        query = query.eq('type', options.type);
+      }
+    }
+
+    // Apply category filter
+    if (options?.category) {
+      query = query.eq('category', options.category);
+    }
+
+    // Apply ordering
+    query = query.order('created_at', { ascending: false });
+
+    // Apply pagination
+    const limit = options?.limit || 50;
+    const offset = options?.offset || 0;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching transactions:', error);
@@ -28,6 +65,49 @@ export class TransactionService {
     }
 
     return data || [];
+  }
+
+  // Get total count of transactions (useful for pagination)
+  static async getChildTransactionsCount(
+    childId: string,
+    options?: {
+      startDate?: string;
+      endDate?: string;
+      type?: Transaction['type'] | Transaction['type'][];
+      category?: string;
+    }
+  ): Promise<number> {
+    let query = supabase
+      .from('transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('child_id', childId);
+
+    // Apply same filters as getChildTransactions
+    if (options?.startDate) {
+      query = query.gte('created_at', options.startDate);
+    }
+    if (options?.endDate) {
+      query = query.lte('created_at', options.endDate);
+    }
+    if (options?.type) {
+      if (Array.isArray(options.type)) {
+        query = query.in('type', options.type);
+      } else {
+        query = query.eq('type', options.type);
+      }
+    }
+    if (options?.category) {
+      query = query.eq('category', options.category);
+    }
+
+    const { count, error } = await query;
+
+    if (error) {
+      console.error('Error counting transactions:', error);
+      return 0;
+    }
+
+    return count || 0;
   }
 
   // Get transactions by type for a child
@@ -85,14 +165,40 @@ export class TransactionService {
   ): Promise<Transaction | null> {
     console.log('💰 Creating transaction:', transactionData);
 
-    // Only use fields that exist in the database
-    const dbData = {
+    // Build dbData with all supported fields
+    const dbData: any = {
       child_id: transactionData.child_id,
       type: transactionData.type,
       amount: transactionData.amount,
       description: transactionData.description,
       category: transactionData.category,
     };
+
+    // Add optional fields if provided
+    if (transactionData.status !== undefined) {
+      dbData.status = transactionData.status;
+    }
+    if (transactionData.requires_approval !== undefined) {
+      dbData.requires_approval = transactionData.requires_approval;
+    }
+    if (transactionData.approved_by_parent !== undefined) {
+      dbData.approved_by_parent = transactionData.approved_by_parent;
+    }
+    if (transactionData.parent_note !== undefined) {
+      dbData.parent_note = transactionData.parent_note;
+    }
+    if (transactionData.approved_at !== undefined) {
+      dbData.approved_at = transactionData.approved_at;
+    }
+    if (transactionData.related_goal_id !== undefined) {
+      dbData.related_goal_id = transactionData.related_goal_id;
+    }
+    if (transactionData.from_child_id !== undefined) {
+      dbData.from_child_id = transactionData.from_child_id;
+    }
+    if (transactionData.to_child_id !== undefined) {
+      dbData.to_child_id = transactionData.to_child_id;
+    }
 
     console.log('💰 Inserting to DB:', dbData);
 
@@ -489,6 +595,72 @@ export class TransactionService {
         console.log(
           `✅ Juros aplicados: R$ ${interestAmount.toFixed(2)} sobre R$ ${eligibleBalance.toFixed(2)} (saldo elegível de 30+ dias)`
         );
+      }
+
+      // ============ GOAL INTEREST CALCULATION (ADDITIONAL) ============
+      try {
+        // Fetch all active goals with money
+        const { data: goals, error: goalsError } = await supabase
+          .from('goals')
+          .select('*')
+          .eq('child_id', childId)
+          .eq('is_active', true)
+          .gt('current_amount', 0);
+
+        if (!goalsError && goals && goals.length > 0) {
+          const thirtyDaysAgoGoals = new Date();
+          thirtyDaysAgoGoals.setDate(thirtyDaysAgoGoals.getDate() - 30);
+
+          for (const goal of goals) {
+            // Check 30-day carência for this goal
+            const goalCreatedDate = new Date(goal.created_at);
+            if (goalCreatedDate > thirtyDaysAgoGoals) {
+              console.log(
+                `Goal "${goal.title}" not eligible yet (created less than 30 days ago)`
+              );
+              continue;
+            }
+
+            // Calculate interest on goal's current_amount
+            const goalInterestAmount =
+              Math.round(goal.current_amount * monthlyDecimal * 100) / 100;
+
+            if (goalInterestAmount < 0.01) {
+              console.log(
+                `Goal "${goal.title}" interest too small: ${goalInterestAmount}`
+              );
+              continue;
+            }
+
+            // Update goal's current_amount
+            await supabase
+              .from('goals')
+              .update({
+                current_amount: goal.current_amount + goalInterestAmount,
+              })
+              .eq('id', goal.id);
+
+            // Create tracking transaction
+            await this.createTransaction({
+              child_id: childId,
+              type: 'goal_interest',
+              amount: goalInterestAmount,
+              description: `Rendimento do sonho "${goal.title}" (${config.monthly_rate.toFixed(1)}% sobre R$ ${goal.current_amount.toFixed(2)})`,
+              category: 'goal_interest',
+              related_goal_id: goal.id,
+              status: 'completed',
+              requires_approval: false,
+              approved_by_parent: true,
+            });
+
+            console.log(
+              `✅ Goal interest: R$ ${goalInterestAmount.toFixed(2)} applied to "${goal.title}"`
+            );
+          }
+        }
+      } catch (goalError) {
+        console.error('Error calculating goal interest:', goalError);
+        // Don't fail the whole function if goal interest fails
       }
 
       return transaction;
