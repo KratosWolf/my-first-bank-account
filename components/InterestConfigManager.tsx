@@ -23,14 +23,11 @@ export default function InterestConfigManager({
 
   // Configuração global (aplicada a todos os filhos)
   const [globalConfig, setGlobalConfig] = useState({
-    annual_rate: 9.9,
+    monthly_rate: 9.9, // Taxa mensal em %
     compound_frequency: 'monthly' as 'daily' | 'weekly' | 'monthly',
     minimum_balance: 5.0,
     is_active: true,
   });
-
-  // Taxa mensal calculada automaticamente
-  const monthlyRate = globalConfig.annual_rate / 12;
 
   useEffect(() => {
     if (isOpen) {
@@ -51,7 +48,7 @@ export default function InterestConfigManager({
         const firstConfig = configs[0];
         setCurrentConfig(firstConfig);
         setGlobalConfig({
-          annual_rate: firstConfig.annual_rate,
+          monthly_rate: firstConfig.monthly_rate,
           compound_frequency: firstConfig.compound_frequency,
           minimum_balance: firstConfig.minimum_balance,
           is_active: firstConfig.is_active,
@@ -73,7 +70,7 @@ export default function InterestConfigManager({
   const handleSave = async () => {
     // Validar taxa
     const rateValidation = InterestService.validateRate(
-      globalConfig.annual_rate
+      globalConfig.monthly_rate
     );
     if (!rateValidation.isValid) {
       alert(
@@ -125,7 +122,7 @@ export default function InterestConfigManager({
         alert(
           `✅ Configuração de juros aplicada com sucesso!\n\n` +
             `${successCount} ${successCount === 1 ? 'criança configurada' : 'crianças configuradas'}\n` +
-            `Taxa: ${globalConfig.annual_rate}% ao ano (~${monthlyRate.toFixed(3)}% ao mês)`
+            `Taxa: ${globalConfig.monthly_rate}% ao mês`
         );
       }
 
@@ -178,7 +175,7 @@ export default function InterestConfigManager({
   const calculatePreview = (balance: number) => {
     return InterestService.calculatePreview(
       balance,
-      globalConfig.annual_rate,
+      globalConfig.monthly_rate,
       globalConfig.compound_frequency
     );
   };
@@ -204,25 +201,21 @@ export default function InterestConfigManager({
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-6">
-            {/* Warning about schema limitation */}
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            {/* Info about monthly rate */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
               <div className="flex items-start space-x-3">
-                <span className="text-2xl">⚠️</span>
+                <span className="text-2xl">📊</span>
                 <div>
-                  <h4 className="font-semibold text-yellow-900 mb-1">
-                    Limitação Atual
+                  <h4 className="font-semibold text-blue-900 mb-1">
+                    Taxa Mensal Configurável
                   </h4>
-                  <p className="text-sm text-yellow-800">
-                    Taxa máxima permitida: <strong>9.9% ao ano</strong> (~0.825%
-                    ao mês)
+                  <p className="text-sm text-blue-800">
+                    Configure a taxa mensal de <strong>0% até 100%</strong>
                   </p>
-                  <p className="text-xs text-yellow-700 mt-1">
-                    💡 Roadmap futuro: Permitir taxas acima de 10% (requer
-                    migração SQL{' '}
-                    <code className="bg-yellow-100 px-1 rounded">
-                      003_fix_interest_config_columns.sql
-                    </code>
-                    )
+                  <p className="text-xs text-blue-700 mt-1">
+                    💡 Exemplo: 9.9% ao mês = 211% ao ano (juros compostos).
+                    Recomendado: 1% a 2% ao mês para educação financeira
+                    realista.
                   </p>
                 </div>
               </div>
@@ -283,52 +276,38 @@ export default function InterestConfigManager({
                   </div>
 
                   <div className="space-y-5">
-                    {/* Taxa Anual e Mensal - Lado a Lado */}
+                    {/* Taxa Mensal - Editável */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-3">
-                        📈 Taxas de Rendimento
+                        📈 Taxa Mensal de Rendimento
                       </label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Taxa Anual - Editável */}
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">
-                            Taxa Anual (%)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="9.9"
-                            step="0.1"
-                            value={globalConfig.annual_rate}
-                            onChange={e =>
-                              setGlobalConfig(prev => ({
-                                ...prev,
-                                annual_rate: Math.min(
-                                  9.9,
-                                  Math.max(0, parseFloat(e.target.value) || 0)
-                                ),
-                              }))
-                            }
-                            className="w-full px-4 py-3 border-2 border-green-300 rounded-lg text-center font-bold text-2xl text-green-700 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            disabled={isSaving}
-                          />
-                          <p className="text-xs text-gray-500 mt-1 text-center">
-                            Editável
-                          </p>
-                        </div>
-
-                        {/* Taxa Mensal - Calculada (Read-only) */}
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">
-                            Taxa Mensal (%) - Calculada
-                          </label>
-                          <div className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-50 rounded-lg text-center font-bold text-2xl text-gray-700">
-                            {monthlyRate.toFixed(3)}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1 text-center">
-                            = Anual ÷ 12
-                          </p>
-                        </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          Taxa Mensal (%)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={globalConfig.monthly_rate}
+                          onChange={e =>
+                            setGlobalConfig(prev => ({
+                              ...prev,
+                              monthly_rate: Math.min(
+                                100,
+                                Math.max(0, parseFloat(e.target.value) || 0)
+                              ),
+                            }))
+                          }
+                          className="w-full px-4 py-3 border-2 border-green-300 rounded-lg text-center font-bold text-3xl text-green-700 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          disabled={isSaving}
+                        />
+                        <p className="text-xs text-gray-500 mt-1 text-center">
+                          Exemplo: {globalConfig.monthly_rate}% ao mês = ~
+                          {(globalConfig.monthly_rate * 12).toFixed(1)}% ao ano
+                          (simples)
+                        </p>
                       </div>
 
                       {/* Slider Visual */}
@@ -336,13 +315,13 @@ export default function InterestConfigManager({
                         <input
                           type="range"
                           min="0"
-                          max="9.9"
+                          max="20"
                           step="0.1"
-                          value={globalConfig.annual_rate}
+                          value={Math.min(20, globalConfig.monthly_rate)}
                           onChange={e =>
                             setGlobalConfig(prev => ({
                               ...prev,
-                              annual_rate: parseFloat(e.target.value),
+                              monthly_rate: parseFloat(e.target.value),
                             }))
                           }
                           className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-600"
@@ -350,9 +329,13 @@ export default function InterestConfigManager({
                         />
                         <div className="flex justify-between text-xs text-gray-600 mt-1">
                           <span>0%</span>
-                          <span>5%</span>
-                          <span>9.9%</span>
+                          <span>10%</span>
+                          <span>20%</span>
                         </div>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          💡 Slider limitado a 20% para facilidade. Digite acima
+                          para valores maiores (até 100%).
+                        </p>
                       </div>
                     </div>
 
@@ -364,15 +347,15 @@ export default function InterestConfigManager({
                       <input
                         type="number"
                         min="0"
-                        max="9.9"
+                        max="1000"
                         step="0.10"
                         value={globalConfig.minimum_balance}
                         onChange={e =>
                           setGlobalConfig(prev => ({
                             ...prev,
-                            minimum_balance: Math.min(
-                              9.9,
-                              Math.max(0, parseFloat(e.target.value) || 0)
+                            minimum_balance: Math.max(
+                              0,
+                              parseFloat(e.target.value) || 0
                             ),
                           }))
                         }
@@ -380,8 +363,8 @@ export default function InterestConfigManager({
                         disabled={isSaving}
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Apenas saldos acima deste valor renderão juros (máx: R$
-                        9.90)
+                        Apenas saldos acima deste valor renderão juros.
+                        Recomendado: R$ 5,00 a R$ 50,00
                       </p>
                     </div>
 
@@ -531,7 +514,7 @@ export default function InterestConfigManager({
                                   </span>
                                 </div>
                                 <div className="text-xs text-gray-500 mt-2">
-                                  Com {globalConfig.annual_rate}% ao ano
+                                  Com {globalConfig.monthly_rate}% ao mês
                                 </div>
                               </div>
                             ) : (

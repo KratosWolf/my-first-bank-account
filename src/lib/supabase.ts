@@ -105,7 +105,7 @@ export interface ChildSpendingLimit {
 export interface InterestConfig {
   id: string;
   child_id: string;
-  annual_rate: number;
+  monthly_rate: number; // Taxa mensal em % (0-100). Ex: 9.9 = 9.9% ao mês
   compound_frequency: 'daily' | 'weekly' | 'monthly';
   minimum_balance: number;
   is_active: boolean;

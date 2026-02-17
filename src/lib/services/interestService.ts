@@ -105,7 +105,7 @@ export class InterestService {
 
       const newConfig = {
         child_id: config.child_id,
-        annual_rate: config.annual_rate,
+        monthly_rate: config.monthly_rate,
         compound_frequency: config.compound_frequency,
         minimum_balance: config.minimum_balance,
         is_active: config.is_active,
@@ -146,7 +146,7 @@ export class InterestService {
         // Criar
         const fullConfig: InterestConfigInput = {
           child_id: childId,
-          annual_rate: updates.annual_rate || 9.9,
+          monthly_rate: updates.monthly_rate || 9.9,
           compound_frequency: updates.compound_frequency || 'monthly',
           minimum_balance: updates.minimum_balance || 5.0,
           is_active: updates.is_active !== undefined ? updates.is_active : true,
@@ -204,7 +204,7 @@ export class InterestService {
   // Calcular preview de rendimento
   static calculatePreview(
     balance: number,
-    annualRate: number,
+    monthlyRate: number, // Taxa mensal em % (ex: 9.9)
     frequency: 'daily' | 'weekly' | 'monthly'
   ): {
     daily: number;
@@ -212,14 +212,14 @@ export class InterestService {
     monthly: number;
     yearly: number;
   } {
-    // Converter taxa anual para decimal
-    const rateDecimal = annualRate / 100;
+    // Converter taxa mensal para decimal
+    const monthlyDecimal = monthlyRate / 100;
 
     // Calcular rendimentos para cada período
-    const yearly = balance * rateDecimal;
-    const monthly = yearly / 12;
-    const weekly = yearly / 52;
-    const daily = yearly / 365;
+    const monthly = balance * monthlyDecimal;
+    const yearly = monthly * 12; // Juros compostos simples (aproximado)
+    const weekly = monthly / 4.33; // ~4.33 semanas por mês
+    const daily = monthly / 30; // ~30 dias por mês
 
     return {
       daily: Math.round(daily * 100) / 100,
@@ -229,7 +229,7 @@ export class InterestService {
     };
   }
 
-  // Validar taxa de juros (considerando limitação de schema)
+  // Validar taxa de juros (0% a 100%)
   static validateRate(rate: number): {
     isValid: boolean;
     error?: string;
@@ -242,12 +242,12 @@ export class InterestService {
       };
     }
 
-    if (rate > 9.9) {
+    if (rate > 100) {
       return {
         isValid: false,
-        error: 'Taxa máxima permitida: 9.9%',
+        error: 'Taxa máxima permitida: 100%',
         warning:
-          'O banco de dados atual aceita apenas taxas até 9.9%. Para usar taxas maiores, execute a migração 003_fix_interest_config_columns.sql',
+          'Taxas acima de 100% ao mês podem causar crescimento exponencial extremo',
       };
     }
 
@@ -255,6 +255,14 @@ export class InterestService {
       return {
         isValid: true,
         warning: 'Taxa de 0% significa que não haverá rendimento',
+      };
+    }
+
+    if (rate > 20) {
+      return {
+        isValid: true,
+        warning:
+          'Taxa mensal acima de 20% resultará em crescimento muito rápido',
       };
     }
 
@@ -274,20 +282,19 @@ export class InterestService {
       };
     }
 
-    if (balance > 9.9) {
-      return {
-        isValid: false,
-        error: 'Saldo mínimo máximo permitido: R$ 9.90',
-        warning:
-          'O banco de dados atual aceita apenas valores até R$ 9.90. Para usar valores maiores, execute a migração 003_fix_interest_config_columns.sql',
-      };
-    }
-
     if (balance === 0) {
       return {
         isValid: true,
         warning:
           'Saldo mínimo de R$ 0 significa que qualquer valor renderá juros',
+      };
+    }
+
+    if (balance > 1000) {
+      return {
+        isValid: true,
+        warning:
+          'Saldo mínimo muito alto pode impedir que crianças recebam juros',
       };
     }
 

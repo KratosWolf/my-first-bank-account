@@ -1,19 +1,18 @@
 import { supabase } from '@/lib/supabase';
-import type { 
-  Transaction, 
-  AllowanceConfig, 
-  SpendingCategory, 
+import type {
+  Transaction,
+  AllowanceConfig,
+  SpendingCategory,
   ChildSpendingLimit,
-  InterestConfig 
+  InterestConfig,
 } from '@/lib/supabase';
 
 export class TransactionService {
-  
   // ============ TRANSACTION OPERATIONS ============
-  
+
   // Get all transactions for a child
   static async getChildTransactions(
-    childId: string, 
+    childId: string,
     limit = 50
   ): Promise<Transaction[]> {
     const { data, error } = await supabase
@@ -33,7 +32,7 @@ export class TransactionService {
 
   // Get transactions by type for a child
   static async getTransactionsByType(
-    childId: string, 
+    childId: string,
     type: Transaction['type'],
     limit = 20
   ): Promise<Transaction[]> {
@@ -54,15 +53,19 @@ export class TransactionService {
   }
 
   // Get pending transactions (requiring approval)
-  static async getPendingTransactions(familyId: string): Promise<Transaction[]> {
+  static async getPendingTransactions(
+    familyId: string
+  ): Promise<Transaction[]> {
     const { data, error } = await supabase
       .from('transactions')
-      .select(`
+      .select(
+        `
         *,
         children!inner(
           id, name, avatar, family_id
         )
-      `)
+      `
+      )
       .eq('children.family_id', familyId)
       .eq('status', 'pending')
       .eq('requires_approval', true)
@@ -77,7 +80,9 @@ export class TransactionService {
   }
 
   // Create a new transaction
-  static async createTransaction(transactionData: any): Promise<Transaction | null> {
+  static async createTransaction(
+    transactionData: any
+  ): Promise<Transaction | null> {
     console.log('💰 Creating transaction:', transactionData);
 
     // Only use fields that exist in the database
@@ -86,7 +91,7 @@ export class TransactionService {
       type: transactionData.type,
       amount: transactionData.amount,
       description: transactionData.description,
-      category: transactionData.category
+      category: transactionData.category,
     };
 
     console.log('💰 Inserting to DB:', dbData);
@@ -108,8 +113,8 @@ export class TransactionService {
 
   // Approve or reject a pending transaction
   static async approveTransaction(
-    transactionId: string, 
-    approved: boolean, 
+    transactionId: string,
+    approved: boolean,
     parentNote?: string
   ): Promise<Transaction | null> {
     const { data, error } = await supabase
@@ -118,7 +123,7 @@ export class TransactionService {
         status: approved ? 'completed' : 'rejected',
         approved_by_parent: approved,
         parent_note: parentNote,
-        approved_at: new Date().toISOString()
+        approved_at: new Date().toISOString(),
       })
       .eq('id', transactionId)
       .select()
@@ -146,7 +151,7 @@ export class TransactionService {
       type: 'earning',
       amount,
       description,
-      category
+      category,
     });
   }
 
@@ -161,7 +166,7 @@ export class TransactionService {
       type: 'allowance',
       amount,
       description: `${period} allowance payment`,
-      category: 'allowance'
+      category: 'allowance',
     });
   }
 
@@ -180,7 +185,7 @@ export class TransactionService {
       type: 'spending',
       amount,
       description,
-      category
+      category,
     });
   }
 
@@ -203,14 +208,16 @@ export class TransactionService {
       requires_approval: false,
       approved_by_parent: true,
       from_child_id: fromChildId,
-      to_child_id: toChildId
+      to_child_id: toChildId,
     });
   }
 
   // ============ ALLOWANCE MANAGEMENT ============
 
   // Get allowance configuration for a child
-  static async getAllowanceConfig(childId: string): Promise<AllowanceConfig | null> {
+  static async getAllowanceConfig(
+    childId: string
+  ): Promise<AllowanceConfig | null> {
     const { data, error } = await supabase
       .from('allowance_config')
       .select('*')
@@ -226,7 +233,9 @@ export class TransactionService {
   }
 
   // Set allowance configuration
-  static async setAllowanceConfig(config: Omit<AllowanceConfig, 'id' | 'created_at' | 'updated_at'>): Promise<AllowanceConfig | null> {
+  static async setAllowanceConfig(
+    config: Omit<AllowanceConfig, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<AllowanceConfig | null> {
     const { data, error } = await supabase
       .from('allowance_config')
       .upsert(config, { onConflict: 'child_id' })
@@ -263,8 +272,8 @@ export class TransactionService {
 
   // Get spending by category for a child
   static async getSpendingByCategory(
-    childId: string, 
-    startDate?: string, 
+    childId: string,
+    startDate?: string,
     endDate?: string
   ): Promise<{ category: string; total: number; count: number }[]> {
     let query = supabase
@@ -289,8 +298,9 @@ export class TransactionService {
     }
 
     // Group by category and sum amounts
-    const categoryTotals: { [key: string]: { total: number; count: number } } = {};
-    
+    const categoryTotals: { [key: string]: { total: number; count: number } } =
+      {};
+
     data?.forEach(transaction => {
       const category = transaction.category || 'Other';
       if (!categoryTotals[category]) {
@@ -303,14 +313,14 @@ export class TransactionService {
     return Object.entries(categoryTotals).map(([category, data]) => ({
       category,
       total: data.total,
-      count: data.count
+      count: data.count,
     }));
   }
 
   // Get monthly summary for a child
   static async getMonthlySummary(
-    childId: string, 
-    year: number, 
+    childId: string,
+    year: number,
     month: number
   ): Promise<{
     totalEarnings: number;
@@ -331,7 +341,12 @@ export class TransactionService {
 
     if (error) {
       console.error('Error fetching monthly summary:', error);
-      return { totalEarnings: 0, totalSpending: 0, netSavings: 0, transactionCount: 0 };
+      return {
+        totalEarnings: 0,
+        totalSpending: 0,
+        netSavings: 0,
+        transactionCount: 0,
+      };
     }
 
     let totalEarnings = 0;
@@ -349,7 +364,7 @@ export class TransactionService {
       totalEarnings,
       totalSpending,
       netSavings: totalEarnings - totalSpending,
-      transactionCount: data?.length || 0
+      transactionCount: data?.length || 0,
     };
   }
 
@@ -385,7 +400,12 @@ export class TransactionService {
 
       // Check if balance meets minimum
       if (child.balance < config.minimum_balance) {
-        console.log('Balance below minimum for interest:', child.balance, '<', config.minimum_balance);
+        console.log(
+          'Balance below minimum for interest:',
+          child.balance,
+          '<',
+          config.minimum_balance
+        );
         return null;
       }
 
@@ -409,10 +429,13 @@ export class TransactionService {
 
       // Calcular o saldo elegível (dinheiro que está há 30+ dias na conta)
       let eligibleBalance = child.balance;
-      
+
       if (recentTransactions && recentTransactions.length > 0) {
         // Subtrair todas as entradas dos últimos 30 dias do saldo atual
-        const recentDeposits = recentTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+        const recentDeposits = recentTransactions.reduce(
+          (sum, tx) => sum + tx.amount,
+          0
+        );
         eligibleBalance = child.balance - recentDeposits;
       }
 
@@ -420,19 +443,22 @@ export class TransactionService {
       eligibleBalance = Math.max(0, eligibleBalance);
 
       if (eligibleBalance < config.minimum_balance) {
-        console.log('Eligible balance (30+ days) below minimum:', eligibleBalance, '<', config.minimum_balance);
+        console.log(
+          'Eligible balance (30+ days) below minimum:',
+          eligibleBalance,
+          '<',
+          config.minimum_balance
+        );
         return null;
       }
 
-      // NOVA TAXA: Usar como taxa mensal (padrão 1% = 0.01)
-      // Se annual_rate > 1, assumir que é percentual e dividir por 100
-      let monthlyRate = config.annual_rate;
-      if (monthlyRate > 1) {
-        monthlyRate = monthlyRate / 100; // Converter de percentual para decimal
-      }
-      
+      // TAXA MENSAL: Converter de percentual para decimal
+      // Exemplo: monthly_rate = 9.9 (9.9%) → monthlyDecimal = 0.099
+      const monthlyDecimal = config.monthly_rate / 100;
+
       // Calcular juros apenas sobre o dinheiro elegível (30+ dias)
-      const interestAmount = Math.round((eligibleBalance * monthlyRate) * 100) / 100;
+      const interestAmount =
+        Math.round(eligibleBalance * monthlyDecimal * 100) / 100;
 
       if (interestAmount < 0.01) {
         console.log('Interest amount too small:', interestAmount);
@@ -444,21 +470,25 @@ export class TransactionService {
         child_id: childId,
         type: 'interest',
         amount: interestAmount,
-        description: `Rendimento mensal (${(monthlyRate * 100).toFixed(1)}% sobre R$ ${eligibleBalance.toFixed(2)})`,
+        description: `Rendimento mensal (${config.monthly_rate.toFixed(1)}% sobre R$ ${eligibleBalance.toFixed(2)})`,
         category: 'interest',
         status: 'completed',
         requires_approval: false,
-        approved_by_parent: true
+        approved_by_parent: true,
       });
 
       // Atualizar data da última aplicação
       if (transaction) {
         await supabase
           .from('interest_config')
-          .update({ last_interest_date: new Date().toISOString().split('T')[0] })
+          .update({
+            last_interest_date: new Date().toISOString().split('T')[0],
+          })
           .eq('child_id', childId);
 
-        console.log(`✅ Juros aplicados: R$ ${interestAmount.toFixed(2)} sobre R$ ${eligibleBalance.toFixed(2)} (saldo elegível de 30+ dias)`);
+        console.log(
+          `✅ Juros aplicados: R$ ${interestAmount.toFixed(2)} sobre R$ ${eligibleBalance.toFixed(2)} (saldo elegível de 30+ dias)`
+        );
       }
 
       return transaction;
