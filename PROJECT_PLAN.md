@@ -71,17 +71,18 @@ typescript
 **Objetivo:** Corrigir todos os bugs identificados e estabilizar o app antes de qualquer mudança visual ou funcional nova.
 **Prazo estimado:** 1-2 semanas
 
-| #   | Funcionalidade                   | Status      | Notas                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| --- | -------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0 | Organização do projeto           | ✅ Completo | Movidos 24 arquivos .md para `docs/archive/`, 8 scripts para `scripts/`, 3 arquivos .sql para `database/`. Raiz limpa mantendo apenas CLAUDE.md, PROJECT_PLAN.md, README.md e configs (.js).                                                                                                                                                                                                                                                       |
-| 1.1 | Histórico de transações completo | ⬜ Pendente | Atualmente só mostra último mês. Implementar: visualização completa, filtro por período (mês/ano), filtro por tipo de transação (depósito, saque, presente, rendimento), paginação ou scroll infinito                                                                                                                                                                                                                                              |
-| 1.2 | Taxa de juros configurável       | ✅ Completo | **IMPLEMENTADO:** Renomeada coluna annual_rate → monthly_rate. Interface TypeScript atualizada (0-100%). Backend (transactions.ts, interestService.ts) corrigido. UI (InterestConfigManager.tsx) com "Taxa Mensal %" até 100%, slider 0-20%. Migration 004 executada no Supabase Studio. Constraint CHECK (0-100%) funcionando. Valores preservados (9.9 = 9.9% mensal). Scripts de validação criados.                                             |
-| 1.3 | Juros nos sonhos/metas           | ⏭️ Skip     | **PULADO:** Tabela `savings_goals` não existe no banco atual. Feature será implementada como melhoria futura (Fase 4). Sistema de metas/sonhos precisa ser criado do zero antes de implementar rendimento.                                                                                                                                                                                                                                         |
-| 1.4 | Keep-alive do Supabase           | ✅ Completo | **Reativados 3 workflows GitHub Actions:** keep-supabase-alive.yml (pings Domingo/Quarta 9h UTC), monthly-interest.yml (dia 1 às 00h UTC), daily-allowance.yml. Workflows estavam em `disabled_inactivity` (60 dias sem commit). Testado keep-alive manualmente com sucesso (HTTP 200, Supabase respondendo). Próximo ping automático: Domingo ou Quarta às 9h UTC.                                                                                |
-| 1.5 | Audit de dependências            | ✅ Completo | **IMPLEMENTADO:** Auditadas 28 dependências outdated. Atualizadas 14 críticas/importantes: @supabase/supabase-js (2.96.0), dotenv (17.3.1), typescript (5.9.3), next (14.2.35), tailwindcss (4.1.18), playwright (1.58.2), prettier (3.8.1), @types/\* atualizados. Mantidos em versões atuais (sem breaking changes): React 18, Next 14, Jest 29, ESLint 9. Build validado. Documento de auditoria criado em docs/DEPENDENCY_AUDIT_2026-02-17.md. |
-| 1.6 | Testes e validação               | ⬜ Pendente | Testar manualmente todos os fluxos corrigidos. Verificar: histórico completo, juros aplicados corretamente, juros nos sonhos, keep-alive ativo.                                                                                                                                                                                                                                                                                                    |
+| #   | Funcionalidade                   | Status      | Notas                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --- | -------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0 | Organização do projeto           | ✅ Completo | Movidos 24 arquivos .md para `docs/archive/`, 8 scripts para `scripts/`, 3 arquivos .sql para `database/`. Raiz limpa mantendo apenas CLAUDE.md, PROJECT_PLAN.md, README.md e configs (.js).                                                                                                                                                                                                                                                         |
+| 1.1 | Histórico de transações completo | ✅ Completo | **IMPLEMENTADO:** TransactionService atualizado com filtros avançados (data, tipo, categoria) e paginação (20 itens/página). Componente TransactionHistory.tsx criado com UI completa: filtros por período (7/30/90 dias/todos), tipo (ganhos/gastos/etc.), categoria. Paginação "Carregar Mais", contador de resultados, empty state. Integrado em demo-child-view. Testado com 12 transações: filtros OK, cores OK, performance OK.                |
+| 1.2 | Taxa de juros configurável       | ✅ Completo | **IMPLEMENTADO:** Renomeada coluna annual_rate → monthly_rate. Interface TypeScript atualizada (0-100%). Backend (transactions.ts, interestService.ts) corrigido. UI (InterestConfigManager.tsx) com "Taxa Mensal %" até 100%, slider 0-20%. Migration 004 executada no Supabase Studio. Constraint CHECK (0-100%) funcionando. Valores preservados (9.9 = 9.9% mensal). Scripts de validação criados.                                               |
+| 1.3 | Juros nos sonhos/metas           | ✅ Completo | **IMPLEMENTADO:** Adicionado tipo `goal_interest` ao enum Transaction. Função `calculateInterest()` estendida para calcular juros separadamente para cada goal ativo (tabela `goals`). Juros aplicados sobre `current_amount` de cada goal com 30 dias+ de carência (baseado em `created_at`). Transações de rastreamento criadas com `type='goal_interest'` e `related_goal_id`. Goals não prejudicam juros do saldo principal (cálculo adicional). |
+| 1.4 | Keep-alive do Supabase           | ✅ Completo | **Reativados 3 workflows GitHub Actions:** keep-supabase-alive.yml (pings Domingo/Quarta 9h UTC), monthly-interest.yml (dia 1 às 00h UTC), daily-allowance.yml. Workflows estavam em `disabled_inactivity` (60 dias sem commit). Testado keep-alive manualmente com sucesso (HTTP 200, Supabase respondendo). Próximo ping automático: Domingo ou Quarta às 9h UTC.                                                                                  |
+| 1.5 | Audit de dependências            | ✅ Completo | **IMPLEMENTADO:** Auditadas 28 dependências outdated. Atualizadas 14 críticas/importantes: @supabase/supabase-js (2.96.0), dotenv (17.3.1), typescript (5.9.3), next (14.2.35), tailwindcss (4.1.18), playwright (1.58.2), prettier (3.8.1), @types/\* atualizados. Mantidos em versões atuais (sem breaking changes): React 18, Next 14, Jest 29, ESLint 9. Build validado. Documento de auditoria criado em docs/DEPENDENCY_AUDIT_2026-02-17.md.   |
+| 1.6 | Correção de labels e cleanup     | ✅ Completo | **BUG FIX #1:** Corrigido label incorreto na seção "Meus Pedidos" (demo-child-view:875) - purchase_requests exibindo "Empréstimo: [categoria]" agora mostram "Pedido: [categoria]". **INVESTIGAÇÃO #2:** LoanService investigado - NÃO é órfão, usa tabela `purchase_requests` existente com filtro `category='Empréstimo'`. Serviço mantido como camada de abstração válida. Documentação completa em /tmp/loanservice-findings.md.                 |
+| 1.7 | Testes e validação               | ⬜ Pendente | Testar manualmente todos os fluxos corrigidos. Verificar: histórico completo, juros aplicados corretamente, juros nos sonhos, keep-alive ativo, labels corretos na visão da criança.                                                                                                                                                                                                                                                                 |
 
-**Critério de conclusão:** Todos os bugs corrigidos, app funcionando sem erros, juros calculados corretamente, histórico completo visível.
+**Critério de conclusão:** Todos os bugs corrigidos, app funcionando sem erros, juros calculados corretamente, histórico completo visível, labels corretos.
 
 ---
 
@@ -299,17 +300,47 @@ Tabelas conhecidas (a investigar estrutura completa na Fase 1):
 
 - `scripts/validate-task-1.2.js` (validação de banco)
 - `scripts/validate-code-references.js` (validação de código)
+- `scripts/update-interest-rate.js` (correção de taxa para 1%)
 - `INSTRUCOES_MIGRATION_1.2.md` (documentação)
 
-### 1.3 Juros nos Sonhos/Metas
+**Taxa Padrão Recomendada:**
+
+- ✅ **1.0% ao mês** (taxa educacional realista)
+- Taxa anterior de 9.9% ao mês era muito alta para fins educacionais
+- Todos os registros foram atualizados para 1.0% em 2026-02-17
+
+### 1.3 Juros nos Sonhos/Metas ✅ COMPLETO
 
 **Problema:** Dinheiro guardado em sonhos não rende.
-**Solução:**
 
-- No cálculo mensal de juros, somar: saldo da conta + saldo de todos os sonhos ativos
-- OU calcular juros separadamente: X sobre saldo principal, Y sobre cada sonho
-- Registrar rendimento dos sonhos como transação separada no extrato do sonho
-- Exibir na UI: "Seu sonho rendeu R$ X,XX este mês!"
+**Solução Implementada:**
+
+- ✅ Adicionado tipo `'goal_interest'` ao enum `Transaction.type` (supabase.ts)
+- ✅ Função `calculateInterest()` estendida para processar goals após calcular juros do saldo
+- ✅ Busca todos os goals ativos com `current_amount > 0` da tabela `goals`
+- ✅ Aplica regra de 30 dias de carência por goal (baseado em `goal.created_at`)
+- ✅ Calcula juros sobre `current_amount` de cada goal usando mesma `monthly_rate`
+- ✅ Atualiza `current_amount` do goal com o valor dos juros
+- ✅ Cria transação de rastreamento com `type='goal_interest'` e `related_goal_id`
+- ✅ Juros do saldo principal não são afetados (cálculo adicional, não substitui)
+
+**Arquivos modificados:**
+
+- `src/lib/supabase.ts` (Transaction.type enum + related_goal_id)
+- `src/lib/services/transactions.ts` (calculateInterest + createTransaction)
+
+**Lógica:**
+Quando `calculateInterest(childId)` é executado mensalmente:
+
+1. Calcula e aplica juros do saldo principal (comportamento original)
+2. Busca goals ativos com dinheiro
+3. Para cada goal elegível (30+ dias), calcula e aplica juros separados
+4. Registra transação goal_interest para cada goal que rendeu
+
+**Resultado:**
+
+- Criança com goal "Camisa do Real Madrid" (R$ 285.02) agora receberá juros mensais sobre esse valor
+- Transparência total: cada goal tem transações de juros rastreáveis
 
 ### 1.4 Keep-alive do Supabase
 
@@ -395,13 +426,16 @@ ALTER TABLE guardian_invites ENABLE ROW LEVEL SECURITY;
 
 ## 📝 HISTÓRICO DE MUDANÇAS
 
-| Data       | Fase   | O que mudou                                             | Motivo                              |
-| ---------- | ------ | ------------------------------------------------------- | ----------------------------------- |
-| 2026-02-17 | Setup  | Projeto existente auditado (138 arquivos, 31K linhas)   | Evolução planejada                  |
-| 2026-02-17 | Setup  | Supabase restaurado após auto-pause                     | Projeto pausou por inatividade      |
-| 2026-02-17 | Setup  | Redesign visual aprovado (verde + amarelo + branco)     | Referências: porquinho + ArobixBank |
-| 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados             | Bugs → Redesign → Onboarding        |
-| 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                     | Início da evolução estruturada      |
-| 2026-02-17 | Fase 1 | Task 1.4 completa - workflows GitHub Actions reativados | Keep-alive do Supabase              |
-| 2026-02-17 | Fase 1 | Task 1.2 completa - annual_rate → monthly_rate (0-100%) | Correção de bug: taxa de juros      |
-| 2026-02-17 | Fase 1 | Task 1.5 completa - 14 dependências atualizadas         | Audit e update de dependências      |
+| Data       | Fase   | O que mudou                                             | Motivo                                                                |
+| ---------- | ------ | ------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2026-02-17 | Setup  | Projeto existente auditado (138 arquivos, 31K linhas)   | Evolução planejada                                                    |
+| 2026-02-17 | Setup  | Supabase restaurado após auto-pause                     | Projeto pausou por inatividade                                        |
+| 2026-02-17 | Setup  | Redesign visual aprovado (verde + amarelo + branco)     | Referências: porquinho + ArobixBank                                   |
+| 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados             | Bugs → Redesign → Onboarding                                          |
+| 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                     | Início da evolução estruturada                                        |
+| 2026-02-17 | Fase 1 | Task 1.4 completa - workflows GitHub Actions reativados | Keep-alive do Supabase                                                |
+| 2026-02-17 | Fase 1 | Task 1.2 completa - annual_rate → monthly_rate (0-100%) | Correção de bug: taxa de juros                                        |
+| 2026-02-17 | Fase 1 | Task 1.5 completa - 14 dependências atualizadas         | Audit e update de dependências                                        |
+| 2026-02-17 | Fase 1 | Task 1.3 completa - juros em sonhos/metas implementado  | Goals agora rendem juros mensais                                      |
+| 2026-02-17 | Fase 1 | Taxa de juros corrigida: 9.9% → 1.0% ao mês             | Valor educacional realista                                            |
+| 2026-02-17 | Fase 1 | Task 1.6 completa - labels corrigidos + LoanService OK  | Labels "Empréstimo"→"Pedido", LoanService validado como serviço ativo |

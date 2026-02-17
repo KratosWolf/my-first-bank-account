@@ -11,6 +11,7 @@ import { GoalsService } from '@/lib/services/goals';
 import { GamificationService } from '@/lib/services/gamification';
 import { CategoriesService } from '@/lib/services/categoriesService';
 import { AllowanceService } from '@/lib/services/allowanceService';
+import TransactionHistory from '../src/components/TransactionHistory';
 import type {
   Child,
   Transaction,
@@ -1100,12 +1101,8 @@ export default function ChildView() {
                             {request.item_name}
                           </div>
                           <div className="text-sm text-gray-800 font-medium">
-                            {request.type === 'purchase'
-                              ? `Compra: ${request.category}`
-                              : request.type === 'goal'
-                                ? `Sonho: ${request.category}`
-                                : `Empréstimo: ${request.category}`}{' '}
-                            • R$ {request.amount.toFixed(2)}
+                            Pedido: {request.category} • R${' '}
+                            {request.amount.toFixed(2)}
                           </div>
                           <div className="text-xs text-orange-700 font-medium">
                             Enviado{' '}
@@ -1546,49 +1543,12 @@ export default function ChildView() {
         )}
 
         {/* History Tab */}
-        {selectedTab === 'history' && (
-          <div className="px-4 py-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">
+        {selectedTab === 'history' && currentChild && (
+          <div className="px-4 py-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
               Meu Histórico 📋
             </h2>
-            <div className="space-y-3">
-              {childData.recentTransactions.map(transaction => (
-                <div
-                  key={transaction.id}
-                  className="bg-white rounded-xl p-4 shadow-lg flex items-center space-x-3"
-                >
-                  <div className="text-2xl">{transaction.icon}</div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">
-                      {transaction.description}
-                    </div>
-                    <div className="text-xs text-gray-800 font-medium">
-                      {transaction.date}
-                    </div>
-                  </div>
-                  <div
-                    className={`font-bold ${
-                      transaction.type === 'received' ||
-                      transaction.type === 'earning' ||
-                      transaction.type === 'allowance' ||
-                      transaction.type === 'interest' ||
-                      transaction.type === 'loan'
-                        ? 'text-green-600'
-                        : 'text-red-500'
-                    }`}
-                  >
-                    {transaction.type === 'received' ||
-                    transaction.type === 'earning' ||
-                    transaction.type === 'allowance' ||
-                    transaction.type === 'interest' ||
-                    transaction.type === 'loan'
-                      ? '+'
-                      : '-'}
-                    R$ {transaction.amount.toFixed(2)}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TransactionHistory childId={currentChild.id} />
           </div>
         )}
 
