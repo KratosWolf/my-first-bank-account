@@ -71,15 +71,15 @@ typescript
 **Objetivo:** Corrigir todos os bugs identificados e estabilizar o app antes de qualquer mudança visual ou funcional nova.
 **Prazo estimado:** 1-2 semanas
 
-| #   | Funcionalidade                   | Status        | Notas                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| --- | -------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1.0 | Organização do projeto           | ✅ Completo   | Movidos 24 arquivos .md para `docs/archive/`, 8 scripts para `scripts/`, 3 arquivos .sql para `database/`. Raiz limpa mantendo apenas CLAUDE.md, PROJECT_PLAN.md, README.md e configs (.js).                                                                                                                                                                                                                                                           |
-| 1.1 | Histórico de transações completo | ⬜ Pendente   | Atualmente só mostra último mês. Implementar: visualização completa, filtro por período (mês/ano), filtro por tipo de transação (depósito, saque, presente, rendimento), paginação ou scroll infinito                                                                                                                                                                                                                                                  |
-| 1.2 | Taxa de juros configurável       | 🟡 Aguardando | **CÓDIGO ATUALIZADO:** ✅ Interface monthly_rate (0-100%) em supabase.ts, ✅ Backend (transactions.ts, interestService.ts), ✅ UI (InterestConfigManager.tsx - "Taxa Mensal %" até 100%), ✅ Migration SQL criada (MIGRATION_TO_RUN.sql). **PENDENTE:** ⏳ Executar migration manual no Supabase Studio (ver INSTRUCOES_MIGRATION_1.2.md), ⏳ Rodar validação com `node scripts/validate-task-1.2.js`. Valores preservados (9.9 continua 9.9% mensal). |
-| 1.3 | Juros nos sonhos/metas           | ⬜ Pendente   | Atualmente sonhos/metas NÃO rendem juros. O dinheiro guardado num sonho deve render a mesma taxa configurada pelo pai. Atualizar lógica de cálculo de juros para incluir saldo dos sonhos. Mostrar rendimento separado no extrato do sonho.                                                                                                                                                                                                            |
-| 1.4 | Keep-alive do Supabase           | ✅ Completo   | **Reativados 3 workflows GitHub Actions:** keep-supabase-alive.yml (pings Domingo/Quarta 9h UTC), monthly-interest.yml (dia 1 às 00h UTC), daily-allowance.yml. Workflows estavam em `disabled_inactivity` (60 dias sem commit). Testado keep-alive manualmente com sucesso (HTTP 200, Supabase respondendo). Próximo ping automático: Domingo ou Quarta às 9h UTC.                                                                                    |
-| 1.5 | Audit de dependências            | ⬜ Pendente   | 28 dependências desatualizadas. Atualizar as críticas (segurança). Não precisa atualizar tudo — só o que impacta segurança e funcionamento.                                                                                                                                                                                                                                                                                                            |
-| 1.6 | Testes e validação               | ⬜ Pendente   | Testar manualmente todos os fluxos corrigidos. Verificar: histórico completo, juros aplicados corretamente, juros nos sonhos, keep-alive ativo.                                                                                                                                                                                                                                                                                                        |
+| #   | Funcionalidade                   | Status      | Notas                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --- | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0 | Organização do projeto           | ✅ Completo | Movidos 24 arquivos .md para `docs/archive/`, 8 scripts para `scripts/`, 3 arquivos .sql para `database/`. Raiz limpa mantendo apenas CLAUDE.md, PROJECT_PLAN.md, README.md e configs (.js).                                                                                                                                                                                                           |
+| 1.1 | Histórico de transações completo | ⬜ Pendente | Atualmente só mostra último mês. Implementar: visualização completa, filtro por período (mês/ano), filtro por tipo de transação (depósito, saque, presente, rendimento), paginação ou scroll infinito                                                                                                                                                                                                  |
+| 1.2 | Taxa de juros configurável       | ✅ Completo | **IMPLEMENTADO:** Renomeada coluna annual_rate → monthly_rate. Interface TypeScript atualizada (0-100%). Backend (transactions.ts, interestService.ts) corrigido. UI (InterestConfigManager.tsx) com "Taxa Mensal %" até 100%, slider 0-20%. Migration 004 executada no Supabase Studio. Constraint CHECK (0-100%) funcionando. Valores preservados (9.9 = 9.9% mensal). Scripts de validação criados. |
+| 1.3 | Juros nos sonhos/metas           | ⬜ Pendente | Atualmente sonhos/metas NÃO rendem juros. O dinheiro guardado num sonho deve render a mesma taxa configurada pelo pai. Atualizar lógica de cálculo de juros para incluir saldo dos sonhos. Mostrar rendimento separado no extrato do sonho.                                                                                                                                                            |
+| 1.4 | Keep-alive do Supabase           | ✅ Completo | **Reativados 3 workflows GitHub Actions:** keep-supabase-alive.yml (pings Domingo/Quarta 9h UTC), monthly-interest.yml (dia 1 às 00h UTC), daily-allowance.yml. Workflows estavam em `disabled_inactivity` (60 dias sem commit). Testado keep-alive manualmente com sucesso (HTTP 200, Supabase respondendo). Próximo ping automático: Domingo ou Quarta às 9h UTC.                                    |
+| 1.5 | Audit de dependências            | ⬜ Pendente | 28 dependências desatualizadas. Atualizar as críticas (segurança). Não precisa atualizar tudo — só o que impacta segurança e funcionamento.                                                                                                                                                                                                                                                            |
+| 1.6 | Testes e validação               | ⬜ Pendente | Testar manualmente todos os fluxos corrigidos. Verificar: histórico completo, juros aplicados corretamente, juros nos sonhos, keep-alive ativo.                                                                                                                                                                                                                                                        |
 
 **Critério de conclusão:** Todos os bugs corrigidos, app funcionando sem erros, juros calculados corretamente, histórico completo visível.
 
@@ -270,13 +270,13 @@ Tabelas conhecidas (a investigar estrutura completa na Fase 1):
 - Scroll infinito ou botão "carregar mais"
 - Ordenação: mais recente primeiro (padrão)
 
-### 1.2 Taxa de Juros Configurável ✅ CÓDIGO / ⏳ BANCO
+### 1.2 Taxa de Juros Configurável ✅ COMPLETO
 
 **Problema:** UI mostra "Taxa Anual" mas aplica como mensal. Teto fixo de 9.9%.
 
 **Solução Implementada:**
 
-- ✅ Renomeada coluna `annual_rate` → `monthly_rate` no banco (migration criada)
+- ✅ Renomeada coluna `annual_rate` → `monthly_rate` no banco
 - ✅ Interface TypeScript atualizada (`InterestConfig.monthly_rate: number`)
 - ✅ Backend atualizado (transactions.ts, interestService.ts)
 - ✅ UI atualizada (InterestConfigManager.tsx):
@@ -284,7 +284,8 @@ Tabelas conhecidas (a investigar estrutura completa na Fase 1):
   - Slider: 0-20% (pode digitar até 100%)
   - Removido conceito "anual"
 - ✅ Constraint atualizado: `CHECK (monthly_rate >= 0 AND monthly_rate <= 100)`
-- ✅ Validação: 9.9 continua sendo 9.9% ao mês (preservado)
+- ✅ Migration 004 executada no Supabase Studio
+- ✅ Valores preservados: 9.9 continua sendo 9.9% ao mês
 
 **Arquivos modificados:**
 
@@ -294,11 +295,11 @@ Tabelas conhecidas (a investigar estrutura completa na Fase 1):
 - `components/InterestConfigManager.tsx` (UI completa)
 - `supabase/migrations/004_rename_annual_rate_to_monthly_rate.sql` (migration)
 
-**Pendente (Manual):**
+**Scripts criados:**
 
-1. Executar `MIGRATION_TO_RUN.sql` no Supabase Studio
-2. Rodar `node scripts/validate-task-1.2.js` para confirmar
-3. Ver instruções detalhadas em `INSTRUCOES_MIGRATION_1.2.md`
+- `scripts/validate-task-1.2.js` (validação de banco)
+- `scripts/validate-code-references.js` (validação de código)
+- `INSTRUCOES_MIGRATION_1.2.md` (documentação)
 
 ### 1.3 Juros nos Sonhos/Metas
 
@@ -402,4 +403,4 @@ ALTER TABLE guardian_invites ENABLE ROW LEVEL SECURITY;
 | 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados             | Bugs → Redesign → Onboarding        |
 | 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                     | Início da evolução estruturada      |
 | 2026-02-17 | Fase 1 | Task 1.4 completa - workflows GitHub Actions reativados | Keep-alive do Supabase              |
-| 2026-02-17 | Fase 1 | Task 1.2 código atualizado - annual_rate → monthly_rate | Correção de bug: taxa de juros      |
+| 2026-02-17 | Fase 1 | Task 1.2 completa - annual_rate → monthly_rate (0-100%) | Correção de bug: taxa de juros      |
