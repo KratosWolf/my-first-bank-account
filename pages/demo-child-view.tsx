@@ -12,6 +12,9 @@ import { GamificationService } from '@/lib/services/gamification';
 import { CategoriesService } from '@/lib/services/categoriesService';
 import { AllowanceService } from '@/lib/services/allowanceService';
 import TransactionHistory from '../src/components/TransactionHistory';
+import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import type {
   Child,
   Transaction,
@@ -278,47 +281,6 @@ export default function ChildView() {
     return true;
   };
 
-  const createDemoData = () => {
-    try {
-      // Criar família de demonstração no localStorage
-      const family = {
-        id: 'family-demo-001',
-        family_name: 'Família Demo',
-        parent_name: 'Demo Parent',
-        parent_email: 'demo@teste.com',
-      };
-      localStorage.setItem('demo-family', JSON.stringify(family));
-
-      // Criar criança de demonstração no localStorage
-      const child = {
-        id: 'child-demo-001',
-        family_id: family.id,
-        name: 'teste',
-        age: 7,
-        birth_date: '2017-08-30',
-        pin: '0000',
-        avatar_url: '👧',
-        balance: 0.0,
-        total_earned: 0.0,
-        total_spent: 0.0,
-        current_level: 1,
-        total_xp: 0,
-        current_streak: 0,
-      };
-      localStorage.setItem('demo-children', JSON.stringify([child]));
-
-      // Criar dados de demo vazios para transações, metas e solicitações
-      localStorage.setItem('demo-transactions', JSON.stringify([]));
-      localStorage.setItem('demo-goals', JSON.stringify([]));
-      localStorage.setItem('demo-purchase-requests', JSON.stringify([]));
-
-      setCurrentChild(child as any);
-      loadChildData();
-    } catch (error) {
-      console.error('Erro ao criar dados de demo:', error);
-    }
-  };
-
   // Estados locais para demo (fallback)
   const [currentBalance, setCurrentBalance] = useState(0);
   const [activeLoan, setActiveLoan] = useState<Loan | null>(null);
@@ -499,7 +461,7 @@ export default function ChildView() {
       }
 
       // Reload data to show updated goals
-      await loadChildData();
+      await loadChildData(currentChild.id);
 
       if (result.data.goal_completed) {
         alert(
@@ -657,7 +619,7 @@ export default function ChildView() {
       setShowGoalModal(false);
 
       // Reload data to show new goal
-      await loadChildData();
+      await loadChildData(currentChild.id);
 
       alert(
         `🎉 Novo sonho criado com sucesso!\n\nSonho: ${newGoalData.name}\nCategoria: ${selectedCategory?.icon} ${newGoalData.category}\nValor: R$ ${amount.toFixed(2)}\n\nVocê já pode começar a guardar dinheiro para ele! 💰`
@@ -791,6 +753,31 @@ export default function ChildView() {
 
   const allowanceInfo = getAllowanceDescription();
 
+  // Função auxiliar para ícones de transação
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'allowance':
+      case 'deposit':
+      case 'gift':
+        return { icon: '💰', color: 'text-primary' };
+      case 'purchase':
+      case 'spending':
+      case 'withdrawal':
+        return { icon: '🛒', color: 'text-error' };
+      case 'goal_contribution':
+        return { icon: '🎯', color: 'text-info' };
+      case 'interest':
+      case 'goal_interest':
+        return { icon: '✨', color: 'text-warning' };
+      case 'loan':
+        return { icon: '🏦', color: 'text-info' };
+      case 'loan_payment':
+        return { icon: '💳', color: 'text-error' };
+      default:
+        return { icon: '💸', color: 'text-text-secondary' };
+    }
+  };
+
   // Dados híbridos - usa Supabase quando disponível, fallback para mock
   const childData = {
     name: currentChild?.name || 'Criança',
@@ -820,21 +807,18 @@ export default function ChildView() {
         : currentGoals,
     recentTransactions:
       realTransactions.length > 0
-        ? realTransactions.slice(0, 5).map(tx => ({
-            id: tx.id,
-            type: tx.type as any,
-            amount: tx.amount,
-            description: tx.description || tx.category,
-            date: new Date(tx.created_at).toLocaleDateString('pt-BR'),
-            icon:
-              tx.type === 'allowance'
-                ? '💰'
-                : tx.type === 'purchase'
-                  ? '🛒'
-                  : tx.type === 'goal_contribution'
-                    ? '🎯'
-                    : '💸',
-          }))
+        ? realTransactions.slice(0, 5).map(tx => {
+            const txIcon = getTransactionIcon(tx.type);
+            return {
+              id: tx.id,
+              type: tx.type as any,
+              amount: tx.amount,
+              description: tx.description || tx.category,
+              date: new Date(tx.created_at).toLocaleDateString('pt-BR'),
+              icon: txIcon.icon,
+              color: txIcon.color,
+            };
+          })
         : recentTransactions,
   };
 
@@ -847,23 +831,51 @@ export default function ChildView() {
       onClick={() => onClick(id)}
       className={`flex flex-col items-center p-3 rounded-xl transition-all ${
         isActive
-          ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
-          : 'text-gray-600 hover:bg-gray-100'
+          ? 'bg-gradient-to-r from-primary to-primary-light text-bg-primary shadow-lg scale-110'
+          : 'text-text-secondary hover:bg-bg-secondary'
       }`}
     >
-      <span className="text-xl mb-1">{icon}</span>
-      <span className="text-xs font-medium">{label}</span>
+      <span className="text-2xl mb-1">{icon}</span>
+      <span className="text-xs font-semibold">{label}</span>
     </button>
   );
 
   // Verificando autenticação
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-purple-600">Verificando autenticação...</p>
-        </div>
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <Card variant="elevated" padding="lg" className="max-w-md w-full">
+          <CardBody>
+            <div className="text-center">
+              <svg
+                className="animate-spin h-16 w-16 text-primary mx-auto mb-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <p className="text-lg font-semibold text-text-primary">
+                Verificando autenticação...
+              </p>
+              <p className="text-sm text-text-secondary mt-2">
+                Aguarde um momento
+              </p>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     );
   }
@@ -876,33 +888,41 @@ export default function ChildView() {
   // Tela de loading dos dados
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">👧</div>
-          <div className="text-xl font-bold text-gray-700 mb-2">
-            Carregando seu banco...
-          </div>
-          <div className="text-gray-800 font-medium">
-            Conectando com Supabase
-          </div>
-        </div>
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <Card variant="elevated" padding="lg" className="max-w-md w-full">
+          <CardBody>
+            <div className="text-center">
+              <div className="text-6xl mb-4 animate-bounce">🏦</div>
+              <p className="text-xl font-bold text-text-primary mb-2">
+                Carregando seu banco...
+              </p>
+              <p className="text-text-secondary">Conectando com Supabase</p>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+    <div className="min-h-screen bg-bg-primary">
+      {/* Header com gradiente verde/amarelo lúdico */}
+      <div className="bg-gradient-to-r from-success via-primary to-primary-light shadow-lg">
         <div className="max-w-md mx-auto px-4 py-6">
-          <div className="flex items-center space-x-4">
-            <div className="text-4xl">{childData.avatar}</div>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold">Oi, {childData.name}! 👋</h1>
-              <p className="text-pink-100">Seu banco pessoal</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-5xl">{childData.avatar}</div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">
+                  Oi, {childData.name}! 👋
+                </h1>
+                <p className="text-sm text-white/80">Seu banco pessoal</p>
+              </div>
             </div>
-            <div className="text-right flex flex-col items-end space-y-2">
-              <button
+            <div className="text-right">
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={async () => {
                   try {
                     await signOut({
@@ -914,34 +934,38 @@ export default function ChildView() {
                     window.location.href = '/auth/signin';
                   }
                 }}
-                className="bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-xs transition-colors"
+                className="text-white/80 hover:text-white mb-2"
               >
-                Sair
-              </button>
-              <div>
-                <div className="text-2xl font-bold">
-                  R$ {childData.balance.toFixed(2)}
-                </div>
-                <div className="text-xs text-pink-100">Meu saldo</div>
+                🚪 Sair
+              </Button>
+              <div className="text-3xl font-bold text-white">
+                R$ {childData.balance.toFixed(2)}
               </div>
+              <div className="text-xs text-white/70">Meu saldo</div>
             </div>
           </div>
 
           {/* Level Progress */}
-          <div className="mt-6 bg-white/20 rounded-xl p-4">
+          <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold">Nível {childData.level}</span>
-              <span className="text-sm">
+              <Badge
+                variant="neutral"
+                size="sm"
+                className="bg-white/20 text-white"
+              >
+                Nível {childData.level}
+              </Badge>
+              <span className="text-sm text-white/90 font-semibold">
                 {childData.xp} / {childData.xp + childData.xpToNext} XP
               </span>
             </div>
-            <div className="w-full bg-white/30 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-1000"
+                className="h-full bg-gradient-to-r from-primary-light to-primary rounded-full transition-all duration-1000 shadow-lg"
                 style={{ width: `${completionPercentage}%` }}
               ></div>
             </div>
-            <div className="text-xs text-pink-100 mt-1">
+            <div className="text-xs text-white/80 mt-2 font-medium">
               Faltam {childData.xpToNext} XP para o próximo nível! 🚀
             </div>
           </div>
@@ -949,310 +973,340 @@ export default function ChildView() {
       </div>
 
       {/* Content */}
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto pb-20">
         {/* Home Tab */}
         {selectedTab === 'home' && (
           <div className="px-4 py-6 space-y-6">
-            {/* Balance Card - DESTAQUE PRINCIPAL */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-3xl p-8 text-white text-center shadow-xl">
-              <div className="text-5xl font-bold mb-2">
-                R$ {childData.balance.toFixed(2)}
-              </div>
-              <div className="text-green-100 text-lg">
-                Meu Dinheiro Disponível
-              </div>
-              <div className="mt-6">
-                <button
-                  onClick={() => setSelectedTab('use-money')}
-                  className="bg-white text-green-600 font-bold py-3 px-8 rounded-xl hover:bg-green-50 transition-all shadow-lg"
-                >
-                  💰 Usar Meu Dinheiro
-                </button>
-              </div>
-            </div>
+            {/* Balance Card - DESTAQUE PRINCIPAL com gradiente verde vibrante */}
+            <Card
+              variant="elevated"
+              padding="lg"
+              className="bg-gradient-to-br from-success to-green-600 text-white shadow-2xl border-4 border-white/20"
+            >
+              <CardBody>
+                <div className="text-center">
+                  <div className="text-6xl font-black mb-3 drop-shadow-lg">
+                    R$ {childData.balance.toFixed(2)}
+                  </div>
+                  <div className="text-lg font-semibold text-white/90 mb-6">
+                    💰 Meu Dinheiro Disponível
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => setSelectedTab('use-money')}
+                    className="w-full text-lg font-bold shadow-xl"
+                  >
+                    ✨ Usar Meu Dinheiro
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
 
             {/* Active Loan Alert */}
             {childData.activeLoan && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">🏦</div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-yellow-800">
-                      Empréstimo Ativo
+              <Card
+                variant="outline"
+                padding="md"
+                className="border-warning border-2 bg-warning/5"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl">🏦</div>
+                    <div className="flex-1">
+                      <div className="font-bold text-warning">
+                        Empréstimo Ativo
+                      </div>
+                      <div className="text-sm text-text-primary">
+                        R$ {childData.activeLoan.amount.toFixed(2)} -{' '}
+                        {childData.activeLoan.reason}
+                      </div>
+                      <div className="text-xs text-text-secondary">
+                        Empréstimo sem juros
+                      </div>
                     </div>
-                    <div className="text-sm text-yellow-600">
-                      R$ {childData.activeLoan.amount.toFixed(2)} -{' '}
-                      {childData.activeLoan.reason}
-                    </div>
-                    <div className="text-xs text-yellow-500">
-                      Empréstimo sem juros
-                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setSelectedTab('use-money')}
+                    >
+                      💳 Pagar
+                    </Button>
                   </div>
-                  <button
-                    onClick={() => setSelectedTab('use-money')}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-yellow-600"
-                  >
-                    Pagar
-                  </button>
-                </div>
-              </div>
+                </CardBody>
+              </Card>
             )}
 
             {/* Streak Card */}
-            <div className="bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold">
-                    {childData.currentStreak} dias
-                  </div>
-                  <div className="text-orange-100">
-                    Sequência de tarefas! 🔥
-                  </div>
-                </div>
-                <div className="text-4xl">🏆</div>
-              </div>
-              <div className="mt-4">
-                <button
-                  onClick={() => alert('Em breve: Ver suas tarefas pendentes!')}
-                  className="bg-white/20 text-white font-semibold py-2 px-4 rounded-lg hover:bg-white/30 transition-all"
-                >
-                  Ver Minhas Tarefas
-                </button>
-              </div>
-            </div>
-
-            {/* Interest Card - Sistema de rendimento ATUALIZADO (1% mensal + regra 30 dias) */}
-            {childData.balance >= 10 && (
-              <div className="bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl p-6 text-white">
+            <Card
+              variant="elevated"
+              padding="md"
+              className="bg-gradient-to-r from-warning to-orange-600 text-white shadow-xl"
+            >
+              <CardBody>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold">
-                      R$ {(childData.balance * 0.01).toFixed(2)}
+                    <div className="text-4xl font-bold">
+                      {childData.currentStreak} dias
                     </div>
-                    <div className="text-green-100">
-                      Seu dinheiro está rendendo! 📈
-                    </div>
-                  </div>
-                  <div className="text-4xl">💰</div>
-                </div>
-                <div className="mt-3 text-sm opacity-90">
-                  Com R$ {childData.balance.toFixed(2)} na conta, você pode
-                  ganhar até R$ {(childData.balance * 0.01).toFixed(2)} por mês
-                </div>
-                <div className="mt-1 text-xs opacity-75">
-                  ⏰ Só rende o dinheiro que está há 30+ dias na conta
-                </div>
-                <div className="mt-1 text-xs opacity-60">
-                  📊 Taxa: 1% ao mês • Mínimo: R$ 10,00
-                </div>
-              </div>
-            )}
-
-            {childData.balance < 10 && (
-              <div className="bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xl font-bold">R$ 10,00</div>
-                    <div className="text-gray-100">
-                      Meta para começar a render! 💰
+                    <div className="text-sm text-white/90 font-medium">
+                      Sequência de tarefas! 🔥
                     </div>
                   </div>
-                  <div className="text-4xl">🎯</div>
+                  <div className="text-5xl">🏆</div>
                 </div>
-                <div className="mt-3 text-sm opacity-90">
-                  Economize mais R$ {(10 - childData.balance).toFixed(2)} para
-                  seu dinheiro começar a render 1% ao mês!
+                <div className="mt-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      alert('Em breve: Ver suas tarefas pendentes!')
+                    }
+                    className="w-full bg-white/20 text-white hover:bg-white/30"
+                  >
+                    Ver Minhas Tarefas
+                  </Button>
                 </div>
-                <div className="mt-1 text-xs opacity-75">
-                  ⏰ Condição: O dinheiro precisa ficar 30 dias na conta para
-                  render
-                </div>
-                <div className="mt-1 text-xs opacity-60">
-                  📊 Taxa: 1% ao mês • Mínimo: R$ 10,00
-                </div>
-              </div>
-            )}
+              </CardBody>
+            </Card>
 
-            {/* Pending Requests - Dados reais do Supabase + Empréstimos */}
-            {(pendingPurchases.length > 0 || pendingRequests.length > 0) && (
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                <h3 className="font-bold text-orange-800 mb-3 flex items-center">
-                  <span className="mr-2">📋</span>
-                  Meus Pedidos (
-                  {pendingPurchases.length + pendingRequests.length})
-                </h3>
-                <div className="space-y-3">
-                  {/* Mostrar pedidos de compra primeiro */}
-                  {pendingPurchases.slice(0, 3).map(request => (
-                    <div
-                      key={request.id}
-                      className="bg-white rounded-lg p-3 border border-orange-200"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="text-xl">
-                          {request.type === 'purchase'
-                            ? '🛒'
-                            : request.type === 'goal'
-                              ? '⭐'
-                              : '🏦'}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-gray-900">
-                            {request.item_name}
-                          </div>
-                          <div className="text-sm text-gray-800 font-medium">
-                            Pedido: {request.category} • R${' '}
-                            {request.amount.toFixed(2)}
-                          </div>
-                          <div className="text-xs text-orange-700 font-medium">
-                            Enviado{' '}
-                            {new Date(request.created_at).toLocaleDateString(
-                              'pt-BR'
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-sm">
-                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
-                            {request.status === 'pending'
-                              ? 'Pendente'
-                              : request.status}
-                          </span>
-                        </div>
+            {/* Interest Card */}
+            {childData.balance >= 10 ? (
+              <Card
+                variant="elevated"
+                padding="md"
+                className="bg-gradient-to-r from-info to-primary text-white shadow-xl"
+              >
+                <CardBody>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="text-3xl font-bold">
+                        R$ {(childData.balance * 0.01).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-white/90">
+                        Seu dinheiro está rendendo! 📈
                       </div>
                     </div>
-                  ))}
+                    <div className="text-4xl">💎</div>
+                  </div>
+                  <div className="text-xs text-white/80 space-y-1">
+                    <p>
+                      Com R$ {childData.balance.toFixed(2)} você pode ganhar até
+                      R$ {(childData.balance * 0.01).toFixed(2)} por mês
+                    </p>
+                    <p>⏰ Só rende o dinheiro que está há 30+ dias na conta</p>
+                    <p>📊 Taxa: 1% ao mês • Mínimo: R$ 10,00</p>
+                  </div>
+                </CardBody>
+              </Card>
+            ) : (
+              <Card
+                variant="outline"
+                padding="md"
+                className="border-text-muted bg-bg-secondary"
+              >
+                <CardBody>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="text-2xl font-bold text-text-primary">
+                        R$ 10,00
+                      </div>
+                      <div className="text-sm text-text-secondary">
+                        Meta para começar a render! 💰
+                      </div>
+                    </div>
+                    <div className="text-4xl">🎯</div>
+                  </div>
+                  <div className="text-xs text-text-secondary space-y-1">
+                    <p>
+                      Economize mais R$ {(10 - childData.balance).toFixed(2)}{' '}
+                      para seu dinheiro começar a render 1% ao mês!
+                    </p>
+                    <p>
+                      ⏰ Condição: O dinheiro precisa ficar 30 dias na conta
+                    </p>
+                    <p>📊 Taxa: 1% ao mês • Mínimo: R$ 10,00</p>
+                  </div>
+                </CardBody>
+              </Card>
+            )}
 
-                  {/* Mostrar pedidos de empréstimo em seguida */}
-                  {pendingRequests
-                    .slice(0, 3 - pendingPurchases.slice(0, 3).length)
-                    .map(request => (
+            {/* Pending Requests */}
+            {(pendingPurchases.length > 0 || pendingRequests.length > 0) && (
+              <Card
+                variant="outline"
+                padding="md"
+                className="border-warning border-2"
+              >
+                <CardHeader
+                  title={`📋 Meus Pedidos (${pendingPurchases.length + pendingRequests.length})`}
+                  subtitle="Aguardando aprovação dos pais"
+                />
+                <CardBody>
+                  <div className="space-y-3">
+                    {/* Pedidos de compra */}
+                    {pendingPurchases.slice(0, 3).map(request => (
                       <div
                         key={request.id}
-                        className="bg-white rounded-lg p-3 border border-orange-200"
+                        className="bg-bg-secondary rounded-lg p-3 border border-border"
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="text-xl">💰</div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">🛒</div>
                           <div className="flex-1">
-                            <div className="font-semibold text-gray-900">
-                              {request.reason}
+                            <div className="font-semibold text-text-primary">
+                              {request.item_name}
                             </div>
-                            <div className="text-sm text-gray-800 font-medium">
-                              Empréstimo: {request.category} • R${' '}
+                            <div className="text-sm text-text-secondary">
+                              {request.category} • R${' '}
                               {request.amount.toFixed(2)}
                             </div>
-                            <div className="text-xs text-orange-700 font-medium">
-                              Enviado{' '}
-                              {new Date(request.requestedAt).toLocaleDateString(
+                            <div className="text-xs text-text-muted">
+                              {new Date(request.created_at).toLocaleDateString(
                                 'pt-BR'
                               )}
                             </div>
                           </div>
-                          <div className="text-sm">
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                request.status === 'pending'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : request.status === 'completed'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-red-100 text-red-700'
-                              }`}
-                            >
-                              {request.status === 'pending'
-                                ? '⏰ Aguardando'
-                                : request.status === 'completed'
-                                  ? '✅ Aprovado'
-                                  : '❌ Negado'}
-                            </span>
-                          </div>
+                          <Badge variant="warning" size="sm">
+                            Pendente
+                          </Badge>
                         </div>
                       </div>
                     ))}
-                  {pendingPurchases.length + pendingRequests.length > 3 && (
-                    <div className="text-center text-orange-600 text-sm">
-                      +{pendingPurchases.length + pendingRequests.length - 3}{' '}
-                      outros pedidos pendentes
-                    </div>
-                  )}
-                </div>
-              </div>
+
+                    {/* Pedidos de empréstimo */}
+                    {pendingRequests
+                      .slice(0, 3 - pendingPurchases.slice(0, 3).length)
+                      .map(request => (
+                        <div
+                          key={request.id}
+                          className="bg-bg-secondary rounded-lg p-3 border border-border"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl">💰</div>
+                            <div className="flex-1">
+                              <div className="font-semibold text-text-primary">
+                                {request.reason}
+                              </div>
+                              <div className="text-sm text-text-secondary">
+                                Empréstimo • R$ {request.amount.toFixed(2)}
+                              </div>
+                              <div className="text-xs text-text-muted">
+                                {new Date(
+                                  request.requestedAt
+                                ).toLocaleDateString('pt-BR')}
+                              </div>
+                            </div>
+                            <Badge
+                              variant={
+                                request.status === 'pending'
+                                  ? 'warning'
+                                  : request.status === 'completed'
+                                    ? 'success'
+                                    : 'error'
+                              }
+                              size="sm"
+                            >
+                              {request.status === 'pending'
+                                ? '⏰'
+                                : request.status === 'completed'
+                                  ? '✅'
+                                  : '❌'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+
+                    {pendingPurchases.length + pendingRequests.length > 3 && (
+                      <div className="text-center text-text-secondary text-sm font-medium">
+                        +{pendingPurchases.length + pendingRequests.length - 3}{' '}
+                        outros pedidos
+                      </div>
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
             )}
 
             {/* Next Allowance */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <div className="flex items-center space-x-3">
-                <div className="text-2xl">🗓️</div>
-                <div>
-                  <div className="font-semibold text-blue-800">
-                    Próxima Mesada
-                  </div>
-                  <div className="text-sm text-blue-600">
-                    R$ {childData.weeklyAllowance.toFixed(2)} na{' '}
-                    {childData.nextAllowanceDate}
+            <Card
+              variant="default"
+              padding="md"
+              className="bg-info/10 border-info"
+            >
+              <CardBody>
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl">🗓️</div>
+                  <div className="flex-1">
+                    <div className="font-bold text-info">Próxima Mesada</div>
+                    <div className="text-sm text-text-primary font-medium">
+                      R$ {childData.weeklyAllowance.toFixed(2)} em{' '}
+                      {childData.nextAllowanceDate}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardBody>
+            </Card>
 
-            {/* Recent Transactions */}
-            <div className="bg-white rounded-xl shadow-lg">
-              <div className="p-4 border-b">
-                <h3 className="font-bold text-gray-900">Últimas Atividades</h3>
-              </div>
-              <div className="divide-y">
-                {childData.recentTransactions.slice(0, 3).map(transaction => (
-                  <div
-                    key={transaction.id}
-                    className="p-4 flex items-center space-x-3"
-                  >
-                    <div className="text-2xl">{transaction.icon}</div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {transaction.description}
-                      </div>
-                      <div className="text-xs text-gray-800 font-medium">
-                        {transaction.date}
-                      </div>
-                    </div>
+            {/* Recent Transactions com ícones coloridos */}
+            <Card variant="elevated" padding="none">
+              <CardHeader
+                title="Últimas Atividades"
+                subtitle="Seu histórico recente"
+              />
+              <CardBody>
+                <div className="divide-y divide-border">
+                  {childData.recentTransactions.slice(0, 5).map(transaction => (
                     <div
-                      className={`font-bold ${
-                        transaction.type === 'received' ||
-                        transaction.type === 'earning' ||
-                        transaction.type === 'allowance' ||
-                        transaction.type === 'interest'
-                          ? 'text-green-600'
-                          : transaction.type === 'loan'
-                            ? 'text-blue-600'
-                            : transaction.type === 'loan_payment' ||
-                                transaction.type === 'spending'
-                              ? 'text-red-500'
-                              : 'text-red-500'
-                      }`}
+                      key={transaction.id}
+                      className="p-4 flex items-center gap-3 hover:bg-bg-secondary transition-colors"
                     >
-                      {transaction.type === 'received' ||
-                      transaction.type === 'earning' ||
-                      transaction.type === 'allowance' ||
-                      transaction.type === 'interest'
-                        ? '+'
-                        : transaction.type === 'loan'
+                      <div className={`text-3xl ${transaction.color}`}>
+                        {transaction.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-text-primary">
+                          {transaction.description}
+                        </div>
+                        <div className="text-xs text-text-secondary font-medium">
+                          {transaction.date}
+                        </div>
+                      </div>
+                      <div
+                        className={`font-bold text-lg ${
+                          transaction.type === 'allowance' ||
+                          transaction.type === 'deposit' ||
+                          transaction.type === 'gift' ||
+                          transaction.type === 'interest' ||
+                          transaction.type === 'loan'
+                            ? 'text-success'
+                            : 'text-error'
+                        }`}
+                      >
+                        {transaction.type === 'allowance' ||
+                        transaction.type === 'deposit' ||
+                        transaction.type === 'gift' ||
+                        transaction.type === 'interest' ||
+                        transaction.type === 'loan'
                           ? '+'
                           : '-'}
-                      R$ {transaction.amount.toFixed(2)}
+                        R$ {transaction.amount.toFixed(2)}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
           </div>
         )}
 
-        {/* Use Money Tab - NOVA ABA */}
+        {/* Use Money Tab */}
         {selectedTab === 'use-money' && (
           <div className="px-4 py-6 space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-text-primary">
                 Usar Meu Dinheiro
               </h2>
-              <div className="text-lg text-green-600 font-semibold">
+              <div className="text-2xl text-success font-bold mt-2">
                 R$ {childData.balance.toFixed(2)} disponível
               </div>
             </div>
@@ -1260,134 +1314,164 @@ export default function ChildView() {
             {/* Allocation Options */}
             <div className="space-y-4">
               {/* Request Loan */}
-              <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="text-3xl">🏦</div>
-                  <div>
-                    <h3 className="font-bold text-blue-800">
-                      Pedir Emprestado
-                    </h3>
-                    <p className="text-sm text-blue-600">
-                      Empréstimo sem juros dos seus pais
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={requestLoan}
-                  className="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-600 transition-all"
-                >
-                  💳 Solicitar Empréstimo
-                </button>
-              </div>
-
-              {/* Pay Loan */}
-              {childData.activeLoan && (
-                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="text-3xl">🏦</div>
-                    <div>
-                      <h3 className="font-bold text-yellow-800">
-                        Pagar Empréstimo
+              <Card
+                variant="default"
+                padding="lg"
+                className="bg-info/10 border-info border-2"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-4xl">🏦</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-info text-lg">
+                        Pedir Emprestado
                       </h3>
-                      <p className="text-sm text-yellow-600">
-                        R$ {childData.activeLoan.amount.toFixed(2)} -{' '}
-                        {childData.activeLoan.reason}
+                      <p className="text-sm text-text-secondary">
+                        Empréstimo sem juros dos seus pais
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={payLoan}
-                    className="w-full bg-yellow-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-yellow-600 transition-all"
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    size="lg"
+                    onClick={requestLoan}
                   >
-                    💰 Pagar Empréstimo
-                  </button>
-                </div>
+                    💳 Solicitar Empréstimo
+                  </Button>
+                </CardBody>
+              </Card>
+
+              {/* Pay Loan */}
+              {childData.activeLoan && (
+                <Card
+                  variant="default"
+                  padding="lg"
+                  className="bg-warning/10 border-warning border-2"
+                >
+                  <CardBody>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="text-4xl">💰</div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-warning text-lg">
+                          Pagar Empréstimo
+                        </h3>
+                        <p className="text-sm text-text-secondary">
+                          R$ {childData.activeLoan.amount.toFixed(2)} -{' '}
+                          {childData.activeLoan.reason}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      fullWidth
+                      size="lg"
+                      onClick={payLoan}
+                    >
+                      💳 Pagar Empréstimo
+                    </Button>
+                  </CardBody>
+                </Card>
               )}
 
               {/* Contribute to Goals */}
-              <div className="bg-purple-50 border-2 border-purple-300 rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="text-3xl">🎯</div>
-                  <div>
-                    <h3 className="font-bold text-purple-800">
-                      Guardar para Sonho
-                    </h3>
-                    <p className="text-sm text-purple-600">
-                      Contribuir para uma das suas metas
-                    </p>
+              <Card
+                variant="default"
+                padding="lg"
+                className="bg-primary/10 border-primary border-2"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-4xl">🎯</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-primary text-lg">
+                        Guardar para Sonho
+                      </h3>
+                      <p className="text-sm text-text-secondary">
+                        Contribuir para uma das suas metas
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-3">
-                  {childData.goals.map(goal => (
-                    <button
-                      key={goal.id}
-                      onClick={() => contributeToGoal(goal.id, goal.name)}
-                      className="w-full bg-white border border-purple-200 rounded-lg p-3 flex items-center space-x-3 hover:bg-purple-50 transition-all"
-                    >
-                      <div className="text-2xl">{goal.icon}</div>
-                      <div className="flex-1 text-left">
-                        <div className="font-semibold text-gray-900">
-                          {goal.name}
+                  <div className="space-y-3">
+                    {childData.goals.map(goal => (
+                      <button
+                        key={goal.id}
+                        onClick={() => contributeToGoal(goal.id, goal.name)}
+                        className="w-full bg-bg-secondary hover:bg-bg-card border border-border rounded-xl p-4 flex items-center gap-3 transition-all"
+                      >
+                        <div className="text-3xl">{goal.icon}</div>
+                        <div className="flex-1 text-left">
+                          <div className="font-bold text-text-primary">
+                            {goal.name}
+                          </div>
+                          <div className="text-xs text-text-secondary font-medium">
+                            R$ {goal.current.toFixed(2)} de R${' '}
+                            {goal.target.toFixed(2)} (
+                            {Math.round((goal.current / goal.target) * 100)}%)
+                          </div>
+                          <div className="w-full bg-border rounded-full h-2 mt-2">
+                            <div
+                              className="bg-gradient-to-r from-primary to-success h-2 rounded-full transition-all"
+                              style={{
+                                width: `${Math.min((goal.current / goal.target) * 100, 100)}%`,
+                              }}
+                            ></div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-800 font-medium">
-                          R$ {goal.current.toFixed(2)} de R${' '}
-                          {goal.target.toFixed(2)} (
-                          {Math.round((goal.current / goal.target) * 100)}%)
-                        </div>
-                        <div className="w-full bg-purple-100 rounded-full h-2 mt-1">
-                          <div
-                            className="bg-purple-500 h-2 rounded-full"
-                            style={{
-                              width: `${Math.min((goal.current / goal.target) * 100, 100)}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="text-purple-600 font-semibold">→</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                        <div className="text-primary font-bold text-xl">→</div>
+                      </button>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
 
               {/* Buy Something */}
-              <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="text-3xl">🛒</div>
-                  <div>
-                    <h3 className="font-bold text-blue-800">Comprar Agora</h3>
-                    <p className="text-sm text-blue-600">
-                      Escolher algo para comprar
-                    </p>
+              <Card
+                variant="default"
+                padding="lg"
+                className="bg-success/10 border-success border-2"
+              >
+                <CardBody>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-4xl">🛒</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-success text-lg">
+                        Comprar Agora
+                      </h3>
+                      <p className="text-sm text-text-secondary">
+                        Escolher algo para comprar
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Renderizar categorias dinâmicas para gastos */}
-                  {availableCategories.map((category, index) => (
-                    <button
-                      key={index}
-                      onClick={() => requestPurchase(category.name)}
-                      className="bg-white border border-blue-200 rounded-lg p-3 text-center hover:bg-blue-50 transition-all"
-                    >
-                      <div className="text-2xl mb-1">{category.icon}</div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {category.name}
-                      </div>
-                      <div className="text-xs text-gray-800 font-semibold">
-                        Pedir aprovação
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {availableCategories.map((category, index) => (
+                      <button
+                        key={index}
+                        onClick={() => requestPurchase(category.name)}
+                        className="bg-bg-secondary hover:bg-bg-card border border-border rounded-xl p-4 text-center transition-all"
+                      >
+                        <div className="text-3xl mb-2">{category.icon}</div>
+                        <div className="text-sm font-bold text-text-primary">
+                          {category.name}
+                        </div>
+                        <div className="text-xs text-text-secondary font-medium mt-1">
+                          Pedir aprovação
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
             </div>
 
             <div className="text-center mt-6">
-              <button
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={() => setSelectedTab('home')}
-                className="bg-gray-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-600 transition-all"
               >
-                ← Voltar
-              </button>
+                ← Voltar para Início
+              </Button>
             </div>
           </div>
         )}
@@ -1395,165 +1479,169 @@ export default function ChildView() {
         {/* Goals Tab */}
         {selectedTab === 'goals' && (
           <div className="px-4 py-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-text-primary">
                 Meus Sonhos 🌟
               </h2>
-              <button
-                onClick={requestNewGoal}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
-              >
+              <Button variant="primary" size="sm" onClick={requestNewGoal}>
                 + Novo Sonho
-              </button>
+              </Button>
             </div>
 
             {childData.goals.map(goal => (
-              <div key={goal.id} className="bg-white rounded-xl p-6 shadow-lg">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="text-3xl">{goal.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900">{goal.name}</h3>
-                    <div className="text-sm text-gray-600">
-                      R$ {goal.current.toFixed(2)} de R${' '}
-                      {goal.target.toFixed(2)}
+              <Card key={goal.id} variant="elevated" padding="lg" hover>
+                <CardBody>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="text-4xl">{goal.icon}</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-text-primary text-lg">
+                        {goal.name}
+                      </h3>
+                      <div className="text-sm text-text-secondary font-medium">
+                        R$ {goal.current.toFixed(2)} de R${' '}
+                        {goal.target.toFixed(2)}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                    style={{
-                      width: `${Math.min((goal.current / goal.target) * 100, 100)}%`,
-                    }}
-                  ></div>
-                </div>
+                  <div className="w-full bg-border rounded-full h-3 mb-2">
+                    <div
+                      className="h-full bg-gradient-to-r from-success to-primary rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min((goal.current / goal.target) * 100, 100)}%`,
+                      }}
+                    ></div>
+                  </div>
 
-                <div className="flex justify-between text-xs text-gray-800 font-medium mb-3">
-                  <span>
-                    {Math.round((goal.current / goal.target) * 100)}% completo
-                  </span>
-                  <span>
-                    Faltam R$ {(goal.target - goal.current).toFixed(2)}
-                  </span>
-                </div>
+                  <div className="flex justify-between text-xs text-text-secondary font-semibold mb-3">
+                    <span>
+                      {Math.round((goal.current / goal.target) * 100)}% completo
+                    </span>
+                    <span>
+                      Faltam R$ {(goal.target - goal.current).toFixed(2)}
+                    </span>
+                  </div>
 
-                {/* Lógica condicional baseada no status do sonho */}
-                {goal.current >= goal.target ? (
-                  // Sonho completo (100%)
-                  goal.fulfillment_status === null ||
-                  goal.fulfillment_status === undefined ? (
-                    // Ainda não solicitou realização
-                    <button
-                      onClick={() => requestGoalFulfillment(goal.id, goal.name)}
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg transition-all animate-pulse"
-                    >
-                      🎁 Pedir aos Pais para Realizar
-                    </button>
-                  ) : goal.fulfillment_status === 'pending' ? (
-                    // Aguardando aprovação dos pais
-                    <div className="w-full bg-yellow-50 border-2 border-yellow-400 rounded-lg py-3 px-4 text-center">
-                      <div className="text-yellow-700 font-semibold">
-                        ⏳ Aguardando aprovação dos pais...
+                  {/* Lógica condicional baseada no status */}
+                  {goal.current >= goal.target ? (
+                    goal.fulfillment_status === null ||
+                    goal.fulfillment_status === undefined ? (
+                      <Button
+                        variant="primary"
+                        fullWidth
+                        onClick={() =>
+                          requestGoalFulfillment(goal.id, goal.name)
+                        }
+                        className="animate-pulse"
+                      >
+                        🎁 Pedir aos Pais para Realizar
+                      </Button>
+                    ) : goal.fulfillment_status === 'pending' ? (
+                      <div className="w-full bg-warning/10 border-2 border-warning rounded-xl py-3 px-4 text-center">
+                        <Badge variant="warning" size="md">
+                          ⏳ Aguardando aprovação dos pais...
+                        </Badge>
+                        <div className="text-xs text-text-secondary mt-2">
+                          Seus pais vão decidir em breve!
+                        </div>
                       </div>
-                      <div className="text-xs text-yellow-600 mt-1">
-                        Seus pais vão decidir em breve!
+                    ) : goal.fulfillment_status === 'approved' ? (
+                      <div className="w-full bg-success/10 border-2 border-success rounded-xl py-3 px-4 text-center">
+                        <div className="text-success font-bold text-lg">
+                          ✅ Sonho realizado! 🎉
+                        </div>
+                        <div className="text-xs text-text-secondary mt-1">
+                          Parabéns! Você conseguiu!
+                        </div>
                       </div>
-                    </div>
-                  ) : goal.fulfillment_status === 'approved' ? (
-                    // Sonho aprovado e realizado!
-                    <div className="w-full bg-green-50 border-2 border-green-400 rounded-lg py-3 px-4 text-center">
-                      <div className="text-green-700 font-bold text-lg">
-                        ✅ Sonho realizado! 🎉
+                    ) : goal.fulfillment_status === 'rejected' ? (
+                      <div className="w-full bg-error/10 border-2 border-error rounded-xl py-3 px-4 text-center">
+                        <div className="text-error font-semibold">
+                          ❌ Não aprovado pelos pais
+                        </div>
+                        <div className="text-xs text-text-secondary mt-1">
+                          Converse com seus pais sobre isso
+                        </div>
                       </div>
-                      <div className="text-xs text-green-600 mt-1">
-                        Parabéns! Você conseguiu!
-                      </div>
-                    </div>
-                  ) : goal.fulfillment_status === 'rejected' ? (
-                    // Sonho recusado pelos pais
-                    <div className="w-full bg-red-50 border-2 border-red-300 rounded-lg py-3 px-4 text-center">
-                      <div className="text-red-700 font-semibold">
-                        ❌ Não aprovado pelos pais
-                      </div>
-                      <div className="text-xs text-red-600 mt-1">
-                        Converse com seus pais sobre isso
-                      </div>
-                    </div>
+                    ) : (
+                      <Button
+                        variant="primary"
+                        fullWidth
+                        onClick={() => contributeToGoal(goal.id, goal.name)}
+                      >
+                        💰 Contribuir para este sonho
+                      </Button>
+                    )
                   ) : (
-                    // Fallback - status desconhecido
-                    <button
+                    <Button
+                      variant="primary"
+                      fullWidth
                       onClick={() => contributeToGoal(goal.id, goal.name)}
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
                     >
                       💰 Contribuir para este sonho
-                    </button>
-                  )
-                ) : (
-                  // Sonho não completo - mostrar botão de contribuir
-                  <button
-                    onClick={() => contributeToGoal(goal.id, goal.name)}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
-                  >
-                    💰 Contribuir para este sonho
-                  </button>
-                )}
-              </div>
+                    </Button>
+                  )}
+                </CardBody>
+              </Card>
             ))}
 
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 text-center">
-              <div className="text-4xl mb-3">✨</div>
-              <h3 className="font-semibold text-purple-800 mb-2">
-                Tem um novo sonho?
-              </h3>
-              <p className="text-sm text-purple-600 mb-4">
-                Crie uma nova meta e peça aprovação dos seus pais!
-              </p>
-              <button
-                onClick={requestNewGoal}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all"
-              >
-                🌟 Criar Novo Sonho
-              </button>
-            </div>
+            <Card
+              variant="outline"
+              padding="lg"
+              className="border-primary border-2 bg-primary/5"
+            >
+              <CardBody>
+                <div className="text-center">
+                  <div className="text-5xl mb-3">✨</div>
+                  <h3 className="font-bold text-primary text-lg mb-2">
+                    Tem um novo sonho?
+                  </h3>
+                  <p className="text-sm text-text-secondary mb-4">
+                    Crie uma nova meta e peça aprovação dos seus pais!
+                  </p>
+                  <Button variant="primary" onClick={requestNewGoal}>
+                    🌟 Criar Novo Sonho
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
           </div>
         )}
 
         {/* Achievements Tab */}
         {selectedTab === 'achievements' && (
           <div className="px-4 py-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-text-primary mb-4">
               Minhas Conquistas 🏆
             </h2>
-            <div className="grid grid-cols-2 gap-4">
-              {childData.achievements.map(achievement => (
-                <div
-                  key={achievement.id}
-                  className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-4 text-white text-center"
-                >
-                  <div className="text-3xl mb-2">{achievement.icon}</div>
-                  <div className="font-bold text-sm">{achievement.name}</div>
-                  <div className="text-xs text-yellow-100">
-                    {achievement.earnedAt}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Card variant="default" padding="lg" className="text-center">
+              <CardBody>
+                <div className="text-6xl mb-4">🏆</div>
+                <p className="text-text-secondary">
+                  Suas conquistas aparecerão aqui!
+                </p>
+                <p className="text-sm text-text-muted mt-2">
+                  Complete tarefas e objetivos para ganhar troféus
+                </p>
+              </CardBody>
+            </Card>
           </div>
         )}
 
         {/* History Tab */}
         {selectedTab === 'history' && currentChild && (
           <div className="px-4 py-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-text-primary mb-4">
               Meu Histórico 📋
             </h2>
             <TransactionHistory childId={currentChild.id} />
           </div>
         )}
+      </div>
 
-        {/* Bottom Navigation */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-2">
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-bg-card border-t border-border shadow-2xl">
+        <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex justify-around">
             <TabButton
               id="home"
@@ -1585,203 +1673,208 @@ export default function ChildView() {
             />
           </div>
         </div>
+      </div>
 
-        {/* Navigation - Mostrar APENAS para pais visualizando */}
-        {session?.user && (session.user as any).role === 'parent' && (
-          <div className="p-4 flex justify-center space-x-4">
-            <button
+      {/* Navigation - Mostrar APENAS para pais visualizando */}
+      {session?.user && (session.user as any).role === 'parent' && (
+        <div className="fixed bottom-20 left-0 right-0 px-4">
+          <div className="max-w-md mx-auto flex gap-3">
+            <Button
+              variant="secondary"
+              fullWidth
               onClick={() => router.push('/dashboard')}
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg"
             >
               👨‍💼 Ver como Pai
-            </button>
-
-            <button
-              onClick={() => router.push('/')}
-              className="bg-gray-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-600"
-            >
-              🏠 Voltar ao Início
-            </button>
+            </Button>
+            <Button variant="ghost" fullWidth onClick={() => router.push('/')}>
+              🏠 Início
+            </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Modal Novo Sonho */}
       {showGoalModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
-                🌟 Criar Novo Sonho
-              </h2>
-              <button
-                onClick={() => setShowGoalModal(false)}
-                className="text-gray-800 font-medium hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Qual é o seu sonho?
-                </label>
-                <input
-                  type="text"
-                  value={newGoalData.name}
-                  onChange={e =>
-                    setNewGoalData({ ...newGoalData, name: e.target.value })
-                  }
-                  placeholder="Ex: Nintendo Switch, Bicicleta nova..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Quanto custa?
-                </label>
-                <input
-                  type="text"
-                  value={newGoalData.amount}
-                  onChange={e =>
-                    setNewGoalData({ ...newGoalData, amount: e.target.value })
-                  }
-                  placeholder="Ex: 1299.00"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Categoria do sonho
-                </label>
-                <select
-                  value={newGoalData.category}
-                  onChange={e =>
-                    setNewGoalData({ ...newGoalData, category: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+        <div className="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card variant="elevated" padding="lg" className="max-w-md w-full">
+            <CardBody>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-text-primary">
+                  🌟 Criar Novo Sonho
+                </h2>
+                <button
+                  onClick={() => setShowGoalModal(false)}
+                  className="text-text-secondary hover:text-text-primary text-3xl"
                 >
-                  <option value="">Escolha uma categoria...</option>
-                  {availableCategories.map(cat => (
-                    <option key={cat.name} value={cat.name}>
-                      {cat.icon} {cat.name}
-                    </option>
-                  ))}
-                </select>
+                  ×
+                </button>
               </div>
-            </div>
 
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={submitNewGoal}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg"
-              >
-                📨 Enviar para Aprovação
-              </button>
-              <button
-                onClick={() => setShowGoalModal(false)}
-                className="flex-1 bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Qual é o seu sonho?
+                  </label>
+                  <input
+                    type="text"
+                    value={newGoalData.name}
+                    onChange={e =>
+                      setNewGoalData({ ...newGoalData, name: e.target.value })
+                    }
+                    placeholder="Ex: Nintendo Switch, Bicicleta nova..."
+                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Quanto custa?
+                  </label>
+                  <input
+                    type="text"
+                    value={newGoalData.amount}
+                    onChange={e =>
+                      setNewGoalData({ ...newGoalData, amount: e.target.value })
+                    }
+                    placeholder="Ex: 1299.00"
+                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Categoria do sonho
+                  </label>
+                  <select
+                    value={newGoalData.category}
+                    onChange={e =>
+                      setNewGoalData({
+                        ...newGoalData,
+                        category: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  >
+                    <option value="">Escolha uma categoria...</option>
+                    {availableCategories.map(cat => (
+                      <option key={cat.name} value={cat.name}>
+                        {cat.icon} {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <Button variant="primary" fullWidth onClick={submitNewGoal}>
+                  📨 Enviar para Aprovação
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setShowGoalModal(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         </div>
       )}
 
       {/* Modal Pedir Empréstimo */}
       {showLoanModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
-                🏦 Pedir Empréstimo
-              </h2>
-              <button
-                onClick={() => setShowLoanModal(false)}
-                className="text-gray-800 font-medium hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-700">
-                💡 Lembre-se: Empréstimos são <strong>sem juros</strong>, mas
-                precisam ser pagos de volta!
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Para que você precisa?
-                </label>
-                <input
-                  type="text"
-                  value={newLoanData.reason}
-                  onChange={e =>
-                    setNewLoanData({ ...newLoanData, reason: e.target.value })
-                  }
-                  placeholder="Ex: Comprar material escolar..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Quanto você precisa?
-                </label>
-                <input
-                  type="text"
-                  value={newLoanData.amount}
-                  onChange={e =>
-                    setNewLoanData({ ...newLoanData, amount: e.target.value })
-                  }
-                  placeholder="Ex: 50.00"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Categoria do empréstimo
-                </label>
-                <select
-                  value={newLoanData.category}
-                  onChange={e =>
-                    setNewLoanData({ ...newLoanData, category: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card variant="elevated" padding="lg" className="max-w-md w-full">
+            <CardBody>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-text-primary">
+                  🏦 Pedir Empréstimo
+                </h2>
+                <button
+                  onClick={() => setShowLoanModal(false)}
+                  className="text-text-secondary hover:text-text-primary text-3xl"
                 >
-                  <option value="">Escolha uma categoria...</option>
-                  {availableCategories.map(cat => (
-                    <option key={cat.name} value={cat.name}>
-                      {cat.icon} {cat.name}
-                    </option>
-                  ))}
-                </select>
+                  ×
+                </button>
               </div>
-            </div>
 
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={submitLoanRequest}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg"
-              >
-                📨 Solicitar Empréstimo
-              </button>
-              <button
-                onClick={() => setShowLoanModal(false)}
-                className="flex-1 bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
+              <div className="bg-info/10 border border-info rounded-xl p-4 mb-4">
+                <p className="text-sm text-info">
+                  💡 Lembre-se: Empréstimos são <strong>sem juros</strong>, mas
+                  precisam ser pagos de volta!
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Para que você precisa?
+                  </label>
+                  <input
+                    type="text"
+                    value={newLoanData.reason}
+                    onChange={e =>
+                      setNewLoanData({ ...newLoanData, reason: e.target.value })
+                    }
+                    placeholder="Ex: Comprar material escolar..."
+                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Quanto você precisa?
+                  </label>
+                  <input
+                    type="text"
+                    value={newLoanData.amount}
+                    onChange={e =>
+                      setNewLoanData({ ...newLoanData, amount: e.target.value })
+                    }
+                    placeholder="Ex: 50.00"
+                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Categoria do empréstimo
+                  </label>
+                  <select
+                    value={newLoanData.category}
+                    onChange={e =>
+                      setNewLoanData({
+                        ...newLoanData,
+                        category: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
+                  >
+                    <option value="">Escolha uma categoria...</option>
+                    {availableCategories.map(cat => (
+                      <option key={cat.name} value={cat.name}>
+                        {cat.icon} {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <Button variant="primary" fullWidth onClick={submitLoanRequest}>
+                  📨 Solicitar Empréstimo
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setShowLoanModal(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         </div>
       )}
     </div>
