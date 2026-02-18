@@ -151,7 +151,7 @@ typescript
 | 2.4 | Dashboard dos pais        | ✅ Completo | Cards modernos com nova paleta, lista de filhos com avatares, resumo de saldo/metas por filho, acesso rápido a configurações. Layout profissional. Todos os dados carregam corretamente.          |
 | 2.5 | Tela de conta da criança  | ✅ Completo | Saldo destacado com visual atraente, transações com ícones e cores por tipo, seção de metas visível, visual lúdico. Dados reais funcionando. Correções visuais aplicadas (4 itens).               |
 | 2.6 | Histórico de transações   | ✅ Completo | Filtros redesenhados com nova paleta + botão "Limpar filtros", badges coloridos por tipo de transação, paginação numerada (anterior/próxima + números), contador aprimorado. Filtros funcionando. |
-| 2.7 | Configuração de juros     | ⬜ Pendente | Slider limpo com nova paleta, input direto, preview de rendimento ("quanto rende em 1/3/6 meses"), integrado ao dashboard dos pais. Cálculo correto mantido.                                      |
+| 2.7 | Configuração de juros     | ✅ Completo | Slider limpo com nova paleta, input direto, preview de rendimento para 1, 3 e 6 meses com ganho total, integrado ao dashboard dos pais. Cálculo correto mantido.                                  |
 | 2.8 | Sonhos/metas              | ⬜ Pendente | Progress bar animada, ícone/imagem do sonho, celebração visual ao atingir meta, card atraente para a criança. Dados reais funcionando.                                                            |
 | 2.9 | Navegação e layout        | ⬜ Pendente | Header redesenhado, navegação entre telas consistente, transições suaves, responsividade mobile e desktop validada.                                                                               |
 
@@ -403,3 +403,4 @@ MyFirstBA2/
 | 2026-02-17 | Fase 2 | Tasks 2.1–2.3 completadas (BLOCO A + primeira do BLOCO B) | Sistema de tema + componentes base + tela de login redesenhada ✅                                                   |
 | 2026-02-17 | Fase 2 | Tasks 2.4–2.5 completadas + 4 correções visuais           | Dashboard pais + tela criança redesenhados. Correções: valores negativos, tema raiz, ícone lixeira, hover botões ✅ |
 | 2026-02-18 | Fase 2 | Task 2.6 completada — Histórico de transações redesenhado | Badges coloridos por tipo, paginação numerada, filtros polidos com botão limpar, contador aprimorado ✅             |
+| 2026-02-18 | Fase 2 | Task 2.7 completada — Configuração de juros redesenhada   | Nova paleta aplicada, preview de 1/3/6 meses adicionado, cálculo de ganho total, visual profissional ✅             |
