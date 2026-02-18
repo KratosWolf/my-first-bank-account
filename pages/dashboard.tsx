@@ -1080,10 +1080,10 @@ export default function DashboardPage() {
                               e.stopPropagation();
                               handleDeleteChild(child.id);
                             }}
-                            className="px-2 py-1 text-xs bg-error text-white rounded hover:bg-red-700 transition-colors"
+                            className="px-3 py-2 text-base bg-error text-white rounded hover:bg-red-700 transition-colors"
                             title="Excluir criança"
                           >
-                            🗑️
+                            <span className="text-lg">🗑️</span>
                           </button>
                         </div>
                       </div>
