@@ -74,6 +74,14 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - Ao criar/alterar tabelas, atualize a seção ESTADO DO BANCO abaixo E no PROJECT_PLAN.md.
 - Ao renomear colunas, faça busca global para atualizar TODAS as referências no código.
 
+### Regra 7: Atomicidade de Tasks
+
+- Cada task deve caber em uma sessão do Claude Code (~50% do contexto).
+- Se uma task envolve mais de 5-7 arquivos ou precisa de mais de 10 trocas de mensagem, é grande demais.
+- Tasks grandes devem ser quebradas em subtasks (ex: 2.3a, 2.3b, 2.3c) ANTES de começar a codar.
+- Cada subtask deve ter seus próprios critérios de done e poder ser commitada independentemente.
+- Na dúvida: se ao começar você pensa "isso vai ser longo", PARE e quebre.
+
 ---
 
 ## 📋 FASES DO PROJETO (resumo)
@@ -256,16 +264,43 @@ MyFirstBA2/
 ## 🔄 WORKFLOW POR SESSÃO
 
 1. Ler `PROJECT_PLAN.md` → identificar próxima tarefa
-2. **Plan Mode** (Shift+Tab 2x) → planejar antes de codar
-3. Implementar a tarefa
-4. Verificar critérios de "done" da task
-5. Testar
-6. Secret scan → commit → push (para develop)
-7. Atualizar status no `PROJECT_PLAN.md`
-8. Atualizar ESTADO DO BANCO se houve mudança no banco
-9. Se contexto ficar grande → `/clear` e retomar
+2. Avaliar tamanho: cabe em ~50% do contexto? Se não, quebrar (Regra 7)
+3. **Plan Mode** (Shift+Tab 2x) → planejar antes de codar
+4. Implementar a tarefa
+5. Verificar critérios de "done" da task
+6. Testar
+7. Secret scan → commit → push (para develop)
+8. Atualizar status no `PROJECT_PLAN.md`
+9. Atualizar ESTADO DO BANCO se houve mudança no banco
+10. Se contexto ficar grande → `/clear` e retomar
 
 ## 📦 Skills Disponíveis
 
 As skills em `.claude/skills/` são carregadas automaticamente quando relevantes.
 Para ver todas: listar a pasta `.claude/skills/`.
+
+### Skills Configuradas neste Projeto
+
+| Skill              | Função                           | Quando usar                      |
+| ------------------ | -------------------------------- | -------------------------------- |
+| secret-scan        | Detecta secrets antes de commits | Antes de git commit              |
+| code-review        | Checklist de qualidade           | Antes de finalizar task          |
+| code-cleanup       | Limpeza sistemática              | Refatoração                      |
+| git-workflow       | Convenções de branch e commit    | Todo commit                      |
+| supabase-setup     | Padrões de banco                 | Setup e migrations               |
+| database-migration | Processo seguro de migration     | Mudanças no schema               |
+| project-setup      | Inicialização de projeto         | Só no início                     |
+| project-audit      | Diagnóstico completo             | Auditoria                        |
+| pre-launch         | Checklist de publicação          | Antes de deploy                  |
+| dependency-update  | Atualização de pacotes           | Manutenção                       |
+| troubleshooting    | Árvore de decisão p/ problemas   | Quando algo quebra               |
+| session-workflow   | Gerencia sessão e contexto       | Início/fim de sessão             |
+| handoff-sync       | Padroniza HANDOFFs e sync        | Comunicação com Projeto Dedicado |
+| mcp-setup          | Configuração de MCPs             | Setup de ferramentas             |
+
+---
+
+## 🪝 Hooks Configurados
+
+> Hooks em `.claude/settings.json` — executam automaticamente.
+> Nenhum hook configurado ainda. Será adicionado conforme necessidade.
