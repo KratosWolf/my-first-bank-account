@@ -147,25 +147,20 @@ Só prossiga quando TODOS os itens estiverem ✅.
 | children              | Perfis das crianças                 | Original         |
 | users / profiles      | Pais/responsáveis                   | Original         |
 | purchase_requests     | Pedidos de compra (LoanService)     | Original         |
+| loans                 | Empréstimos ativos com parcelas     | 2026-02-18       |
+| loan_installments     | Parcelas individuais de empréstimos | 2026-02-18       |
 | [+ outras]            | Mapear quando necessário            | —                |
 
-### Tabelas Planejadas (Fase 2)
+### Reconciliação (última verificação: 2026-02-18)
 
-| Tabela            | Task | Descrição                                                |
-| ----------------- | ---- | -------------------------------------------------------- |
-| loans             | 2.10 | Empréstimos ativos (child_id, amount, parcelas, status)  |
-| loan_installments | 2.10 | Parcelas individuais (loan_id, amount, due_date, status) |
-
-### Reconciliação (última verificação: 2026-02-17)
-
-| Feature na UI | Código referencia     | Tabela no banco                  | Status              |
-| ------------- | --------------------- | -------------------------------- | ------------------- |
-| Dashboard     | dashboard page        | accounts, children, transactions | ✅ OK               |
-| Transações    | TransactionService    | transactions                     | ✅ OK               |
-| Juros         | interestService       | interest_config                  | ✅ OK               |
-| Sonhos/Metas  | goals                 | savings_goals/goals              | ✅ OK               |
-| Pedidos       | LoanService           | purchase_requests                | ✅ OK               |
-| Empréstimos   | LoanService (parcial) | loans (NÃO EXISTE)               | ⚠️ Fase 2 task 2.10 |
+| Feature na UI | Código referencia  | Tabela no banco                  | Status |
+| ------------- | ------------------ | -------------------------------- | ------ |
+| Dashboard     | dashboard page     | accounts, children, transactions | ✅ OK  |
+| Transações    | TransactionService | transactions                     | ✅ OK  |
+| Juros         | interestService    | interest_config                  | ✅ OK  |
+| Sonhos/Metas  | goals              | savings_goals/goals              | ✅ OK  |
+| Pedidos       | LoanService        | purchase_requests                | ✅ OK  |
+| Empréstimos   | LoanService        | loans, loan_installments         | ✅ OK  |
 
 ---
 
