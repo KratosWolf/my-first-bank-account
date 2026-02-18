@@ -1286,7 +1286,8 @@ export default function ChildView() {
                           transaction.type === 'deposit' ||
                           transaction.type === 'gift' ||
                           transaction.type === 'interest' ||
-                          transaction.type === 'loan'
+                          transaction.type === 'loan' ||
+                          transaction.type === 'goal_interest'
                             ? 'text-success'
                             : 'text-error'
                         }`}
@@ -1295,10 +1296,11 @@ export default function ChildView() {
                         transaction.type === 'deposit' ||
                         transaction.type === 'gift' ||
                         transaction.type === 'interest' ||
-                        transaction.type === 'loan'
+                        transaction.type === 'loan' ||
+                        transaction.type === 'goal_interest'
                           ? '+'
                           : '-'}
-                        R$ {transaction.amount.toFixed(2)}
+                        R$ {Math.abs(transaction.amount).toFixed(2)}
                       </div>
                     </div>
                   ))}
