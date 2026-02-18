@@ -42,26 +42,26 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const variantStyles = {
       primary: `
         bg-primary text-bg-primary
-        hover:bg-primary-light hover:shadow-lg
-        active:bg-primary-dark
+        hover:bg-primary-light hover:shadow-lg hover:scale-105
+        active:bg-primary-dark active:scale-95
         focus:ring-primary
       `,
       secondary: `
         bg-bg-card text-text-primary border-2 border-border
-        hover:bg-bg-secondary hover:border-primary
-        active:bg-bg-primary
+        hover:bg-bg-secondary hover:border-primary hover:shadow-md hover:scale-105
+        active:bg-bg-primary active:scale-95
         focus:ring-primary
       `,
       danger: `
         bg-error text-white
-        hover:bg-red-600 hover:shadow-lg
-        active:bg-red-700
+        hover:bg-red-600 hover:shadow-lg hover:scale-105
+        active:bg-red-700 active:scale-95
         focus:ring-error
       `,
       ghost: `
         bg-transparent text-text-primary
-        hover:bg-bg-card
-        active:bg-bg-secondary
+        hover:bg-bg-card hover:shadow-sm
+        active:bg-bg-secondary active:scale-95
         focus:ring-primary
       `,
     };
