@@ -1230,6 +1230,20 @@ export default function ChildView() {
                       </div>
                     )}
                   </div>
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      size="md"
+                      onClick={() =>
+                        router.push(
+                          `/child-loan-requests?childId=${currentChild?.id}`
+                        )
+                      }
+                    >
+                      📋 Ver Todos os Pedidos
+                    </Button>
+                  </div>
                 </CardBody>
               </Card>
             )}
@@ -1342,14 +1356,28 @@ export default function ChildView() {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    size="lg"
-                    onClick={requestLoan}
-                  >
-                    💳 Solicitar Empréstimo
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      size="lg"
+                      onClick={requestLoan}
+                    >
+                      💳 Solicitar Empréstimo
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      fullWidth
+                      size="md"
+                      onClick={() =>
+                        router.push(
+                          `/child-loan-requests?childId=${currentChild?.id}`
+                        )
+                      }
+                    >
+                      📋 Ver Meus Pedidos
+                    </Button>
+                  </div>
                 </CardBody>
               </Card>
 

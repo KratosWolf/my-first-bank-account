@@ -1,0 +1,268 @@
+/**
+ * Página de Pedidos de Empréstimo - Visão da Criança
+ * Task 2.11 - Interface para criança solicitar e acompanhar pedidos
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { Button } from '../src/components/ui/Button';
+import { Card } from '../src/components/ui/Card';
+import { Modal } from '../src/components/ui/Modal';
+import { NewRequestForm } from '../src/components/NewRequestForm';
+import {
+  PurchaseRequestCard,
+  PurchaseRequest,
+} from '../src/components/PurchaseRequestCard';
+import { LoanService } from '../src/lib/services/loanService';
+
+export default function ChildLoanRequestsPage() {
+  const router = useRouter();
+  const { childId } = router.query;
+
+  const [requests, setRequests] = useState<PurchaseRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showNewRequestModal, setShowNewRequestModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [childName, setChildName] = useState('');
+
+  // Carregar pedidos ao montar componente
+  useEffect(() => {
+    if (childId && typeof childId === 'string') {
+      loadRequests(childId);
+      loadChildName(childId);
+    }
+  }, [childId]);
+
+  const loadRequests = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const data = await LoanService.getLoanRequests(id);
+      // Ordenar: pendentes primeiro, depois por data decrescente
+      const sorted = data.sort((a, b) => {
+        if (a.status === 'pending' && b.status !== 'pending') return -1;
+        if (a.status !== 'pending' && b.status === 'pending') return 1;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
+      setRequests(sorted);
+    } catch (error) {
+      console.error('Erro ao carregar pedidos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadChildName = async (id: string) => {
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data } = await supabase
+        .from('children')
+        .select('name')
+        .eq('id', id)
+        .single();
+      if (data) setChildName(data.name);
+    } catch (error) {
+      console.error('Erro ao carregar nome da criança:', error);
+    }
+  };
+
+  const handleNewRequest = async (data: {
+    itemName: string;
+    amount: number;
+    reason: string;
+    category: string;
+  }) => {
+    if (!childId || typeof childId !== 'string') return;
+
+    try {
+      setIsSubmitting(true);
+      await LoanService.createLoanRequest(
+        childId,
+        data.itemName,
+        data.amount,
+        data.reason,
+        data.category
+      );
+
+      // Recarregar lista
+      await loadRequests(childId);
+
+      // Fechar modal
+      setShowNewRequestModal(false);
+
+      // Feedback visual (opcional: adicionar toast notification)
+      alert('🎉 Pedido enviado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error);
+      alert('❌ Erro ao enviar pedido. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRequestClick = (request: PurchaseRequest) => {
+    // Futuramente: abrir modal com detalhes ou permitir cancelar pedidos pendentes
+    console.log('Pedido clicado:', request);
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  // Estado de carregamento
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">🏦</div>
+          <p className="text-white text-lg">Carregando pedidos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Filtrar pedidos por status
+  const pendingRequests = requests.filter(r => r.status === 'pending');
+  const approvedRequests = requests.filter(r => r.status === 'approved');
+  const rejectedRequests = requests.filter(r => r.status === 'rejected');
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731]">
+      {/* Header */}
+      <div className="bg-[#1A4731]/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={handleBack}
+                className="!px-3 !py-2"
+              >
+                ← Voltar
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>🏦</span>
+                  Meus Pedidos
+                </h1>
+                {childName && (
+                  <p className="text-sm text-white/60">{childName}</p>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => setShowNewRequestModal(true)}
+              className="flex items-center gap-2"
+            >
+              <span>➕</span>
+              Novo Pedido
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Empty State */}
+        {requests.length === 0 ? (
+          <Card className="bg-[#1A4731]/60 border border-white/10 text-center py-16 px-8">
+            <div className="text-8xl mb-6">🐷</div>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Nenhum pedido ainda
+            </h2>
+            <p className="text-white/70 mb-8 max-w-md mx-auto">
+              Você ainda não fez nenhum pedido de empréstimo. Que tal pedir algo
+              especial que você está querendo comprar?
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => setShowNewRequestModal(true)}
+              className="mx-auto"
+            >
+              <span className="mr-2">✨</span>
+              Fazer Meu Primeiro Pedido
+            </Button>
+          </Card>
+        ) : (
+          <div className="space-y-8">
+            {/* Pedidos Pendentes */}
+            {pendingRequests.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <span>🟡</span>
+                  Aguardando Resposta ({pendingRequests.length})
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {pendingRequests.map(request => (
+                    <PurchaseRequestCard
+                      key={request.id}
+                      request={request}
+                      onClick={handleRequestClick}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Pedidos Aprovados */}
+            {approvedRequests.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <span>🟢</span>
+                  Aprovados ({approvedRequests.length})
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {approvedRequests.map(request => (
+                    <PurchaseRequestCard
+                      key={request.id}
+                      request={request}
+                      onClick={handleRequestClick}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Pedidos Recusados */}
+            {rejectedRequests.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <span>🔴</span>
+                  Recusados ({rejectedRequests.length})
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {rejectedRequests.map(request => (
+                    <PurchaseRequestCard
+                      key={request.id}
+                      request={request}
+                      onClick={handleRequestClick}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Modal de Novo Pedido */}
+      <Modal
+        isOpen={showNewRequestModal}
+        onClose={() => !isSubmitting && setShowNewRequestModal(false)}
+        title="🏦 Fazer Novo Pedido"
+      >
+        <NewRequestForm
+          onSubmit={handleNewRequest}
+          onCancel={() => setShowNewRequestModal(false)}
+          isLoading={isSubmitting}
+        />
+      </Modal>
+    </div>
+  );
+}
