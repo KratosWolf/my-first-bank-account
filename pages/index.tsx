@@ -56,10 +56,10 @@ export default function HomePage() {
 
   // Show loading state while checking authentication
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-blue-600">Carregando...</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731] flex items-center justify-center">
+      <div className="bg-[#1A4731CC] rounded-2xl shadow-2xl p-8 text-center border-2 border-primary/30">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-lg font-semibold text-white">Carregando...</p>
       </div>
     </div>
   );
