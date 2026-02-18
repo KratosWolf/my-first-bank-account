@@ -1,7 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { GoalsService, type Goal, type GoalProgress } from '@/lib/services/goals';
+import {
+  GoalsService,
+  type Goal,
+  type GoalProgress,
+} from '@/lib/services/goals';
 
 interface GoalCardProps {
   goal: Goal;
@@ -10,11 +14,11 @@ interface GoalCardProps {
   showActions?: boolean;
 }
 
-export default function GoalCard({ 
-  goal, 
-  progress, 
-  onAddMoney, 
-  showActions = true 
+export default function GoalCard({
+  goal,
+  progress,
+  onAddMoney,
+  showActions = true,
 }: GoalCardProps) {
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [amount, setAmount] = useState('');
@@ -29,17 +33,17 @@ export default function GoalCard({
   };
 
   const getProgressColor = (percentage: number): string => {
-    if (percentage >= 100) return 'from-green-500 to-emerald-500';
-    if (percentage >= 75) return 'from-blue-500 to-cyan-500';
-    if (percentage >= 50) return 'from-yellow-500 to-orange-500';
-    if (percentage >= 25) return 'from-purple-500 to-pink-500';
-    return 'from-gray-400 to-gray-500';
+    if (percentage >= 100) return 'from-[#22C55E] to-[#16A34A]'; // Verde sucesso
+    if (percentage >= 75) return 'from-[#F5B731] to-[#FFD966]'; // Amarelo (quase lá!)
+    if (percentage >= 50) return 'from-[#F5B731] to-[#F59E0B]'; // Amarelo-laranja
+    if (percentage >= 25) return 'from-[#F5B731]/80 to-[#F5B731]'; // Amarelo claro
+    return 'from-white/40 to-white/60'; // Cinza claro
   };
 
   const getStatusBadge = () => {
     if (goal.is_completed) {
       return (
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800 border border-green-300">
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-[#22C55E] text-white border border-[#22C55E]">
           <span className="mr-1">🎉</span>
           Concluída!
         </div>
@@ -48,7 +52,7 @@ export default function GoalCard({
 
     if (progress.percentage >= 90) {
       return (
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-800 border border-orange-300">
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-[#F5B731] text-[#0D2818] border border-[#F5B731]">
           <span className="mr-1">🔥</span>
           Quase lá!
         </div>
@@ -57,7 +61,7 @@ export default function GoalCard({
 
     if (progress.is_on_track) {
       return (
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border border-blue-300">
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-[#F5B731]/30 text-[#F5B731] border border-[#F5B731]/50">
           <span className="mr-1">📈</span>
           No caminho
         </div>
@@ -65,7 +69,7 @@ export default function GoalCard({
     }
 
     return (
-      <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-yellow-100 text-yellow-800 border border-yellow-300">
+      <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-white/20 text-white border border-white/30">
         <span className="mr-1">⚡</span>
         Ativo
       </div>
@@ -74,77 +78,95 @@ export default function GoalCard({
 
   const getCategoryInfo = () => {
     const categories = GoalsService.getGoalCategories();
-    return categories.find(c => c.id === goal.category) || categories[categories.length - 1];
+    return (
+      categories.find(c => c.id === goal.category) ||
+      categories[categories.length - 1]
+    );
   };
 
   const categoryInfo = getCategoryInfo();
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105">
+    <div className="bg-[#1A4731] rounded-2xl shadow-xl border-2 border-[#F5B731]/30 overflow-hidden hover:shadow-2xl hover:border-[#F5B731] transition-all duration-300 hover:scale-105">
       {/* Header */}
       <div className="p-6 pb-4">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="text-4xl">{goal.emoji}</div>
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{goal.title}</h3>
+              <h3 className="text-xl font-bold text-white mb-1">
+                {goal.title}
+              </h3>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">{categoryInfo.emoji} {categoryInfo.name}</span>
+                <span className="text-sm text-white/70">
+                  {categoryInfo.emoji} {categoryInfo.name}
+                </span>
                 {getStatusBadge()}
               </div>
             </div>
           </div>
-          
+
           {goal.priority === 'high' && (
-            <div className="text-red-500">
+            <div className="text-[#F5B731]">
               <span className="text-lg">🔥</span>
             </div>
           )}
         </div>
 
         {goal.description && (
-          <p className="text-gray-600 text-sm mb-4">{goal.description}</p>
+          <p className="text-white/80 text-sm mb-4">{goal.description}</p>
         )}
 
         {/* Progress */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">Progresso</span>
-              <span className="text-lg font-bold text-gray-900">{progress.percentage}%</span>
+              <span className="text-sm font-medium text-white/70">
+                Progresso
+              </span>
+              <span className="text-lg font-bold text-[#F5B731]">
+                {progress.percentage}%
+              </span>
             </div>
             <div className="text-right">
-              <div className="text-sm font-bold text-gray-900">
-                R$ {goal.current_amount.toFixed(2)} / R$ {goal.target_amount.toFixed(2)}
+              <div className="text-sm font-bold text-white">
+                R$ {goal.current_amount.toFixed(2)} / R${' '}
+                {goal.target_amount.toFixed(2)}
               </div>
             </div>
           </div>
-          
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+
+          <div className="w-full bg-[#0D2818] rounded-full h-4 overflow-hidden shadow-inner border border-white/10">
             <div
-              className={`h-full bg-gradient-to-r ${getProgressColor(progress.percentage)} transition-all duration-700 ease-out`}
+              className={`h-full bg-gradient-to-r ${getProgressColor(progress.percentage)} transition-all duration-1000 ease-out relative`}
               style={{ width: `${Math.min(progress.percentage, 100)}%` }}
             >
-              <div className="h-full bg-white/20 animate-pulse"></div>
+              <div className="h-full bg-white/30 animate-pulse"></div>
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]"></div>
             </div>
           </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-900">R$ {progress.remaining_amount.toFixed(2)}</div>
-            <div className="text-xs text-gray-500">Faltam</div>
+          <div className="bg-[#0D2818] rounded-lg p-3 text-center border border-white/10">
+            <div className="text-lg font-bold text-[#F5B731]">
+              R$ {progress.remaining_amount.toFixed(2)}
+            </div>
+            <div className="text-xs text-white/70">Faltam</div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-900">{progress.estimated_weeks_remaining}</div>
-            <div className="text-xs text-gray-500">Semanas estimadas</div>
+          <div className="bg-[#0D2818] rounded-lg p-3 text-center border border-white/10">
+            <div className="text-lg font-bold text-[#F5B731]">
+              {progress.estimated_weeks_remaining}
+            </div>
+            <div className="text-xs text-white/70">Semanas estimadas</div>
           </div>
         </div>
 
         {/* Motivational Message */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 mb-4 border border-blue-200">
-          <p className="text-sm text-blue-800 font-medium text-center">
+        <div className="bg-gradient-to-r from-[#F5B731]/20 to-[#FFD966]/20 rounded-lg p-3 mb-4 border border-[#F5B731]/30">
+          <p className="text-sm text-[#F5B731] font-medium text-center">
             {GoalsService.getMotivationalMessage(progress)}
           </p>
         </div>
@@ -152,12 +174,13 @@ export default function GoalCard({
         {/* Target Date */}
         {goal.target_date && (
           <div className="flex items-center space-x-2 mb-4">
-            <span className="text-gray-500">📅</span>
-            <span className="text-sm text-gray-600">
-              Meta para: {new Date(goal.target_date).toLocaleDateString('pt-BR')}
+            <span className="text-white/70">📅</span>
+            <span className="text-sm text-white/90">
+              Meta para:{' '}
+              {new Date(goal.target_date).toLocaleDateString('pt-BR')}
             </span>
             {!progress.is_on_track && !goal.is_completed && (
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+              <span className="text-xs bg-[#F5B731] text-[#0D2818] px-2 py-1 rounded-full font-semibold">
                 Acelere!
               </span>
             )}
@@ -167,11 +190,11 @@ export default function GoalCard({
 
       {/* Actions */}
       {showActions && !goal.is_completed && (
-        <div className="bg-gray-50 px-6 py-4">
+        <div className="bg-[#0D2818] px-6 py-4">
           {!showAddMoney ? (
             <button
               onClick={() => setShowAddMoney(true)}
-              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:shadow-lg transform hover:scale-105"
+              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#F5B731] to-[#FFD966] hover:from-[#FFD966] hover:to-[#F5B731] text-[#0D2818] font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:shadow-lg transform hover:scale-105"
             >
               <span>💰</span>
               <span>Adicionar Dinheiro</span>
@@ -183,15 +206,15 @@ export default function GoalCard({
                   type="number"
                   placeholder="R$ 0,00"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onChange={e => setAmount(e.target.value)}
+                  className="flex-1 px-4 py-2 border-2 border-[#F5B731]/50 bg-[#1A4731] text-white rounded-lg focus:ring-2 focus:ring-[#F5B731] focus:border-[#F5B731]"
                   step="0.01"
                   min="0.01"
                 />
                 <button
                   onClick={handleAddMoney}
                   disabled={!amount || parseFloat(amount) <= 0}
-                  className="px-6 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors"
+                  className="px-6 py-2 bg-[#22C55E] hover:bg-[#16A34A] disabled:bg-white/20 text-white font-semibold rounded-lg transition-colors"
                 >
                   ✓
                 </button>
@@ -200,19 +223,19 @@ export default function GoalCard({
                     setShowAddMoney(false);
                     setAmount('');
                   }}
-                  className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                  className="px-6 py-2 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg transition-colors"
                 >
                   ✕
                 </button>
               </div>
-              
+
               {/* Quick amount buttons */}
               <div className="flex space-x-2">
                 {[5, 10, 20, 50].map(value => (
                   <button
                     key={value}
                     onClick={() => setAmount(value.toString())}
-                    className="flex-1 py-2 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition-colors"
+                    className="flex-1 py-2 text-xs bg-[#F5B731]/20 hover:bg-[#F5B731]/30 text-[#F5B731] rounded-md transition-colors font-semibold"
                   >
                     R$ {value}
                   </button>
@@ -225,12 +248,25 @@ export default function GoalCard({
 
       {/* Completion Celebration */}
       {goal.is_completed && (
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4 text-center">
-          <div className="text-white">
-            <div className="text-2xl mb-2">🎉 🎊 🎉</div>
-            <div className="font-bold">Meta Alcançada!</div>
-            <div className="text-sm opacity-90">
-              Concluída em {goal.completed_at ? new Date(goal.completed_at).toLocaleDateString('pt-BR') : 'hoje'}
+        <div className="bg-gradient-to-r from-[#22C55E] to-[#16A34A] px-6 py-6 text-center border-t-2 border-[#22C55E]/30 relative overflow-hidden">
+          {/* Celebratory background effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_3s_infinite]"></div>
+
+          <div className="relative z-10">
+            <div className="text-4xl mb-3 animate-bounce">🎉 🎊 🎉</div>
+            <div className="font-bold text-xl text-white mb-2">
+              Meta Alcançada!
+            </div>
+            <div className="text-sm text-white/90 font-medium">
+              Concluída em{' '}
+              {goal.completed_at
+                ? new Date(goal.completed_at).toLocaleDateString('pt-BR')
+                : 'hoje'}
+            </div>
+            <div className="mt-3 inline-block px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm border border-white/30">
+              <span className="text-white font-bold text-sm">
+                🏆 Objetivo Conquistado!
+              </span>
             </div>
           </div>
         </div>
