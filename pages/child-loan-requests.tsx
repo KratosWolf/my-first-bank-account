@@ -105,9 +105,45 @@ export default function ChildLoanRequestsPage() {
     }
   };
 
-  const handleRequestClick = (request: PurchaseRequest) => {
-    // Futuramente: abrir modal com detalhes ou permitir cancelar pedidos pendentes
-    console.log('Pedido clicado:', request);
+  const handleRequestClick = async (request: PurchaseRequest) => {
+    // Se pedido foi aprovado, navegar para os detalhes do empréstimo
+    if (request.status === 'approved') {
+      try {
+        // Buscar empréstimo correspondente a este pedido
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+
+        const { data: loan } = await supabase
+          .from('loans')
+          .select('id')
+          .eq('purchase_request_id', request.id)
+          .maybeSingle();
+
+        if (loan) {
+          // Navegar para página de detalhes do empréstimo
+          router.push(`/child-loans?childId=${childId}&loanId=${loan.id}`);
+        } else {
+          // Se não encontrou empréstimo, mostrar mensagem
+          alert(
+            '⚠️ Empréstimo não encontrado.\n\nEste pedido foi aprovado, mas o empréstimo ainda não foi criado. Fale com seus pais!'
+          );
+        }
+      } catch (error) {
+        console.error('Erro ao buscar empréstimo:', error);
+        alert('❌ Erro ao carregar detalhes. Tente novamente.');
+      }
+    } else if (request.status === 'rejected') {
+      // Para pedidos rejeitados, mostrar motivo se houver
+      if (request.parent_note) {
+        alert(
+          `❌ Pedido Recusado\n\nMotivo: ${request.parent_note}\n\nConverse com seus pais para entender melhor!`
+        );
+      }
+    }
+    // Para pedidos pendentes, não faz nada (aguardando resposta)
   };
 
   const handleBack = () => {
