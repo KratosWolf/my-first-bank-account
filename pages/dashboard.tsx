@@ -12,6 +12,8 @@ import { calculateAge } from '../src/lib/utils/date';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { LoanApprovalModal } from '../src/components/LoanApprovalModal';
+import { RejectionModal } from '../src/components/RejectionModal';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -50,6 +52,14 @@ export default function DashboardPage() {
   );
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionDescription, setTransactionDescription] = useState('');
+
+  // Loan approval/rejection modal states (Task 2.12)
+  const [showLoanApprovalModal, setShowLoanApprovalModal] = useState(false);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [selectedRequestChild, setSelectedRequestChild] =
+    useState<Child | null>(null);
+  const [isProcessingRequest, setIsProcessingRequest] = useState(false);
 
   // Load children from Supabase/localStorage on component mount
   useEffect(() => {
@@ -314,94 +324,217 @@ export default function DashboardPage() {
     }
   };
 
-  const handleApproval = async (request, action) => {
+  /**
+   * handleApproval - TASK 2.12 - Abrir modais de aprovação/recusa
+   * Ao invés de processar diretamente, abre modal específico
+   */
+  const handleApproval = (request, action) => {
+    // Encontrar informações da criança
+    const child = children.find(c => c.id === request.child_id) || {
+      id: request.child_id,
+      name: request.child_name || 'Criança',
+      avatar: '👶',
+      balance: 0,
+    };
+
+    setSelectedRequest(request);
+    setSelectedRequestChild(child);
+
+    if (action === 'approve') {
+      // Se for empréstimo, abrir modal de aprovação
+      if (request.type === 'loan') {
+        setShowLoanApprovalModal(true);
+      } else {
+        // Para compras, aprovar direto (comportamento original)
+        handleLegacyApproval(request, child, 'approve');
+      }
+    } else {
+      // Para recusar, sempre abrir modal de motivo
+      setShowRejectionModal(true);
+    }
+  };
+
+  /**
+   * handleLoanApprovalConfirm - TASK 2.12 - Criar empréstimo + atualizar pedido
+   * Chamado quando pai confirma aprovação no modal
+   */
+  const handleLoanApprovalConfirm = async (installmentCount: number) => {
+    if (!selectedRequest || !selectedRequestChild) return;
+
     try {
-      const status = action === 'approve' ? 'completed' : 'rejected';
-      const actionText = action === 'approve' ? 'APROVADO' : 'REJEITADO';
+      setIsProcessingRequest(true);
+
+      console.log('🔄 Criando empréstimo:', {
+        childId: selectedRequest.child_id,
+        amount: selectedRequest.amount,
+        installments: installmentCount,
+      });
+
+      // 1. Criar empréstimo com parcelas usando LoanService
+      const loan = await LoanService.createLoan(
+        selectedRequest.child_id,
+        selectedRequest.id, // purchase_request_id
+        selectedRequest.amount,
+        installmentCount
+      );
+
+      if (!loan) {
+        alert('❌ Erro ao criar empréstimo. Tente novamente.');
+        setIsProcessingRequest(false);
+        return;
+      }
+
+      console.log('✅ Empréstimo criado com sucesso:', loan);
+
+      // 2. Atualizar status do pedido para 'approved'
+      const success = await LoanService.updateLoanStatus(
+        selectedRequest.id,
+        'completed', // status no purchase_requests
+        'Empréstimo aprovado e criado com sucesso'
+      );
+
+      if (!success) {
+        console.warn('⚠️ Empréstimo criado, mas erro ao atualizar pedido');
+      }
+
+      // 3. Recarregar dados
+      await loadPendingRequests();
+      await loadChildren();
+
+      // 4. Fechar modal e mostrar sucesso
+      setShowLoanApprovalModal(false);
+      alert(
+        `✅ Empréstimo aprovado e criado com sucesso!\n\n` +
+          `Criança: ${selectedRequestChild.name}\n` +
+          `Item: ${selectedRequest.reason}\n` +
+          `Valor total: R$ ${selectedRequest.amount.toFixed(2)}\n` +
+          `Parcelas: ${installmentCount}x de R$ ${(selectedRequest.amount / installmentCount).toFixed(2)}\n\n` +
+          `🎯 A criança já pode acompanhar o empréstimo!`
+      );
+
+      console.log('✅ Empréstimo aprovado:', selectedRequest.id);
+    } catch (error) {
+      console.error('❌ Erro ao processar aprovação de empréstimo:', error);
+      alert('❌ Erro ao processar empréstimo. Tente novamente.');
+    } finally {
+      setIsProcessingRequest(false);
+      setSelectedRequest(null);
+      setSelectedRequestChild(null);
+    }
+  };
+
+  /**
+   * handleRejectionConfirm - TASK 2.12 - Recusar pedido com motivo
+   * Chamado quando pai confirma recusa no modal
+   */
+  const handleRejectionConfirm = async (parentNote: string) => {
+    if (!selectedRequest) return;
+
+    try {
+      setIsProcessingRequest(true);
+
+      const motivo = parentNote || 'Pedido recusado pelo responsável';
 
       console.log(
-        `🔄 ${actionText} pedido:`,
-        request.id,
-        'tipo:',
-        request.type
+        '🔄 Recusando pedido:',
+        selectedRequest.id,
+        'motivo:',
+        motivo
       );
 
       // Verificar se é empréstimo ou compra
-      if (request.type === 'loan') {
-        // Processar empréstimo usando o serviço híbrido
+      if (selectedRequest.type === 'loan') {
+        // Recusar empréstimo
         const success = await LoanService.updateLoanStatus(
-          request.id,
-          status,
-          action === 'reject'
-            ? 'Rejeitado pelo responsável'
-            : 'Aprovado pelo responsável'
+          selectedRequest.id,
+          'rejected',
+          motivo
         );
 
         if (!success) {
-          alert('❌ Erro ao processar empréstimo. Tente novamente.');
+          alert('❌ Erro ao recusar empréstimo. Tente novamente.');
+          setIsProcessingRequest(false);
           return;
         }
 
-        // Se aprovado, adicionar à conta da criança usando o serviço
-        if (action === 'approve') {
-          await ChildrenService.updateChild(request.child_id, {
-            balance: (request.childData?.balance || 0) + request.amount,
-            total_earned:
-              (request.childData?.total_earned || 0) + request.amount,
-          });
-          await loadChildren(); // Recarregar crianças
-        }
-
         alert(
-          `✅ Empréstimo ${actionText} com sucesso!\nCriança: ${request.child_name}\nMotivo: ${request.reason}\nValor: R$ ${request.amount.toFixed(2)}`
+          `✅ Empréstimo recusado!\n\nCriança: ${selectedRequestChild?.name}\nItem: ${selectedRequest.reason}\n\n` +
+            (parentNote ? `💬 Motivo: "${motivo}"` : 'Sem motivo especificado.')
         );
-        console.log(`✅ Empréstimo ${actionText}:`, request);
       } else {
-        // Processar compra via API (código original)
+        // Recusar compra via API
         const response = await fetch('/api/purchase-requests', {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            request_id: request.id,
-            status: status,
-            approved_by_parent: action === 'approve',
-            parent_note:
-              action === 'reject'
-                ? 'Rejeitado pelo responsável'
-                : 'Aprovado pelo responsável',
+            request_id: selectedRequest.id,
+            status: 'rejected',
+            approved_by_parent: false,
+            parent_note: motivo,
           }),
         });
 
         const result = await response.json();
 
-        if (response.ok) {
-          alert(
-            `✅ Pedido ${actionText} com sucesso!\nItem: ${request.description || request.reason}\nValor: R$ ${request.amount.toFixed(2)}`
-          );
-          console.log(`✅ Pedido ${actionText}:`, result);
-
-          // ✅ BUG FIX #4: Recarregar crianças para atualizar saldo no dashboard
-          if (action === 'approve') {
-            await loadChildren();
-          }
-        } else {
-          alert(
-            `❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} pedido:\n${result.error}`
-          );
-          console.error('❌ Erro da API:', result);
+        if (!response.ok) {
+          alert(`❌ Erro ao recusar pedido:\n${result.error}`);
+          setIsProcessingRequest(false);
           return;
         }
+
+        alert(
+          `✅ Pedido recusado!\n\nItem: ${selectedRequest.description || selectedRequest.reason}\n\n` +
+            (parentNote ? `💬 Motivo: "${motivo}"` : 'Sem motivo especificado.')
+        );
       }
 
-      // Recarregar dados (analytics will auto-reload via useEffect when children/requests change)
+      // Recarregar dados
       await loadPendingRequests();
+
+      // Fechar modal
+      setShowRejectionModal(false);
+
+      console.log('✅ Pedido recusado:', selectedRequest.id);
     } catch (error) {
-      console.error(
-        `❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} pedido:`,
-        error
-      );
+      console.error('❌ Erro ao recusar pedido:', error);
+      alert('❌ Erro de conexão. Tente novamente.');
+    } finally {
+      setIsProcessingRequest(false);
+      setSelectedRequest(null);
+      setSelectedRequestChild(null);
+    }
+  };
+
+  /**
+   * handleLegacyApproval - Manter comportamento original para compras
+   * (aprovar diretamente sem modal)
+   */
+  const handleLegacyApproval = async (request, child, action) => {
+    try {
+      const response = await fetch('/api/purchase-requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request_id: request.id,
+          status: 'completed',
+          approved_by_parent: true,
+          parent_note: 'Aprovado pelo responsável',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(
+          `✅ Pedido APROVADO com sucesso!\nItem: ${request.description || request.reason}\nValor: R$ ${request.amount.toFixed(2)}`
+        );
+        await loadChildren();
+        await loadPendingRequests();
+      } else {
+        alert(`❌ Erro ao aprovar pedido:\n${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao aprovar pedido:', error);
       alert('❌ Erro de conexão. Tente novamente.');
     }
   };
@@ -1510,6 +1643,38 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
+
+      {/* Loan Approval Modal - TASK 2.12 */}
+      <LoanApprovalModal
+        isOpen={showLoanApprovalModal}
+        onClose={() => {
+          if (!isProcessingRequest) {
+            setShowLoanApprovalModal(false);
+            setSelectedRequest(null);
+            setSelectedRequestChild(null);
+          }
+        }}
+        onConfirm={handleLoanApprovalConfirm}
+        request={selectedRequest}
+        child={selectedRequestChild}
+        isLoading={isProcessingRequest}
+      />
+
+      {/* Rejection Modal - TASK 2.12 */}
+      <RejectionModal
+        isOpen={showRejectionModal}
+        onClose={() => {
+          if (!isProcessingRequest) {
+            setShowRejectionModal(false);
+            setSelectedRequest(null);
+            setSelectedRequestChild(null);
+          }
+        }}
+        onConfirm={handleRejectionConfirm}
+        request={selectedRequest}
+        child={selectedRequestChild}
+        isLoading={isProcessingRequest}
+      />
     </div>
   );
 }
