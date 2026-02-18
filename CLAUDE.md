@@ -97,27 +97,29 @@ Só prossiga quando TODOS os itens estiverem ✅.
 
 **Objetivo:** Visual novo (verde/amarelo/branco) + sistema completo de empréstimos educativos
 
-**BLOCO A — Fundação:**
+**Progresso:** 13/14 tasks (93%) — falta apenas 2.14
 
-- [ ] 2.1 Setup do tema centralizado (cores, tokens, Tailwind config)
-- [ ] 2.2 Componentes base redesenhados (Button, Card, Input, Badge, Modal)
+**BLOCO A — Fundação:** ✅ COMPLETO
 
-**BLOCO B — Telas Redesenhadas:**
+- ✅ 2.1 Setup do tema centralizado (cores, tokens, Tailwind config)
+- ✅ 2.2 Componentes base redesenhados (Button, Card, Input, Badge, Modal)
 
-- [ ] 2.3 Tela de Login
-- [ ] 2.4 Dashboard dos pais
-- [ ] 2.5 Tela de conta da criança
-- [ ] 2.6 Histórico de transações
-- [ ] 2.7 Configuração de juros
-- [ ] 2.8 Sonhos/metas
-- [ ] 2.9 Navegação e layout
+**BLOCO B — Telas Redesenhadas:** ✅ COMPLETO
 
-**BLOCO C — Empréstimos (NOVA FEATURE):**
+- ✅ 2.3 Tela de Login
+- ✅ 2.4 Dashboard dos pais
+- ✅ 2.5 Tela de conta da criança
+- ✅ 2.6 Histórico de transações
+- ✅ 2.7 Configuração de juros
+- ✅ 2.8 Sonhos/metas
+- ✅ 2.9 Navegação e layout
 
-- [ ] 2.10 Schema do banco (tabelas loans + loan_installments)
-- [ ] 2.11 Tela de pedido (visão criança)
-- [ ] 2.12 Aprovação + empréstimo (visão pai)
-- [ ] 2.13 Dashboard de empréstimo ativo
+**BLOCO C — Empréstimos (NOVA FEATURE):** ✅ COMPLETO
+
+- ✅ 2.10 Schema do banco (tabelas loans + loan_installments)
+- ✅ 2.11 Tela de pedido (visão criança)
+- ✅ 2.12 Aprovação + empréstimo (visão pai)
+- ✅ 2.13 Dashboard de empréstimo ativo
 
 **BLOCO D — Polish:**
 
@@ -136,6 +138,9 @@ Só prossiga quando TODOS os itens estiverem ✅.
 > ⚠️ Esta seção é a fonte de verdade sobre o banco de dados.
 > Atualizar SEMPRE que criar/alterar/remover tabelas ou colunas.
 
+> ⚠️ **IMPORTANTE:** O banco usa `family_id` (não `user_id`) como chave de relacionamento principal.
+> Padrão RLS: `family_id IN (SELECT families.id FROM families ...)`
+
 ### Tabelas Ativas
 
 | Tabela                | Descrição                           | Última alteração |
@@ -146,21 +151,32 @@ Só prossiga quando TODOS os itens estiverem ✅.
 | savings_goals / goals | Sonhos/metas com juros              | 2026-02-17       |
 | children              | Perfis das crianças                 | Original         |
 | users / profiles      | Pais/responsáveis                   | Original         |
-| purchase_requests     | Pedidos de compra (LoanService)     | Original         |
+| families              | Famílias (chave de relacionamento)  | Original         |
+| purchase_requests     | Pedidos de compra (LoanService)     | 2026-02-18       |
 | loans                 | Empréstimos ativos com parcelas     | 2026-02-18       |
 | loan_installments     | Parcelas individuais de empréstimos | 2026-02-18       |
 | [+ outras]            | Mapear quando necessário            | —                |
 
 ### Reconciliação (última verificação: 2026-02-18)
 
-| Feature na UI | Código referencia  | Tabela no banco                  | Status |
-| ------------- | ------------------ | -------------------------------- | ------ |
-| Dashboard     | dashboard page     | accounts, children, transactions | ✅ OK  |
-| Transações    | TransactionService | transactions                     | ✅ OK  |
-| Juros         | interestService    | interest_config                  | ✅ OK  |
-| Sonhos/Metas  | goals              | savings_goals/goals              | ✅ OK  |
-| Pedidos       | LoanService        | purchase_requests                | ✅ OK  |
-| Empréstimos   | LoanService        | loans, loan_installments         | ✅ OK  |
+| Feature na UI         | Código referencia                                  | Tabela no banco                  | Status |
+| --------------------- | -------------------------------------------------- | -------------------------------- | ------ |
+| Dashboard             | dashboard page                                     | accounts, children, transactions | ✅ OK  |
+| Transações            | TransactionService                                 | transactions                     | ✅ OK  |
+| Juros                 | interestService                                    | interest_config                  | ✅ OK  |
+| Sonhos/Metas          | goals                                              | savings_goals/goals              | ✅ OK  |
+| Pedidos               | LoanService + PurchaseRequestCard + NewRequestForm | purchase_requests                | ✅ OK  |
+| Empréstimos (pai)     | LoanApprovalModal + RejectionModal                 | loans, loan_installments         | ✅ OK  |
+| Empréstimos (criança) | LoanCard + InstallmentList + PayInstallmentModal   | loans, loan_installments         | ✅ OK  |
+
+### Migration de Empréstimos (executada 2026-02-18)
+
+**Arquivo:** `supabase/migrations/005_create_loans_tables.sql`
+
+- **Tabelas criadas:** `loans` (10 colunas) + `loan_installments` (9 colunas)
+- **RLS:** Habilitado em ambas com policies baseadas em `family_id`
+- **Índices:** `child_id`, `status`, `loan_id`
+- **CHECK constraints:** Validação nos campos `status`
 
 ---
 
@@ -198,12 +214,24 @@ MyFirstBA2/
 ├── src/
 │   ├── app/               ← Rotas (App Router)
 │   ├── components/        ← Componentes reutilizáveis
+│   │   ├── NewRequestForm.tsx          ← Form de pedido de empréstimo (criança)
+│   │   ├── PurchaseRequestCard.tsx     ← Card de pedido com status
+│   │   ├── LoanCard.tsx                ← Card resumo de empréstimo (criança)
+│   │   ├── InstallmentList.tsx         ← Lista de parcelas do empréstimo
+│   │   ├── PayInstallmentModal.tsx     ← Modal pagamento de parcela
+│   │   ├── LoanApprovalModal.tsx       ← Modal aprovação (pai)
+│   │   └── RejectionModal.tsx          ← Modal recusa (pai)
 │   ├── lib/               ← Supabase client, helpers, utils
 │   ├── services/          ← Lógica de negócio
+│   │   └── loanService.ts ← createLoan, payInstallment, getLoansByChild, etc.
 │   └── styles/            ← Estilos globais
+├── pages/                 ← Pages Router
+│   ├── child-loan-requests.tsx ← Pedidos de empréstimo (criança)
+│   └── child-loans.tsx         ← Dashboard de empréstimos (criança)
 ├── components/            ← Pasta legacy (avaliar merge)
 ├── database/              ← Scripts de banco
 ├── supabase/migrations/   ← SQL migrations
+│   └── 005_create_loans_tables.sql ← Tabelas loans + loan_installments
 └── public/                ← Assets estáticos
 ```
 
@@ -213,7 +241,9 @@ MyFirstBA2/
 
 ### Banco de Dados (Supabase)
 
-- RLS em todas as tabelas
+- Relacionamentos via `family_id` (NÃO `user_id`)
+- Maioria das tabelas antigas com RLS desabilitado (segurança na aplicação)
+- RLS habilitado nas tabelas novas (loans, loan_installments)
 - Migrations em `supabase/migrations/`
 - Credenciais em variáveis de ambiente (.env.local)
 - Projeto Supabase: mqcfdwyhbtvaclslured
@@ -235,14 +265,20 @@ MyFirstBA2/
 
 ## 📝 DECISÕES TÉCNICAS REGISTRADAS
 
-| Data       | Decisão                                      | Motivo                                               |
-| ---------- | -------------------------------------------- | ---------------------------------------------------- |
-| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)         | Educacional, taxa mensal é mais intuitiva            |
-| 2026-02-17 | Goals rendem juros separados                 | Transparência: cada goal tem transações rastreáveis  |
-| 2026-02-17 | LoanService usa purchase_requests            | Já existia, CRUD funcional, mantido como abstração   |
-| 2026-02-17 | Empréstimo com saldo separado (não negativo) | Mais educativo e seguro tecnicamente                 |
-| 2026-02-17 | Sem juros em empréstimos (por enquanto)      | Simplicidade para MVP de empréstimos                 |
-| 2026-02-17 | Deploy Vercel no final da Fase 2             | App precisa ter visual novo antes de ir pra produção |
+| Data       | Decisão                                                          | Motivo                                                                             |
+| ---------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)                             | Educacional, taxa mensal é mais intuitiva                                          |
+| 2026-02-17 | Goals rendem juros separados                                     | Transparência: cada goal tem transações rastreáveis                                |
+| 2026-02-17 | LoanService usa purchase_requests                                | Já existia, CRUD funcional, mantido como abstração                                 |
+| 2026-02-17 | Empréstimo com saldo separado (não negativo)                     | Mais educativo e seguro tecnicamente                                               |
+| 2026-02-17 | Sem juros em empréstimos (por enquanto)                          | Simplicidade para MVP de empréstimos                                               |
+| 2026-02-17 | Deploy Vercel no final da Fase 2                                 | App precisa ter visual novo antes de ir pra produção                               |
+| 2026-02-18 | family_id é chave de relacionamento (não user_id)                | Descoberto durante task 2.10: children, loans etc. usam family_id                  |
+| 2026-02-18 | Maioria das tabelas antigas tem RLS desabilitado                 | Segurança feita na camada de aplicação; tabelas novas (loans) têm RLS              |
+| 2026-02-18 | Empréstimos: 3 componentes criança + 2 componentes pai           | LoanCard, InstallmentList, PayInstallmentModal + LoanApprovalModal, RejectionModal |
+| 2026-02-18 | Pedidos aprovados linkam para empréstimo via purchase_request_id | Navegação child-loan-requests → child-loans com query param                        |
+| 2026-02-18 | Mesada automática NÃO implementada                               | payInstallment pronto para integração futura quando mesada automática existir      |
+| 2026-02-18 | Parcelas com detecção automática de atraso                       | InstallmentList compara due_date com data atual para marcar overdue                |
 
 ---
 
