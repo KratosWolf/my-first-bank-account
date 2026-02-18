@@ -761,36 +761,13 @@ export default function DashboardPage() {
   // Show loading state while checking authentication
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
-        <Card variant="elevated" padding="lg" className="max-w-md w-full">
-          <CardBody>
-            <div className="text-center">
-              <svg
-                className="animate-spin h-16 w-16 text-primary mx-auto mb-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              <p className="text-lg font-semibold text-text-primary">
-                Verificando autenticação...
-              </p>
-            </div>
-          </CardBody>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731] flex items-center justify-center">
+        <div className="bg-[#1A4731CC] rounded-2xl shadow-2xl p-8 text-center border-2 border-[#F5B731]/30">
+          <div className="w-16 h-16 border-4 border-[#F5B731] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg font-semibold text-white">
+            Verificando autenticação...
+          </p>
+        </div>
       </div>
     );
   }
@@ -801,21 +778,21 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      {/* Header */}
-      <div className="bg-bg-secondary shadow-lg border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731] animate-fadeInUp">
+      {/* Header com fundo verde escuro e destaques em amarelo */}
+      <div className="bg-gradient-to-br from-[#0D2818] to-[#1A4731] shadow-lg border-b-2 border-[#F5B731]/30">
+        <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             {/* User info */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-2xl shadow-lg">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#F5B731] to-[#FFD966] rounded-full flex items-center justify-center text-3xl shadow-xl border-2 border-[#F5B731]">
                 {user?.avatar || '👨‍👩‍👧‍👦'}
               </div>
               <div>
-                <h1 className="text-xl font-bold text-text-primary">
+                <h1 className="text-2xl font-bold text-white">
                   🏦 Banco da Família
                 </h1>
-                <p className="text-sm text-text-secondary">
+                <p className="text-sm text-[#F5B731] font-medium">
                   Olá, {user?.userName || user?.name || 'Usuário'}
                 </p>
               </div>

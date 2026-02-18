@@ -905,7 +905,7 @@ export default function ChildView() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-bg-primary animate-fadeInUp">
       {/* Header com fundo verde escuro e destaques em amarelo */}
       <div className="bg-gradient-to-br from-[#0D2818] to-[#1A4731] shadow-lg">
         <div className="max-w-md mx-auto px-4 py-6">
