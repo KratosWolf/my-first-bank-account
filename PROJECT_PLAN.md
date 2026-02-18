@@ -145,15 +145,15 @@ typescript
 
 #### BLOCO B — Telas Existentes Redesenhadas
 
-| #   | Funcionalidade            | Status      | Critérios de Done                                                                                                                                                                        |
-| --- | ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2.3 | Tela de Login redesenhada | ✅ Completo | Nova paleta aplicada, visual premium, ilustração/mascote, botão Google OAuth estilizado. Funciona em mobile e desktop. Login continua funcionando (sem quebrar auth).                    |
-| 2.4 | Dashboard dos pais        | ✅ Completo | Cards modernos com nova paleta, lista de filhos com avatares, resumo de saldo/metas por filho, acesso rápido a configurações. Layout profissional. Todos os dados carregam corretamente. |
-| 2.5 | Tela de conta da criança  | ⬜ Pendente | Saldo destacado com visual atraente, transações com ícones e cores por tipo, seção de metas visível, visual lúdico. Dados reais funcionando.                                             |
-| 2.6 | Histórico de transações   | ⬜ Pendente | Filtros redesenhados (período, tipo, categoria) com nova paleta, lista com ícones coloridos, paginação estilizada, contador de resultados. Filtros continuam funcionando.                |
-| 2.7 | Configuração de juros     | ⬜ Pendente | Slider limpo com nova paleta, input direto, preview de rendimento ("quanto rende em 1/3/6 meses"), integrado ao dashboard dos pais. Cálculo correto mantido.                             |
-| 2.8 | Sonhos/metas              | ⬜ Pendente | Progress bar animada, ícone/imagem do sonho, celebração visual ao atingir meta, card atraente para a criança. Dados reais funcionando.                                                   |
-| 2.9 | Navegação e layout        | ⬜ Pendente | Header redesenhado, navegação entre telas consistente, transições suaves, responsividade mobile e desktop validada.                                                                      |
+| #   | Funcionalidade            | Status      | Critérios de Done                                                                                                                                                                                 |
+| --- | ------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.3 | Tela de Login redesenhada | ✅ Completo | Nova paleta aplicada, visual premium, ilustração/mascote, botão Google OAuth estilizado. Funciona em mobile e desktop. Login continua funcionando (sem quebrar auth).                             |
+| 2.4 | Dashboard dos pais        | ✅ Completo | Cards modernos com nova paleta, lista de filhos com avatares, resumo de saldo/metas por filho, acesso rápido a configurações. Layout profissional. Todos os dados carregam corretamente.          |
+| 2.5 | Tela de conta da criança  | ✅ Completo | Saldo destacado com visual atraente, transações com ícones e cores por tipo, seção de metas visível, visual lúdico. Dados reais funcionando. Correções visuais aplicadas (4 itens).               |
+| 2.6 | Histórico de transações   | ✅ Completo | Filtros redesenhados com nova paleta + botão "Limpar filtros", badges coloridos por tipo de transação, paginação numerada (anterior/próxima + números), contador aprimorado. Filtros funcionando. |
+| 2.7 | Configuração de juros     | ⬜ Pendente | Slider limpo com nova paleta, input direto, preview de rendimento ("quanto rende em 1/3/6 meses"), integrado ao dashboard dos pais. Cálculo correto mantido.                                      |
+| 2.8 | Sonhos/metas              | ⬜ Pendente | Progress bar animada, ícone/imagem do sonho, celebração visual ao atingir meta, card atraente para a criança. Dados reais funcionando.                                                            |
+| 2.9 | Navegação e layout        | ⬜ Pendente | Header redesenhado, navegação entre telas consistente, transições suaves, responsividade mobile e desktop validada.                                                                               |
 
 ---
 
@@ -389,15 +389,17 @@ MyFirstBA2/
 
 ## 📝 HISTÓRICO DE MUDANÇAS
 
-| Data       | Fase   | O que mudou                                               | Motivo                                                            |
-| ---------- | ------ | --------------------------------------------------------- | ----------------------------------------------------------------- |
-| 2026-02-17 | Setup  | Projeto existente auditado (138 arquivos, 31K linhas)     | Evolução planejada                                                |
-| 2026-02-17 | Setup  | Supabase restaurado após auto-pause                       | Projeto pausou por inatividade                                    |
-| 2026-02-17 | Setup  | Redesign visual aprovado (verde + amarelo + branco)       | Referências: porquinho + ArobixBank                               |
-| 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados               | Bugs → Redesign → Onboarding                                      |
-| 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                       | Início da evolução estruturada                                    |
-| 2026-02-17 | Fase 1 | Tasks 1.0–1.7 completadas                                 | Fase 1 completa — app estável ✅                                  |
-| 2026-02-17 | Fase 1 | Push para GitHub (main + develop)                         | Código seguro no repositório remoto                               |
-| 2026-02-17 | Fase 2 | Fase 2 planejada: Redesign + Empréstimos (14 tasks)       | Aprovado: visual novo + feature de empréstimos educativos         |
-| 2026-02-17 | Fase 2 | Schema de empréstimos definido (loans + installments)     | Fluxo aprovado: pedido → aprovação → parcelas → pagamento         |
-| 2026-02-17 | Fase 2 | Tasks 2.1–2.3 completadas (BLOCO A + primeira do BLOCO B) | Sistema de tema + componentes base + tela de login redesenhada ✅ |
+| Data       | Fase   | O que mudou                                               | Motivo                                                                                                              |
+| ---------- | ------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 2026-02-17 | Setup  | Projeto existente auditado (138 arquivos, 31K linhas)     | Evolução planejada                                                                                                  |
+| 2026-02-17 | Setup  | Supabase restaurado após auto-pause                       | Projeto pausou por inatividade                                                                                      |
+| 2026-02-17 | Setup  | Redesign visual aprovado (verde + amarelo + branco)       | Referências: porquinho + ArobixBank                                                                                 |
+| 2026-02-17 | Setup  | 5 bugs/features identificados e priorizados               | Bugs → Redesign → Onboarding                                                                                        |
+| 2026-02-17 | Setup  | CLAUDE.md e PROJECT_PLAN.md criados                       | Início da evolução estruturada                                                                                      |
+| 2026-02-17 | Fase 1 | Tasks 1.0–1.7 completadas                                 | Fase 1 completa — app estável ✅                                                                                    |
+| 2026-02-17 | Fase 1 | Push para GitHub (main + develop)                         | Código seguro no repositório remoto                                                                                 |
+| 2026-02-17 | Fase 2 | Fase 2 planejada: Redesign + Empréstimos (14 tasks)       | Aprovado: visual novo + feature de empréstimos educativos                                                           |
+| 2026-02-17 | Fase 2 | Schema de empréstimos definido (loans + installments)     | Fluxo aprovado: pedido → aprovação → parcelas → pagamento                                                           |
+| 2026-02-17 | Fase 2 | Tasks 2.1–2.3 completadas (BLOCO A + primeira do BLOCO B) | Sistema de tema + componentes base + tela de login redesenhada ✅                                                   |
+| 2026-02-17 | Fase 2 | Tasks 2.4–2.5 completadas + 4 correções visuais           | Dashboard pais + tela criança redesenhados. Correções: valores negativos, tema raiz, ícone lixeira, hover botões ✅ |
+| 2026-02-18 | Fase 2 | Task 2.6 completada — Histórico de transações redesenhado | Badges coloridos por tipo, paginação numerada, filtros polidos com botão limpar, contador aprimorado ✅             |
