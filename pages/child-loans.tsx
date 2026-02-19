@@ -19,7 +19,8 @@ import {
 
 export default function ChildLoansPage() {
   const router = useRouter();
-  const { childId, loanId: selectedLoanIdFromQuery } = router.query;
+  const { childId: queryChildId, loanId: selectedLoanIdFromQuery } =
+    router.query;
 
   const [loans, setLoans] = useState<Loan[]>([]);
   const [selectedLoanDetails, setSelectedLoanDetails] =
@@ -27,6 +28,7 @@ export default function ChildLoansPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [childName, setChildName] = useState('');
+  const [childId, setChildId] = useState<string | null>(null); // ✅ Estado local
   const [showPayModal, setShowPayModal] = useState(false);
   const [selectedInstallment, setSelectedInstallment] =
     useState<LoanInstallment | null>(null);
@@ -34,11 +36,65 @@ export default function ChildLoansPage() {
 
   // Carregar empréstimos ao montar componente
   useEffect(() => {
-    if (childId && typeof childId === 'string') {
-      loadLoans(childId);
-      loadChildName(childId);
-    }
-  }, [childId]);
+    // Obter childId de três fontes possíveis (em ordem de prioridade):
+    const getChildId = async () => {
+      // 1. Query param (navegação explícita)
+      if (queryChildId && typeof queryChildId === 'string') {
+        console.log('✅ childId da URL:', queryChildId);
+        return queryChildId;
+      }
+
+      // 2. Tentar obter da sessão
+      const { data: sessionData } = await fetch('/api/auth/session').then(r =>
+        r.json()
+      );
+      const user = sessionData?.user as any;
+
+      // Se é criança, usar seu próprio ID
+      if (user?.role === 'child' && user?.childId) {
+        console.log('✅ childId da sessão (criança logada):', user.childId);
+        return user.childId;
+      }
+
+      // 3. Se é pai, buscar primeiro filho da família
+      if (user?.role === 'parent' && user?.familyId) {
+        console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: children } = await supabase
+          .from('children')
+          .select('id')
+          .eq('family_id', user.familyId)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        if (children && children.length > 0) {
+          console.log('✅ Primeiro filho encontrado:', children[0].id);
+          return children[0].id;
+        }
+      }
+
+      console.warn('⚠️ Nenhum childId disponível');
+      return null;
+    };
+
+    getChildId().then(id => {
+      if (id) {
+        setChildId(id); // ✅ Atualizar estado local
+        loadLoans(id);
+        loadChildName(id);
+      } else {
+        setIsLoading(false);
+        alert(
+          '❌ Erro: Não foi possível identificar a criança.\n\nPor favor, volte ao dashboard e tente novamente.'
+        );
+        router.push('/dashboard');
+      }
+    });
+  }, [queryChildId]);
 
   // Auto-selecionar empréstimo se loanId fornecido na URL
   useEffect(() => {

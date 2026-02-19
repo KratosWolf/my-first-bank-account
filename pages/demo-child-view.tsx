@@ -91,10 +91,58 @@ export default function ChildView() {
 
   // useEffect para carregar dados reais do Supabase
   useEffect(() => {
-    if (isAuthorized && router.query.childId) {
-      loadChildData(router.query.childId as string);
-    }
-  }, [isAuthorized, router.query.childId]);
+    if (!isAuthorized) return;
+
+    // Obter childId de três fontes possíveis (em ordem de prioridade):
+    // 1. Query param (navegação explícita)
+    // 2. Sessão do usuário (criança logada)
+    // 3. Primeiro filho da família (pai visualizando)
+    const getChildId = async () => {
+      // 1. Tentar query param primeiro
+      if (router.query.childId && typeof router.query.childId === 'string') {
+        console.log('✅ childId da URL:', router.query.childId);
+        return router.query.childId;
+      }
+
+      // 2. Se usuário é criança, usar seu próprio ID
+      const user = session?.user as any;
+      if (user?.role === 'child' && user?.childId) {
+        console.log('✅ childId da sessão (criança logada):', user.childId);
+        return user.childId;
+      }
+
+      // 3. Se é pai, buscar primeiro filho da família
+      if (user?.role === 'parent' && user?.familyId) {
+        console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
+        const { data: children } = await supabase
+          .from('children')
+          .select('id')
+          .eq('family_id', user.familyId)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        if (children && children.length > 0) {
+          console.log('✅ Primeiro filho encontrado:', children[0].id);
+          return children[0].id;
+        }
+      }
+
+      console.warn('⚠️ Nenhum childId disponível');
+      return null;
+    };
+
+    getChildId().then(childId => {
+      if (childId) {
+        loadChildData(childId);
+      } else {
+        setLoading(false);
+        alert(
+          '❌ Erro: Não foi possível identificar a criança.\n\nPor favor, volte ao dashboard e tente novamente.'
+        );
+        router.push('/dashboard');
+      }
+    });
+  }, [isAuthorized, router.query.childId, session]);
 
   const loadChildData = async (childId: string) => {
     setLoading(true);

@@ -17,21 +17,76 @@ import { LoanService } from '../src/lib/services/loanService';
 
 export default function ChildLoanRequestsPage() {
   const router = useRouter();
-  const { childId } = router.query;
+  const { childId: queryChildId } = router.query;
 
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [childName, setChildName] = useState('');
+  const [childId, setChildId] = useState<string | null>(null); // ✅ Estado local
 
   // Carregar pedidos ao montar componente
   useEffect(() => {
-    if (childId && typeof childId === 'string') {
-      loadRequests(childId);
-      loadChildName(childId);
-    }
-  }, [childId]);
+    // Obter childId de três fontes possíveis (em ordem de prioridade):
+    const getChildId = async () => {
+      // 1. Query param (navegação explícita)
+      if (queryChildId && typeof queryChildId === 'string') {
+        console.log('✅ childId da URL:', queryChildId);
+        return queryChildId;
+      }
+
+      // 2. Tentar obter da sessão
+      const { data: sessionData } = await fetch('/api/auth/session').then(r =>
+        r.json()
+      );
+      const user = sessionData?.user as any;
+
+      // Se é criança, usar seu próprio ID
+      if (user?.role === 'child' && user?.childId) {
+        console.log('✅ childId da sessão (criança logada):', user.childId);
+        return user.childId;
+      }
+
+      // 3. Se é pai, buscar primeiro filho da família
+      if (user?.role === 'parent' && user?.familyId) {
+        console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: children } = await supabase
+          .from('children')
+          .select('id')
+          .eq('family_id', user.familyId)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        if (children && children.length > 0) {
+          console.log('✅ Primeiro filho encontrado:', children[0].id);
+          return children[0].id;
+        }
+      }
+
+      console.warn('⚠️ Nenhum childId disponível');
+      return null;
+    };
+
+    getChildId().then(id => {
+      if (id) {
+        setChildId(id); // ✅ Atualizar estado local
+        loadRequests(id);
+        loadChildName(id);
+      } else {
+        setIsLoading(false);
+        alert(
+          '❌ Erro: Não foi possível identificar a criança.\n\nPor favor, volte ao dashboard e tente novamente.'
+        );
+        router.push('/dashboard');
+      }
+    });
+  }, [queryChildId]);
 
   const loadRequests = async (id: string) => {
     try {
