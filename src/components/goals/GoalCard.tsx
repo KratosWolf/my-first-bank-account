@@ -119,7 +119,7 @@ export default function GoalCard({
 
         {/* Progress */}
         <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-white/70">
                 Progresso
@@ -128,7 +128,7 @@ export default function GoalCard({
                 {progress.percentage}%
               </span>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <div className="text-sm font-bold text-white">
                 R$ {goal.current_amount.toFixed(2)} / R${' '}
                 {goal.target_amount.toFixed(2)}

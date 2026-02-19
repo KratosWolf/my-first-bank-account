@@ -182,7 +182,7 @@ export default function ChildLoanRequestsPage() {
                 ← Voltar
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                   <span>🏦</span>
                   Meus Pedidos
                 </h1>
@@ -234,7 +234,7 @@ export default function ChildLoanRequestsPage() {
                   <span>🟡</span>
                   Aguardando Resposta ({pendingRequests.length})
                 </h2>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2">
                   {pendingRequests.map(request => (
                     <PurchaseRequestCard
                       key={request.id}
@@ -253,7 +253,7 @@ export default function ChildLoanRequestsPage() {
                   <span>🟢</span>
                   Aprovados ({approvedRequests.length})
                 </h2>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2">
                   {approvedRequests.map(request => (
                     <PurchaseRequestCard
                       key={request.id}
@@ -272,7 +272,7 @@ export default function ChildLoanRequestsPage() {
                   <span>🔴</span>
                   Recusados ({rejectedRequests.length})
                 </h2>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2">
                   {rejectedRequests.map(request => (
                     <PurchaseRequestCard
                       key={request.id}

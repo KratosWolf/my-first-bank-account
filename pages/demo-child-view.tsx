@@ -1155,7 +1155,7 @@ export default function ChildView() {
                     {pendingPurchases.slice(0, 3).map(request => (
                       <div
                         key={request.id}
-                        className="bg-bg-secondary rounded-lg p-3 border border-border"
+                        className="bg-bg-secondary rounded-lg p-3 sm:p-4 border border-border"
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-2xl">🛒</div>
@@ -1186,7 +1186,7 @@ export default function ChildView() {
                       .map(request => (
                         <div
                           key={request.id}
-                          className="bg-bg-secondary rounded-lg p-3 border border-border"
+                          className="bg-bg-secondary rounded-lg p-3 sm:p-4 border border-border"
                         >
                           <div className="flex items-center gap-3">
                             <div className="text-2xl">💰</div>
@@ -1482,7 +1482,7 @@ export default function ChildView() {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {availableCategories.map((category, index) => (
                       <button
                         key={index}

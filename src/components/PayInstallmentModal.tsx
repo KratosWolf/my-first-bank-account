@@ -95,7 +95,7 @@ export const PayInstallmentModal: React.FC<PayInstallmentModalProps> = ({
               </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-[#F5B731]">
+              <div className="text-2xl sm:text-3xl font-bold text-[#F5B731]">
                 R$ {installment.amount.toFixed(2)}
               </div>
             </div>

@@ -289,7 +289,7 @@ export default function TransactionHistory({
                     {formatDate(transaction.created_at)}
                   </div>
                   {transaction.category && (
-                    <div className="inline-block mt-1.5 px-2 py-0.5 bg-[#0D2818]/60 border border-primary/30 rounded-full text-xs text-white/70">
+                    <div className="inline-block mt-1.5 px-2 py-0.5 bg-[#0D2818]/60 border border-primary/30 rounded-full text-xs sm:text-sm text-white/70 max-w-[120px] truncate">
                       📁 {transaction.category}
                     </div>
                   )}
@@ -317,7 +317,7 @@ export default function TransactionHistory({
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1 || loading}
-            className="px-4 py-2 bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="px-4 py-2 min-h-[44px] bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             ← Anterior
           </button>
@@ -347,7 +347,7 @@ export default function TransactionHistory({
                   <button
                     key={1}
                     onClick={() => goToPage(1)}
-                    className="w-10 h-10 bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-110 active:scale-95 transition-all"
+                    className="min-w-[44px] min-h-[44px] bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-110 active:scale-95 transition-all"
                   >
                     1
                   </button>
@@ -368,7 +368,7 @@ export default function TransactionHistory({
                     key={i}
                     onClick={() => goToPage(i)}
                     disabled={loading}
-                    className={`w-10 h-10 font-semibold rounded-lg transition-all ${
+                    className={`min-w-[44px] min-h-[44px] font-semibold rounded-lg transition-all ${
                       i === currentPage
                         ? 'bg-primary text-[#0D2818] shadow-lg scale-110 border-2 border-primary'
                         : 'bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary hover:border-primary hover:shadow-lg hover:scale-110 active:scale-95'
@@ -392,7 +392,7 @@ export default function TransactionHistory({
                   <button
                     key={totalPages}
                     onClick={() => goToPage(totalPages)}
-                    className="w-10 h-10 bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-110 active:scale-95 transition-all"
+                    className="min-w-[44px] min-h-[44px] bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-110 active:scale-95 transition-all"
                   >
                     {totalPages}
                   </button>
@@ -407,7 +407,7 @@ export default function TransactionHistory({
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages || loading}
-            className="px-4 py-2 bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="px-4 py-2 min-h-[44px] bg-gradient-to-br from-[#1A4731] to-[#0D2818] border-2 border-primary/40 text-primary font-semibold rounded-lg hover:border-primary hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             Próxima →
           </button>

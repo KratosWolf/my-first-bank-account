@@ -508,7 +508,7 @@ export default function InterestConfigManager({
                                   Projeção de saldo com{' '}
                                   {globalConfig.monthly_rate}% ao mês:
                                 </div>
-                                <div className="flex justify-between text-sm">
+                                <div className="flex justify-between text-sm sm:text-base">
                                   <span className="text-white/70">
                                     Em 1 mês:
                                   </span>
@@ -516,7 +516,7 @@ export default function InterestConfigManager({
                                     R$ {projection1m.toFixed(2)}
                                   </span>
                                 </div>
-                                <div className="flex justify-between text-sm">
+                                <div className="flex justify-between text-sm sm:text-base">
                                   <span className="text-white/70">
                                     Em 3 meses:
                                   </span>
@@ -524,7 +524,7 @@ export default function InterestConfigManager({
                                     R$ {projection3m.toFixed(2)}
                                   </span>
                                 </div>
-                                <div className="flex justify-between text-sm">
+                                <div className="flex justify-between text-sm sm:text-base">
                                   <span className="text-white/70">
                                     Em 6 meses:
                                   </span>

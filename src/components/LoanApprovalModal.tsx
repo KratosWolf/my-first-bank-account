@@ -107,7 +107,7 @@ export const LoanApprovalModal: React.FC<LoanApprovalModalProps> = ({
           <p className="font-semibold text-text-primary mb-2">
             {request.reason}
           </p>
-          <p className="text-2xl font-bold text-primary">
+          <p className="text-xl sm:text-2xl font-bold text-primary">
             R$ {request.amount.toFixed(2)}
           </p>
         </div>
@@ -148,23 +148,23 @@ export const LoanApprovalModal: React.FC<LoanApprovalModalProps> = ({
             Preview do Empréstimo
           </h4>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <p className="text-xs text-white/60 mb-1">Valor Total</p>
-              <p className="text-xl font-bold text-primary">
+              <p className="text-lg sm:text-xl font-bold text-primary">
                 R$ {preview.totalAmount.toFixed(2)}
               </p>
             </div>
             <div>
               <p className="text-xs text-white/60 mb-1">Parcelas</p>
-              <p className="text-xl font-bold text-white">
+              <p className="text-lg sm:text-xl font-bold text-white">
                 {preview.installmentCount}x de R${' '}
                 {preview.installmentAmount.toFixed(2)}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10">
             <div>
               <p className="text-xs text-white/60 mb-1">1ª Parcela</p>
               <p className="text-sm font-semibold text-white">

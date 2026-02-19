@@ -213,7 +213,7 @@ export default function ChildLoansPage() {
                 ← Voltar
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                   <span>💰</span>
                   {selectedLoanDetails
                     ? 'Detalhes do Empréstimo'
@@ -264,7 +264,7 @@ export default function ChildLoansPage() {
                       <span>🟢</span>
                       Empréstimos Ativos ({activeLoans.length})
                     </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 lg:grid-cols-2">
                       {activeLoans.map(loan => (
                         <LoanCard
                           key={loan.id}
@@ -283,7 +283,7 @@ export default function ChildLoansPage() {
                       <span>🎉</span>
                       Empréstimos Quitados ({paidOffLoans.length})
                     </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 lg:grid-cols-2">
                       {paidOffLoans.map(loan => (
                         <LoanCard
                           key={loan.id}
@@ -342,26 +342,26 @@ export default function ChildLoansPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Valor Total</p>
-                    <p className="text-2xl font-bold text-[#F5B731]">
+                    <p className="text-xl sm:text-2xl font-bold text-[#F5B731]">
                       R$ {selectedLoanDetails.total_amount.toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Valor Pago</p>
-                    <p className="text-2xl font-bold text-green-400">
+                    <p className="text-xl sm:text-2xl font-bold text-green-400">
                       R$ {selectedLoanDetails.paid_amount.toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Parcelas</p>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-xl sm:text-2xl font-bold text-white">
                       {selectedLoanDetails.installment_count}x de R${' '}
                       {selectedLoanDetails.installment_amount.toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Falta Pagar</p>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-xl sm:text-2xl font-bold text-white">
                       R${' '}
                       {(
                         selectedLoanDetails.total_amount -
@@ -383,7 +383,7 @@ export default function ChildLoansPage() {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_ease-in-out_infinite]" />
                   </div>
                 </div>
-                <p className="text-center text-white/80 mt-2 text-sm font-semibold">
+                <p className="text-center text-white/80 mt-2 text-xs sm:text-sm font-semibold">
                   {Math.round(
                     (selectedLoanDetails.paid_amount /
                       selectedLoanDetails.total_amount) *

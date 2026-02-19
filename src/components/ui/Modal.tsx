@@ -80,7 +80,7 @@ export const Modal: React.FC<ModalProps> = ({
     >
       <div
         className={`
-          relative w-full ${sizeStyles[size]}
+          relative w-[calc(100%-2rem)] sm:w-full ${sizeStyles[size]}
           bg-bg-secondary rounded-2xl shadow-2xl
           animate-slideInScale
         `}
