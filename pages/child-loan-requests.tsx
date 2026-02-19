@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { supabase } from '@/lib/supabase';
 import { Button } from '../src/components/ui/Button';
 import { Card } from '../src/components/ui/Card';
 import { Modal } from '../src/components/ui/Modal';
@@ -17,45 +19,37 @@ import { LoanService } from '../src/lib/services/loanService';
 
 export default function ChildLoanRequestsPage() {
   const router = useRouter();
-  const { childId: queryChildId } = router.query;
+  const { data: session, status } = useSession();
 
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [childName, setChildName] = useState('');
-  const [childId, setChildId] = useState<string | null>(null); // ✅ Estado local
+  const [childId, setChildId] = useState<string | null>(null);
 
   // Carregar pedidos ao montar componente
   useEffect(() => {
+    if (status === 'loading') return;
+
     // Obter childId de três fontes possíveis (em ordem de prioridade):
     const getChildId = async () => {
       // 1. Query param (navegação explícita)
-      if (queryChildId && typeof queryChildId === 'string') {
-        console.log('✅ childId da URL:', queryChildId);
-        return queryChildId;
+      if (router.query.childId && typeof router.query.childId === 'string') {
+        console.log('✅ childId da URL:', router.query.childId);
+        return router.query.childId;
       }
 
-      // 2. Tentar obter da sessão
-      const { data: sessionData } = await fetch('/api/auth/session').then(r =>
-        r.json()
-      );
-      const user = sessionData?.user as any;
-
-      // Se é criança, usar seu próprio ID
+      // 2. Sessão (criança logada)
+      const user = session?.user as any;
       if (user?.role === 'child' && user?.childId) {
         console.log('✅ childId da sessão (criança logada):', user.childId);
         return user.childId;
       }
 
-      // 3. Se é pai, buscar primeiro filho da família
+      // 3. Primeiro filho da família (pai visualizando)
       if (user?.role === 'parent' && user?.familyId) {
         console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
         const { data: children } = await supabase
           .from('children')
           .select('id')
@@ -75,7 +69,7 @@ export default function ChildLoanRequestsPage() {
 
     getChildId().then(id => {
       if (id) {
-        setChildId(id); // ✅ Atualizar estado local
+        setChildId(id);
         loadRequests(id);
         loadChildName(id);
       } else {
@@ -86,7 +80,7 @@ export default function ChildLoanRequestsPage() {
         router.push('/dashboard');
       }
     });
-  }, [queryChildId]);
+  }, [status, router.query.childId, session]);
 
   const loadRequests = async (id: string) => {
     try {
@@ -110,11 +104,6 @@ export default function ChildLoanRequestsPage() {
 
   const loadChildName = async (id: string) => {
     try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
       const { data } = await supabase
         .from('children')
         .select('name')
@@ -165,12 +154,6 @@ export default function ChildLoanRequestsPage() {
     if (request.status === 'approved') {
       try {
         // Buscar empréstimo correspondente a este pedido
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-
         const { data: loan } = await supabase
           .from('loans')
           .select('id')
