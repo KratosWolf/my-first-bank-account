@@ -20,6 +20,7 @@ import { LoanService } from '../src/lib/services/loanService';
 export default function ChildLoanRequestsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,9 +29,33 @@ export default function ChildLoanRequestsPage() {
   const [childName, setChildName] = useState('');
   const [childId, setChildId] = useState<string | null>(null);
 
-  // Carregar pedidos ao montar componente
+  // Proteger página: apenas usuários autenticados podem acessar
   useEffect(() => {
     if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      console.log('⛔ Usuário não autenticado, redirecionando para login...');
+      router.push('/auth/signin');
+      return;
+    }
+
+    if (status === 'authenticated' && session?.user) {
+      const user = session.user as any;
+
+      // Aceitar criança ou pai
+      if (user?.role === 'child' || user?.role === 'parent') {
+        console.log('✅ Acesso autorizado:', { role: user.role });
+        setIsAuthorized(true);
+      } else {
+        console.log('⛔ Acesso negado - usuário não autorizado');
+        router.push('/acesso-negado');
+      }
+    }
+  }, [status, session, router]);
+
+  // Carregar pedidos ao montar componente
+  useEffect(() => {
+    if (!isAuthorized) return;
 
     // Obter childId de três fontes possíveis (em ordem de prioridade):
     const getChildId = async () => {
@@ -80,7 +105,7 @@ export default function ChildLoanRequestsPage() {
         router.push('/dashboard');
       }
     });
-  }, [status, router.query.childId, session]);
+  }, [isAuthorized, status, router.query.childId, session]);
 
   const loadRequests = async (id: string) => {
     try {
