@@ -911,7 +911,7 @@ export default function ChildView() {
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-5xl">{childData.avatar}</div>
+              <div className="text-4xl sm:text-5xl">{childData.avatar}</div>
               <div>
                 <h1 className="text-2xl font-bold text-white">
                   Oi, {childData.name}! 👋
@@ -938,7 +938,7 @@ export default function ChildView() {
               >
                 🚪 Sair
               </Button>
-              <div className="text-3xl font-bold text-primary">
+              <div className="text-2xl sm:text-3xl font-bold text-primary">
                 R$ {childData.balance.toFixed(2)}
               </div>
               <div className="text-xs text-white/60">Meu saldo</div>
@@ -985,7 +985,7 @@ export default function ChildView() {
             >
               <CardBody>
                 <div className="text-center">
-                  <div className="text-6xl font-black mb-3 drop-shadow-lg">
+                  <div className="text-4xl sm:text-5xl lg:text-6xl font-black mb-3 drop-shadow-lg">
                     R$ {childData.balance.toFixed(2)}
                   </div>
                   <div className="text-lg font-semibold text-white/90 mb-6">

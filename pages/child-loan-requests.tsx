@@ -172,7 +172,7 @@ export default function ChildLoanRequestsPage() {
       {/* Header */}
       <div className="bg-[#1A4731]/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Button
                 variant="secondary"
@@ -194,7 +194,7 @@ export default function ChildLoanRequestsPage() {
             <Button
               variant="primary"
               onClick={() => setShowNewRequestModal(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <span>➕</span>
               Novo Pedido
