@@ -208,7 +208,7 @@ export default function ChildLoanRequestsPage() {
         {/* Empty State */}
         {requests.length === 0 ? (
           <Card className="bg-[#1A4731]/60 border border-white/10 text-center py-16 px-8">
-            <div className="text-8xl mb-6">🐷</div>
+            <div className="text-6xl sm:text-8xl mb-6">🐷</div>
             <h2 className="text-2xl font-bold text-white mb-3">
               Nenhum pedido ainda
             </h2>

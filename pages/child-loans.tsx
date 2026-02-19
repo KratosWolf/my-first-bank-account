@@ -208,7 +208,7 @@ export default function ChildLoansPage() {
               <Button
                 variant="secondary"
                 onClick={handleBack}
-                className="!px-3 !py-2"
+                className="!px-3 !py-2 min-h-[44px]"
               >
                 ← Voltar
               </Button>
@@ -340,26 +340,26 @@ export default function ChildLoansPage() {
 
                 {/* Informações Principais */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Valor Total</p>
                     <p className="text-xl sm:text-2xl font-bold text-[#F5B731]">
                       R$ {selectedLoanDetails.total_amount.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Valor Pago</p>
                     <p className="text-xl sm:text-2xl font-bold text-green-400">
                       R$ {selectedLoanDetails.paid_amount.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Parcelas</p>
                     <p className="text-xl sm:text-2xl font-bold text-white">
                       {selectedLoanDetails.installment_count}x de R${' '}
                       {selectedLoanDetails.installment_amount.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 border border-white/10">
                     <p className="text-xs text-white/60 mb-1">Falta Pagar</p>
                     <p className="text-xl sm:text-2xl font-bold text-white">
                       R${' '}

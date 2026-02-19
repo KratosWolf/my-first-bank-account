@@ -71,7 +71,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-overlay backdrop-blur-sm animate-fadeIn"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
@@ -92,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-2xl font-bold text-text-primary"
+                  className="text-xl sm:text-2xl font-bold text-text-primary"
                 >
                   {title}
                 </h2>

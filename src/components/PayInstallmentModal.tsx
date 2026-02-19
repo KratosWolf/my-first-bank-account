@@ -115,7 +115,7 @@ export const PayInstallmentModal: React.FC<PayInstallmentModalProps> = ({
               onClick={() => setSelectedPaymentSource(option.value)}
               disabled={isLoading}
               className={`
-                w-full p-4 rounded-xl border-2 transition-all
+                w-full p-3 sm:p-4 rounded-xl border-2 transition-all
                 ${
                   selectedPaymentSource === option.value
                     ? `bg-gradient-to-r ${option.color} text-white border-white shadow-lg scale-105`

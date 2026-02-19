@@ -835,7 +835,7 @@ export default function ChildView() {
           : 'text-text-secondary hover:bg-bg-secondary'
       }`}
     >
-      <span className="text-2xl mb-1">{icon}</span>
+      <span className="text-xl sm:text-2xl mb-1">{icon}</span>
       <span className="text-xs font-semibold">{label}</span>
     </button>
   );
@@ -1891,7 +1891,11 @@ export default function ChildView() {
       {/* Modal Novo Sonho */}
       {showGoalModal && (
         <div className="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card variant="elevated" padding="lg" className="max-w-md w-full">
+          <Card
+            variant="elevated"
+            padding="lg"
+            className="max-w-xs sm:max-w-md w-full"
+          >
             <CardBody>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-text-primary">
@@ -1917,7 +1921,7 @@ export default function ChildView() {
                       setNewGoalData({ ...newGoalData, name: e.target.value })
                     }
                     placeholder="Ex: Nintendo Switch, Bicicleta nova..."
-                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full px-4 py-3 min-h-[44px] bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>
 
@@ -1932,7 +1936,7 @@ export default function ChildView() {
                       setNewGoalData({ ...newGoalData, amount: e.target.value })
                     }
                     placeholder="Ex: 1299.00"
-                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full px-4 py-3 min-h-[44px] bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>
 
@@ -1948,7 +1952,7 @@ export default function ChildView() {
                         category: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full px-4 py-3 min-h-[44px] bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   >
                     <option value="">Escolha uma categoria...</option>
                     {availableCategories.map(cat => (
@@ -1980,7 +1984,11 @@ export default function ChildView() {
       {/* Modal Pedir Empréstimo */}
       {showLoanModal && (
         <div className="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card variant="elevated" padding="lg" className="max-w-md w-full">
+          <Card
+            variant="elevated"
+            padding="lg"
+            className="max-w-xs sm:max-w-md w-full"
+          >
             <CardBody>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-text-primary">
@@ -2013,7 +2021,7 @@ export default function ChildView() {
                       setNewLoanData({ ...newLoanData, reason: e.target.value })
                     }
                     placeholder="Ex: Comprar material escolar..."
-                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
+                    className="w-full px-4 py-3 min-h-[44px] bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
                   />
                 </div>
 
@@ -2028,7 +2036,7 @@ export default function ChildView() {
                       setNewLoanData({ ...newLoanData, amount: e.target.value })
                     }
                     placeholder="Ex: 50.00"
-                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
+                    className="w-full px-4 py-3 min-h-[44px] bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
                   />
                 </div>
 
@@ -2044,7 +2052,7 @@ export default function ChildView() {
                         category: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
+                    className="w-full px-4 py-3 min-h-[44px] bg-bg-card text-text-primary border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-info focus:border-info"
                   >
                     <option value="">Escolha uma categoria...</option>
                     {availableCategories.map(cat => (
