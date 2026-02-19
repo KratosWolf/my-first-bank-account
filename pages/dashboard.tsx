@@ -1143,7 +1143,7 @@ export default function DashboardPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {children.map(child => (
                   <Card
                     key={child.id}
@@ -1200,7 +1200,7 @@ export default function DashboardPage() {
 
                       <div className="border-t border-border pt-4">
                         <div className="text-center mb-3">
-                          <p className="text-3xl font-bold text-success">
+                          <p className="text-2xl sm:text-3xl font-bold text-success">
                             R$ {child.balance.toFixed(2)}
                           </p>
                           <p className="text-xs text-text-secondary font-medium">
@@ -1413,13 +1413,13 @@ export default function DashboardPage() {
                 <p className="text-text-secondary">Carregando analytics...</p>
               </div>
             ) : getFilteredAnalytics() ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Financial Summary */}
                 <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white rounded-xl p-6 shadow-lg border-2 border-primary/30">
                   <h4 className="text-sm text-white/80 mb-2">
                     💰 Saldo Total da Família
                   </h4>
-                  <p className="text-3xl font-bold text-primary mb-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-primary mb-1">
                     R${' '}
                     {getFilteredAnalytics().financial_summary.total_family_balance.toFixed(
                       2
@@ -1437,7 +1437,7 @@ export default function DashboardPage() {
                 {/* Transaction Stats */}
                 <div className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white rounded-xl p-6 shadow-lg border-2 border-primary/30">
                   <h4 className="text-sm text-white/80 mb-2">📊 Transações</h4>
-                  <p className="text-3xl font-bold text-primary mb-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-primary mb-1">
                     {
                       getFilteredAnalytics().transaction_stats
                         .total_transactions
@@ -1457,7 +1457,7 @@ export default function DashboardPage() {
                   <h4 className="text-sm text-white/80 mb-2">
                     🎯 Metas Ativas
                   </h4>
-                  <p className="text-3xl font-bold text-primary mb-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-primary mb-1">
                     {getFilteredAnalytics().goal_stats.active_goals}
                   </p>
                   <p className="text-xs text-white/70">
@@ -1471,7 +1471,7 @@ export default function DashboardPage() {
                   <h4 className="text-sm text-white/80 mb-2">
                     ⏰ Pedidos Pendentes
                   </h4>
-                  <p className="text-3xl font-bold text-primary mb-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-primary mb-1">
                     {getFilteredAnalytics().transaction_stats.pending_requests}
                   </p>
                   <p className="text-xs text-white/70">

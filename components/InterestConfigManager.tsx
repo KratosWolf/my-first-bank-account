@@ -324,7 +324,7 @@ export default function InterestConfigManager({
                               monthly_rate: parseFloat(e.target.value),
                             }))
                           }
-                          className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#F5B731]"
+                          className="w-full h-4 sm:h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#F5B731]"
                           disabled={isSaving}
                         />
                         <div className="flex justify-between text-xs text-white/70 mt-1">
@@ -373,7 +373,7 @@ export default function InterestConfigManager({
                       <label className="block text-sm font-semibold text-white mb-2">
                         📅 Frequência de Aplicação
                       </label>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {[
                           {
                             value: 'monthly',
