@@ -141,11 +141,10 @@ export default async function handler(
         // 3. Calcular próxima data de pagamento
         const nextPaymentDate = calculateNextPaymentDate(config);
 
-        // 4. Atualizar configuração (last_paid_at e next_payment_date)
+        // 4. Atualizar configuração (next_payment_date)
         const { error: configUpdateError } = await supabase
           .from('allowance_config')
           .update({
-            last_paid_at: new Date().toISOString(),
             next_payment_date: nextPaymentDate,
           })
           .eq('id', config.id);
