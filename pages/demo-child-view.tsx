@@ -786,8 +786,24 @@ export default function ChildView() {
     }
 
     const amount = allowanceConfig.amount || 0;
-    const nextDate = allowanceConfig.next_payment_date
-      ? new Date(allowanceConfig.next_payment_date).toLocaleDateString('pt-BR')
+
+    // Verificar se a data já passou e recalcular se necessário
+    let nextPaymentDate = allowanceConfig.next_payment_date;
+    if (nextPaymentDate) {
+      const storedDate = new Date(nextPaymentDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Se a data armazenada é no passado, recalcular próxima data futura
+      if (storedDate < today) {
+        console.log('⚠️ Data da mesada está no passado, recalculando...');
+        nextPaymentDate =
+          AllowanceService.calculateNextPaymentDate(allowanceConfig);
+      }
+    }
+
+    const nextDate = nextPaymentDate
+      ? new Date(nextPaymentDate).toLocaleDateString('pt-BR')
       : 'Data não definida';
 
     const frequencyText =
@@ -1314,6 +1330,62 @@ export default function ChildView() {
                       em {childData.nextAllowanceDate}
                     </div>
                   </div>
+                </div>
+              </CardBody>
+            </Card>
+
+            {/* Loan Management Card */}
+            <Card
+              variant="elevated"
+              padding="md"
+              className="bg-gradient-to-br from-[#1A4731] to-[#0D2818] text-white shadow-xl border-2 border-primary/30"
+            >
+              <CardBody>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-4xl">🏦</div>
+                    <div>
+                      <div className="font-bold text-primary text-lg">
+                        Empréstimos
+                      </div>
+                      <div className="text-xs text-white/80">
+                        Pedir e gerenciar empréstimos
+                      </div>
+                    </div>
+                  </div>
+                  {(pendingRequests.length > 0 || childData.activeLoan) && (
+                    <Badge
+                      variant="warning"
+                      size="sm"
+                      className="bg-primary text-[#0D2818] border-0"
+                    >
+                      {pendingRequests.length + (childData.activeLoan ? 1 : 0)}
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() =>
+                      router.push(
+                        `/child-loan-requests?childId=${currentChild?.id}`
+                      )
+                    }
+                    className="text-xs"
+                  >
+                    📋 Meus Pedidos
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      router.push(`/child-loans?childId=${currentChild?.id}`)
+                    }
+                    className="text-xs"
+                  >
+                    💰 Empréstimos Ativos
+                  </Button>
                 </div>
               </CardBody>
             </Card>

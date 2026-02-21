@@ -161,9 +161,9 @@ export default function TransactionHistory({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col md:flex-row gap-4 flex-wrap">
           {/* Period Filter */}
-          <div>
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-white/90 mb-2 flex items-center gap-1.5">
               <span>📅</span> Período
             </label>
@@ -180,7 +180,7 @@ export default function TransactionHistory({
           </div>
 
           {/* Type Filter */}
-          <div>
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-white/90 mb-2 flex items-center gap-1.5">
               <span>🏷️</span> Tipo
             </label>
@@ -201,7 +201,7 @@ export default function TransactionHistory({
           </div>
 
           {/* Category Filter */}
-          <div>
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-white/90 mb-2 flex items-center gap-1.5">
               <span>📁</span> Categoria
             </label>
