@@ -12,7 +12,7 @@
 - **Tipo:** web-app
 - **Tech Stack Principal:** Next.js 14 + TypeScript + Tailwind CSS 4 + Supabase
 - **Repositório:** https://github.com/KratosWolf/my-first-bank-account.git
-- **Branch ativa:** develop (Fase 2)
+- **Branch ativa:** main (Fase 2 completa — aguardando início da Fase 3)
 - **Dono do Projeto:** Tiago (empreendedor, perfil estratégico, não-técnico)
 
 ---
@@ -63,8 +63,8 @@ Só prossiga quando TODOS os itens estiverem ✅.
   - `feat:` nova funcionalidade | `fix:` correção | `docs:` documentação
   - `refactor:` refatoração | `style:` formatação | `test:` testes | `chore:` manutenção
   - Exemplo: `feat: adiciona tela de login com Google OAuth`
-- **Branch ativa:** develop (Fase 2)
-- **NUNCA** faça push direto na `main`. Merge develop → main apenas ao final da fase.
+- **Branch ativa:** main (Fase 2 completa — aguardando início da Fase 3)
+- **NUNCA** faça push direto na `main` sem aprovação. Merge develop → main apenas ao final de cada fase.
 
 ### Regra 6: Consistência Código × Banco × UI
 
@@ -93,11 +93,11 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - ✅ 7/7 tasks concluídas
 - App estável, juros corrigidos, dependências atualizadas
 
-### FASE 2 — Redesign Visual + Empréstimos ⬅️ FASE ATUAL
+### FASE 2 — Redesign Visual + Empréstimos ✅ COMPLETA (2026-02-21)
 
 **Objetivo:** Visual novo (verde/amarelo/branco) + sistema completo de empréstimos educativos
 
-**Progresso:** 13/14 tasks (93%) — falta apenas 2.14
+**Progresso:** 14/14 tasks (100%) — Fase finalizada
 
 **BLOCO A — Fundação:** ✅ COMPLETO
 
@@ -121,13 +121,15 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - ✅ 2.12 Aprovação + empréstimo (visão pai)
 - ✅ 2.13 Dashboard de empréstimo ativo
 
-**BLOCO D — Polish:**
+**BLOCO D — Polish:** ✅ COMPLETO
 
-- [ ] 2.14 Testes, responsividade e deploy na Vercel
+- ✅ 2.14 Testes, responsividade e deploy na Vercel
+
+**Branch:** develop → main (merged 2026-02-21)
 
 **NÃO inclui (fases futuras):** Onboarding (Fase 3), Notificações, Gamificação, PWA, Monetização (Fase 4).
 
-### FASE 3 — Onboarding Profissional | 🔒 Bloqueada
+### FASE 3 — Onboarding Profissional ⬅️ PRÓXIMA FASE | 🔒 Bloqueada
 
 ### FASE 4 — Melhorias Futuras | 🔒 Bloqueada
 
