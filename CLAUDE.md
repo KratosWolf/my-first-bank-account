@@ -145,21 +145,22 @@ Só prossiga quando TODOS os itens estiverem ✅.
 
 ### Tabelas Ativas
 
-| Tabela                | Descrição                           | Última alteração |
-| --------------------- | ----------------------------------- | ---------------- |
-| accounts              | Contas bancárias das crianças       | 2026-02-17       |
-| transactions          | Histórico (inclui goal_interest)    | 2026-02-17       |
-| interest_config       | Taxa de juros (monthly_rate 0-100%) | 2026-02-17       |
-| savings_goals / goals | Sonhos/metas com juros              | 2026-02-17       |
-| children              | Perfis das crianças                 | Original         |
-| users / profiles      | Pais/responsáveis                   | Original         |
-| families              | Famílias (chave de relacionamento)  | Original         |
-| purchase_requests     | Pedidos de compra (LoanService)     | 2026-02-18       |
-| loans                 | Empréstimos ativos com parcelas     | 2026-02-18       |
-| loan_installments     | Parcelas individuais de empréstimos | 2026-02-18       |
-| [+ outras]            | Mapear quando necessário            | —                |
+| Tabela                | Descrição                                                          | Última alteração |
+| --------------------- | ------------------------------------------------------------------ | ---------------- |
+| accounts              | Contas bancárias das crianças                                      | 2026-02-17       |
+| transactions          | Histórico (inclui goal_interest)                                   | 2026-02-17       |
+| interest_config       | Taxa de juros (monthly_rate 0-100%)                                | 2026-02-17       |
+| savings_goals / goals | Sonhos/metas com juros                                             | 2026-02-17       |
+| children              | Perfis das crianças                                                | Original         |
+| users / profiles      | Pais/responsáveis                                                  | Original         |
+| families              | Famílias (chave de relacionamento)                                 | Original         |
+| purchase_requests     | Pedidos de compra (LoanService)                                    | 2026-02-18       |
+| loans                 | Empréstimos ativos com parcelas                                    | 2026-02-18       |
+| loan_installments     | Parcelas individuais de empréstimos                                | 2026-02-18       |
+| allowance_config      | Config de mesada automática (valor, frequência, next_payment_date) | 2026-02-21       |
+| [+ outras]            | Mapear quando necessário                                           | —                |
 
-### Reconciliação (última verificação: 2026-02-18)
+### Reconciliação (última verificação: 2026-02-21)
 
 | Feature na UI         | Código referencia                                  | Tabela no banco                  | Status |
 | --------------------- | -------------------------------------------------- | -------------------------------- | ------ |
@@ -170,6 +171,7 @@ Só prossiga quando TODOS os itens estiverem ✅.
 | Pedidos               | LoanService + PurchaseRequestCard + NewRequestForm | purchase_requests                | ✅ OK  |
 | Empréstimos (pai)     | LoanApprovalModal + RejectionModal                 | loans, loan_installments         | ✅ OK  |
 | Empréstimos (criança) | LoanCard + InstallmentList + PayInstallmentModal   | loans, loan_installments         | ✅ OK  |
+| Mesada automática     | apply-allowance.ts + daily-allowance.yml           | allowance_config                 | ✅ OK  |
 
 ### Migration de Empréstimos (executada 2026-02-18)
 
@@ -267,20 +269,23 @@ MyFirstBA2/
 
 ## 📝 DECISÕES TÉCNICAS REGISTRADAS
 
-| Data       | Decisão                                                          | Motivo                                                                             |
-| ---------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)                             | Educacional, taxa mensal é mais intuitiva                                          |
-| 2026-02-17 | Goals rendem juros separados                                     | Transparência: cada goal tem transações rastreáveis                                |
-| 2026-02-17 | LoanService usa purchase_requests                                | Já existia, CRUD funcional, mantido como abstração                                 |
-| 2026-02-17 | Empréstimo com saldo separado (não negativo)                     | Mais educativo e seguro tecnicamente                                               |
-| 2026-02-17 | Sem juros em empréstimos (por enquanto)                          | Simplicidade para MVP de empréstimos                                               |
-| 2026-02-17 | Deploy Vercel no final da Fase 2                                 | App precisa ter visual novo antes de ir pra produção                               |
-| 2026-02-18 | family_id é chave de relacionamento (não user_id)                | Descoberto durante task 2.10: children, loans etc. usam family_id                  |
-| 2026-02-18 | Maioria das tabelas antigas tem RLS desabilitado                 | Segurança feita na camada de aplicação; tabelas novas (loans) têm RLS              |
-| 2026-02-18 | Empréstimos: 3 componentes criança + 2 componentes pai           | LoanCard, InstallmentList, PayInstallmentModal + LoanApprovalModal, RejectionModal |
-| 2026-02-18 | Pedidos aprovados linkam para empréstimo via purchase_request_id | Navegação child-loan-requests → child-loans com query param                        |
-| 2026-02-18 | Mesada automática NÃO implementada                               | payInstallment pronto para integração futura quando mesada automática existir      |
-| 2026-02-18 | Parcelas com detecção automática de atraso                       | InstallmentList compara due_date com data atual para marcar overdue                |
+| Data       | Decisão                                                               | Motivo                                                                                 |
+| ---------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)                                  | Educacional, taxa mensal é mais intuitiva                                              |
+| 2026-02-17 | Goals rendem juros separados                                          | Transparência: cada goal tem transações rastreáveis                                    |
+| 2026-02-17 | LoanService usa purchase_requests                                     | Já existia, CRUD funcional, mantido como abstração                                     |
+| 2026-02-17 | Empréstimo com saldo separado (não negativo)                          | Mais educativo e seguro tecnicamente                                                   |
+| 2026-02-17 | Sem juros em empréstimos (por enquanto)                               | Simplicidade para MVP de empréstimos                                                   |
+| 2026-02-17 | Deploy Vercel no final da Fase 2                                      | App precisa ter visual novo antes de ir pra produção                                   |
+| 2026-02-18 | family_id é chave de relacionamento (não user_id)                     | Descoberto durante task 2.10: children, loans etc. usam family_id                      |
+| 2026-02-18 | Maioria das tabelas antigas tem RLS desabilitado                      | Segurança feita na camada de aplicação; tabelas novas (loans) têm RLS                  |
+| 2026-02-18 | Empréstimos: 3 componentes criança + 2 componentes pai                | LoanCard, InstallmentList, PayInstallmentModal + LoanApprovalModal, RejectionModal     |
+| 2026-02-18 | Pedidos aprovados linkam para empréstimo via purchase_request_id      | Navegação child-loan-requests → child-loans com query param                            |
+| 2026-02-18 | Mesada automática NÃO implementada                                    | payInstallment pronto para integração futura quando mesada automática existir          |
+| 2026-02-18 | Parcelas com detecção automática de atraso                            | InstallmentList compara due_date com data atual para marcar overdue                    |
+| 2026-02-21 | Fix mesada: removido last_paid_at inexistente do apply-allowance.ts   | Coluna não existe em allowance_config; update falhava silenciosamente desde 05/12/2025 |
+| 2026-02-21 | Mesadas retroativas jan+fev 2026 creditadas manualmente (R$400 total) | 2 meses sem pagamento por causa do bug last_paid_at                                    |
+| 2026-02-21 | allowance_config usa apenas next_payment_date + updated_at            | Confirmado schema real da tabela; não tem last_paid_at                                 |
 
 ---
 
