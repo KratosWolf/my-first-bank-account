@@ -28,6 +28,9 @@ export default function ChildLoanRequestsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [childName, setChildName] = useState('');
   const [childId, setChildId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   // Proteger página: apenas usuários autenticados podem acessar
   useEffect(() => {
@@ -99,10 +102,9 @@ export default function ChildLoanRequestsPage() {
         loadChildName(id);
       } else {
         setIsLoading(false);
-        alert(
-          '❌ Erro: Não foi possível identificar a criança.\n\nPor favor, volte ao dashboard e tente novamente.'
+        setError(
+          'Não foi possível identificar a criança. Por favor, volte ao dashboard e tente novamente.'
         );
-        router.push('/dashboard');
       }
     });
   }, [isAuthorized, status, router.query.childId, session]);
@@ -164,11 +166,12 @@ export default function ChildLoanRequestsPage() {
       // Fechar modal
       setShowNewRequestModal(false);
 
-      // Feedback visual (opcional: adicionar toast notification)
-      alert('🎉 Pedido enviado com sucesso!');
+      // Feedback visual
+      setSuccessMessage('🎉 Pedido enviado com sucesso!');
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
-      alert('❌ Erro ao enviar pedido. Tente novamente.');
+      setError('Erro ao enviar pedido. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -190,20 +193,22 @@ export default function ChildLoanRequestsPage() {
           router.push(`/child-loans?childId=${childId}&loanId=${loan.id}`);
         } else {
           // Se não encontrou empréstimo, mostrar mensagem
-          alert(
-            '⚠️ Empréstimo não encontrado.\n\nEste pedido foi aprovado, mas o empréstimo ainda não foi criado. Fale com seus pais!'
+          setInfoMessage(
+            '⚠️ Empréstimo não encontrado. Este pedido foi aprovado, mas o empréstimo ainda não foi criado. Fale com seus pais!'
           );
+          setTimeout(() => setInfoMessage(null), 6000);
         }
       } catch (error) {
         console.error('Erro ao buscar empréstimo:', error);
-        alert('❌ Erro ao carregar detalhes. Tente novamente.');
+        setError('Erro ao carregar detalhes. Tente novamente.');
       }
     } else if (request.status === 'rejected') {
       // Para pedidos rejeitados, mostrar motivo se houver
       if (request.parent_note) {
-        alert(
+        setInfoMessage(
           `❌ Pedido Recusado\n\nMotivo: ${request.parent_note}\n\nConverse com seus pais para entender melhor!`
         );
+        setTimeout(() => setInfoMessage(null), 6000);
       }
     }
     // Para pedidos pendentes, não faz nada (aguardando resposta)
@@ -221,6 +226,30 @@ export default function ChildLoanRequestsPage() {
           <div className="text-6xl mb-4 animate-bounce">🏦</div>
           <p className="text-white text-lg">Carregando pedidos...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Estado de erro crítico (childId não encontrado)
+  if (error && !childId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731] flex items-center justify-center p-4">
+        <Card className="bg-[#1A4731] border-2 border-red-500/30 max-w-md">
+          <div className="p-8 text-center">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-white mb-3">Erro</h2>
+            <p className="text-white/80 text-sm mb-6 whitespace-pre-line">
+              {error}
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => router.back()}
+              className="w-full"
+            >
+              ← Voltar ao Dashboard
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -268,6 +297,51 @@ export default function ChildLoanRequestsPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Mensagens de Sucesso/Info/Erro */}
+        {successMessage && (
+          <Card className="bg-green-500/20 border-2 border-green-500/50 mb-6">
+            <div className="p-4 flex items-center justify-between">
+              <p className="text-white font-medium">{successMessage}</p>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="text-white/60 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {infoMessage && (
+          <Card className="bg-yellow-500/20 border-2 border-yellow-500/50 mb-6">
+            <div className="p-4 flex items-center justify-between">
+              <p className="text-white font-medium whitespace-pre-line">
+                {infoMessage}
+              </p>
+              <button
+                onClick={() => setInfoMessage(null)}
+                className="text-white/60 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {error && childId && (
+          <Card className="bg-red-500/20 border-2 border-red-500/50 mb-6">
+            <div className="p-4 flex items-center justify-between">
+              <p className="text-white font-medium">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="text-white/60 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </Card>
+        )}
+
         {/* Empty State */}
         {requests.length === 0 ? (
           <Card className="bg-[#1A4731]/60 border border-white/10 text-center py-16 px-8">

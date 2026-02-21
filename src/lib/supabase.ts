@@ -1,7 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Validar variáveis de ambiente (funcionam tanto no servidor quanto no cliente)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Supabase configuration error:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    url: supabaseUrl ? 'OK' : 'MISSING',
+    key: supabaseAnonKey ? 'OK' : 'MISSING',
+  });
+  throw new Error(
+    '⚠️ Missing Supabase environment variables. Please check .env.local and ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
+  );
+}
+
+// Log de inicialização (apenas em dev)
+if (process.env.NODE_ENV === 'development') {
+  console.log('✅ Supabase client initialized:', {
+    url: supabaseUrl.substring(0, 30) + '...',
+    keyLength: supabaseAnonKey.length,
+  });
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

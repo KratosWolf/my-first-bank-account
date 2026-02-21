@@ -36,6 +36,8 @@ export default function ChildLoansPage() {
   const [selectedInstallment, setSelectedInstallment] =
     useState<LoanInstallment | null>(null);
   const [isPayingInstallment, setIsPayingInstallment] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Proteger página: apenas usuários autenticados podem acessar
   useEffect(() => {
@@ -108,10 +110,9 @@ export default function ChildLoansPage() {
         loadChildName(id);
       } else {
         setIsLoading(false);
-        alert(
-          '❌ Erro: Não foi possível identificar a criança.\n\nPor favor, volte ao dashboard e tente novamente.'
+        setError(
+          'Não foi possível identificar a criança. Por favor, volte ao dashboard e tente novamente.'
         );
-        router.push('/dashboard');
       }
     });
   }, [isAuthorized, status, router.query.childId, session]);
@@ -167,7 +168,7 @@ export default function ChildLoansPage() {
       setSelectedLoanDetails(details);
     } catch (error) {
       console.error('Erro ao carregar detalhes do empréstimo:', error);
-      alert('❌ Erro ao carregar detalhes. Tente novamente.');
+      setError('Erro ao carregar detalhes. Tente novamente.');
     } finally {
       setIsLoadingDetails(false);
     }
@@ -203,7 +204,7 @@ export default function ChildLoansPage() {
       );
 
       if (!success) {
-        alert('❌ Erro ao pagar parcela. Tente novamente.');
+        setError('Erro ao pagar parcela. Tente novamente.');
         return;
       }
 
@@ -222,24 +223,26 @@ export default function ChildLoansPage() {
       );
       if (updatedLoan?.status === 'paid_off') {
         // Celebração! 🎉
-        alert(
-          `🎉🎉🎉 PARABÉNS! 🎉🎉🎉\n\nVocê quitou seu empréstimo!\n\nIsso mostra que você é muito responsável com seu dinheiro. Continue assim! 🌟\n\nValor total pago: R$ ${updatedLoan.total_amount.toFixed(2)}`
+        setSuccessMessage(
+          `🎉🎉🎉 PARABÉNS! Você quitou seu empréstimo! 🎉🎉🎉\n\nIsso mostra que você é muito responsável com seu dinheiro. Continue assim! 🌟\n\nValor total pago: R$ ${updatedLoan.total_amount.toFixed(2)}`
         );
+        setTimeout(() => setSuccessMessage(null), 10000);
       } else {
         // Feedback normal
-        alert(
-          `✅ Parcela paga com sucesso!\n\nValor: R$ ${selectedInstallment.amount.toFixed(2)}\nForma de pagamento: ${
-            paidFrom === 'allowance'
-              ? 'Mesada'
-              : paidFrom === 'gift'
-                ? 'Presente'
-                : 'Outro'
-          }\n\nContinue pagando suas parcelas! 💪`
+        const paymentMethod =
+          paidFrom === 'allowance'
+            ? 'Mesada'
+            : paidFrom === 'gift'
+              ? 'Presente'
+              : 'Outro';
+        setSuccessMessage(
+          `✅ Parcela paga com sucesso!\n\nValor: R$ ${selectedInstallment.amount.toFixed(2)}\nForma de pagamento: ${paymentMethod}\n\nContinue pagando suas parcelas! 💪`
         );
+        setTimeout(() => setSuccessMessage(null), 6000);
       }
     } catch (error) {
       console.error('Erro ao pagar parcela:', error);
-      alert('❌ Erro ao processar pagamento. Tente novamente.');
+      setError('Erro ao processar pagamento. Tente novamente.');
     } finally {
       setIsPayingInstallment(false);
     }
@@ -261,6 +264,30 @@ export default function ChildLoansPage() {
           <div className="text-6xl mb-4 animate-bounce">💰</div>
           <p className="text-white text-lg">Carregando empréstimos...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Estado de erro crítico (childId não encontrado)
+  if (error && !childId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0D2818] to-[#1A4731] flex items-center justify-center p-4">
+        <Card className="bg-[#1A4731] border-2 border-red-500/30 max-w-md">
+          <div className="p-8 text-center">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-white mb-3">Erro</h2>
+            <p className="text-white/80 text-sm mb-6 whitespace-pre-line">
+              {error}
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => router.back()}
+              className="w-full"
+            >
+              ← Voltar ao Dashboard
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -301,6 +328,37 @@ export default function ChildLoansPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Mensagens de Sucesso/Erro */}
+        {successMessage && (
+          <Card className="bg-green-500/20 border-2 border-green-500/50 mb-6">
+            <div className="p-4 flex items-center justify-between">
+              <p className="text-white font-medium whitespace-pre-line">
+                {successMessage}
+              </p>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="text-white/60 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {error && childId && (
+          <Card className="bg-red-500/20 border-2 border-red-500/50 mb-6">
+            <div className="p-4 flex items-center justify-between">
+              <p className="text-white font-medium">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="text-white/60 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </Card>
+        )}
+
         {/* Visualização de Lista */}
         {!selectedLoanDetails && (
           <>

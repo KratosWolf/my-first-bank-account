@@ -1345,6 +1345,7 @@ export default function ChildView() {
                       <div
                         className={`font-bold text-lg ${
                           transaction.type === 'allowance' ||
+                          transaction.type === 'earning' ||
                           transaction.type === 'deposit' ||
                           transaction.type === 'gift' ||
                           transaction.type === 'interest' ||
@@ -1355,6 +1356,7 @@ export default function ChildView() {
                         }`}
                       >
                         {transaction.type === 'allowance' ||
+                        transaction.type === 'earning' ||
                         transaction.type === 'deposit' ||
                         transaction.type === 'gift' ||
                         transaction.type === 'interest' ||
