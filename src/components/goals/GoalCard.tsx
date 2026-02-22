@@ -11,6 +11,8 @@ interface GoalCardProps {
   goal: Goal;
   progress: GoalProgress;
   onAddMoney?: (goalId: string, amount: number) => void;
+  onCancelGoal?: (goalId: string) => void;
+  onRequestFulfillment?: (goalId: string) => void;
   showActions?: boolean;
 }
 
@@ -18,9 +20,12 @@ export default function GoalCard({
   goal,
   progress,
   onAddMoney,
+  onCancelGoal,
+  onRequestFulfillment,
   showActions = true,
 }: GoalCardProps) {
   const [showAddMoney, setShowAddMoney] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [amount, setAmount] = useState('');
 
   const handleAddMoney = () => {
@@ -190,15 +195,67 @@ export default function GoalCard({
 
       {/* Actions */}
       {showActions && !goal.is_completed && (
-        <div className="bg-[#0D2818] px-6 py-4">
-          {!showAddMoney ? (
-            <button
-              onClick={() => setShowAddMoney(true)}
-              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#F5B731] to-[#FFD966] hover:from-[#FFD966] hover:to-[#F5B731] text-[#0D2818] font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:shadow-lg transform hover:scale-105"
-            >
-              <span>💰</span>
-              <span>Adicionar Dinheiro</span>
-            </button>
+        <div className="bg-[#0D2818] px-6 py-4 space-y-3">
+          {/* Botão principal: Adicionar dinheiro OU Realizar sonho */}
+          {!showAddMoney && !showCancelConfirm ? (
+            <>
+              {progress.percentage >= 100 ? (
+                <button
+                  onClick={() => onRequestFulfillment?.(goal.id!)}
+                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#22C55E] to-[#16A34A] hover:from-[#16A34A] hover:to-[#22C55E] text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 hover:shadow-lg transform hover:scale-105 animate-pulse"
+                >
+                  <span>🎁</span>
+                  <span>Realizar Sonho!</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowAddMoney(true)}
+                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#F5B731] to-[#FFD966] hover:from-[#FFD966] hover:to-[#F5B731] text-[#0D2818] font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:shadow-lg transform hover:scale-105"
+                >
+                  <span>💰</span>
+                  <span>Adicionar Dinheiro</span>
+                </button>
+              )}
+
+              {/* Botão secundário: Desistir */}
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="w-full flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm"
+              >
+                <span>🚫</span>
+                <span>Desistir deste Sonho</span>
+              </button>
+            </>
+          ) : showCancelConfirm ? (
+            /* Modal de confirmação de cancelamento */
+            <div className="space-y-3 bg-[#EF4444]/10 border-2 border-[#EF4444]/30 rounded-xl p-4">
+              <div className="text-center">
+                <div className="text-3xl mb-2">⚠️</div>
+                <p className="text-white font-semibold mb-1">
+                  Tem certeza que quer desistir?
+                </p>
+                <p className="text-white/70 text-sm mb-3">
+                  R$ {goal.current_amount.toFixed(2)} voltará para sua conta
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    onCancelGoal?.(goal.id!);
+                    setShowCancelConfirm(false);
+                  }}
+                  className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  Sim, Desistir
+                </button>
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
               <div className="flex space-x-2">
@@ -243,6 +300,17 @@ export default function GoalCard({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Celebration for completed goals */}
+      {goal.is_completed && showActions && (
+        <div className="bg-[#0D2818] px-6 py-4">
+          <div className="text-center text-white/70 text-sm font-medium">
+            <span className="mr-1">🎉</span>
+            Sonho realizado!
+            <span className="ml-1">🎊</span>
+          </div>
         </div>
       )}
 
