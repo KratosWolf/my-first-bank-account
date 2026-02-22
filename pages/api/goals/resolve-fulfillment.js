@@ -83,7 +83,59 @@ async function handleResolveFulfillment(req, res) {
       });
     }
 
-    // 3. Preparar dados de atualização baseado na ação
+    // 3. Se APROVAR, debitar saldo do sonho e criar transação
+    let newChildBalance = null;
+    if (action === 'approve') {
+      // Buscar saldo atual da criança
+      const { data: child, error: childError } = await supabase
+        .from('children')
+        .select('balance, name')
+        .eq('id', goal.child_id)
+        .single();
+
+      if (childError || !child) {
+        console.error('❌ Child not found:', childError);
+        return res.status(404).json({
+          error: 'Child not found for this goal',
+          details: childError?.message,
+        });
+      }
+
+      const goalAmount = parseFloat(goal.current_amount || 0);
+
+      console.log('💰 Debiting goal amount from goal balance:', {
+        goal_current_amount: goalAmount,
+        child_balance_before: child.balance,
+      });
+
+      // Criar transação de realização do sonho (goal_purchase)
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert([
+          {
+            child_id: goal.child_id,
+            type: 'goal_purchase',
+            amount: -goalAmount, // Negativo porque é débito (saiu do sonho)
+            description: `Sonho realizado: ${goal.title}`,
+            category: goal.category || 'other',
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (transactionError) {
+        console.warn(
+          '⚠️ Failed to create transaction (non-critical):',
+          transactionError
+        );
+        // Não falhar a operação por causa da transação
+      } else {
+        console.log('✅ Transaction created for goal fulfillment');
+      }
+
+      newChildBalance = child.balance; // Mantém o saldo da criança (dinheiro já estava no sonho)
+    }
+
+    // 4. Preparar dados de atualização baseado na ação
     const updateData = {
       fulfillment_resolved_at: new Date().toISOString(),
       fulfillment_resolved_by: parent_id,
@@ -94,11 +146,12 @@ async function handleResolveFulfillment(req, res) {
       updateData.fulfillment_status = 'approved';
       updateData.is_completed = true;
       updateData.completed_at = new Date().toISOString();
+      updateData.current_amount = 0; // Zerar saldo do sonho (dinheiro foi usado)
     } else if (action === 'reject') {
       updateData.fulfillment_status = 'rejected';
     }
 
-    // 4. Atualizar o sonho
+    // 5. Atualizar o sonho
     const { data: updatedGoal, error: updateError } = await supabase
       .from('goals')
       .update(updateData)
