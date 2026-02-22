@@ -731,6 +731,68 @@ export default function ChildView() {
     }
   };
 
+  const cancelGoal = async (
+    goalId: string,
+    goalName: string,
+    currentAmount: number
+  ) => {
+    if (!currentChild) {
+      alert('❌ Erro: Dados da criança não encontrados.');
+      return;
+    }
+
+    // Confirmação antes de cancelar
+    const confirmCancel = window.confirm(
+      `Tem certeza que quer desistir de "${goalName}"?\n\n` +
+        `R$ ${currentAmount.toFixed(2)} voltará para sua conta.\n\n` +
+        `Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmCancel) return;
+
+    try {
+      console.log('❌ Cancelando sonho via API:', {
+        goal_id: goalId,
+        child_id: currentChild.id,
+        goalName,
+        currentAmount,
+      });
+
+      const response = await fetch('/api/goals/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          goal_id: goalId,
+          child_id: currentChild.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ Erro da API:', result);
+        alert(`❌ Erro ao cancelar sonho:\n${result.error}`);
+        return;
+      }
+
+      console.log('✅ Sonho cancelado via API:', result);
+
+      // Reload data to show updated goals and balance
+      await loadChildData(currentChild.id);
+
+      alert(
+        `✅ Sonho "${goalName}" cancelado!\n\n` +
+          `R$ ${currentAmount.toFixed(2)} foi devolvido para sua conta.\n\n` +
+          `Novo saldo: R$ ${result.data.new_child_balance.toFixed(2)}`
+      );
+    } catch (error) {
+      console.error('❌ Erro interno:', error);
+      alert('❌ Erro ao cancelar sonho. Tente novamente.');
+    }
+  };
+
   const submitLoanRequest = async () => {
     const amount = parseFloat(newLoanData.amount.replace(',', '.'));
 
@@ -1740,6 +1802,21 @@ export default function ChildView() {
                       onClick={() => contributeToGoal(goal.id, goal.name)}
                     >
                       💰 Contribuir para este sonho
+                    </Button>
+                  )}
+
+                  {/* Botão Desistir - Disponível para qualquer sonho ativo (não realizado) */}
+                  {goal.fulfillment_status !== 'approved' && (
+                    <Button
+                      variant="ghost"
+                      fullWidth
+                      size="sm"
+                      onClick={() =>
+                        cancelGoal(goal.id, goal.name, goal.current)
+                      }
+                      className="mt-3 text-error hover:bg-error/10 border border-error/30"
+                    >
+                      ❌ Desistir deste Sonho
                     </Button>
                   )}
                 </CardBody>
