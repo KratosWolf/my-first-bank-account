@@ -320,7 +320,7 @@ GOOGLE_CLIENT_ID=13158927511-...apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-...
 
 # Cron Security
-CRON_SECRET=dev-cron-secret-123
+CRON_SECRET=$CRON_SECRET
 ```
 
 ---
@@ -649,10 +649,10 @@ node scripts/check-allowance-table.js
 
 # Testar crons localmente
 curl -X POST http://localhost:3000/api/cron/apply-interest \
-  -H "Authorization: Bearer dev-cron-secret-123"
+  -H "Authorization: Bearer $CRON_SECRET"
 
 curl -X POST http://localhost:3000/api/cron/apply-allowance \
-  -H "Authorization: Bearer dev-cron-secret-123"
+  -H "Authorization: Bearer $CRON_SECRET"
 
 # Migrations
 psql $DATABASE_URL < database/migrations/003_fix_interest_config_columns.sql

@@ -281,7 +281,7 @@ Authorization: Bearer {CRON_SECRET}
 
 ```bash
 curl -X POST http://localhost:3000/api/cron/apply-interest \
-  -H "Authorization: Bearer dev-cron-secret-123"
+  -H "Authorization: Bearer $CRON_SECRET"
 ```
 
 ---

@@ -89,7 +89,7 @@ export default async function handler(
 
 ```bash
 curl -X POST http://localhost:3000/api/cron/apply-interest \
-  -H "Authorization: Bearer dev-cron-secret-123" \
+  -H "Authorization: Bearer $CRON_SECRET" \
   -H "Content-Type: application/json"
 ```
 
@@ -282,7 +282,7 @@ Resultado:
 **Variável de ambiente:**
 
 ```env
-CRON_SECRET=dev-cron-secret-123  # Desenvolvimento
+CRON_SECRET=$CRON_SECRET  # Desenvolvimento
 CRON_SECRET=<secret-token-prod>  # Produção
 ```
 
@@ -290,7 +290,7 @@ CRON_SECRET=<secret-token-prod>  # Produção
 
 ```typescript
 const authHeader = req.headers.authorization;
-const cronSecret = process.env.CRON_SECRET || 'dev-cron-secret-123';
+const cronSecret = process.env.CRON_SECRET || '$CRON_SECRET';
 
 if (authHeader !== `Bearer ${cronSecret}`) {
   return res.status(401).json({ error: 'Unauthorized' });
@@ -316,7 +316,7 @@ curl -X POST http://localhost:3000/api/cron/apply-interest \
 
 # ✅ Token correto - deve retornar 200
 curl -X POST http://localhost:3000/api/cron/apply-interest \
-  -H "Authorization: Bearer dev-cron-secret-123"
+  -H "Authorization: Bearer $CRON_SECRET"
 ```
 
 ---
@@ -535,7 +535,7 @@ git push origin refactor/clean-architecture
 ```bash
 # Testar com autenticação
 curl -X POST http://localhost:3000/api/cron/apply-interest \
-  -H "Authorization: Bearer dev-cron-secret-123" \
+  -H "Authorization: Bearer $CRON_SECRET" \
   -H "Content-Type: application/json"
 
 # Testar sem autenticação (deve retornar 401)

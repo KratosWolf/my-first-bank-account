@@ -15,9 +15,12 @@ export default async function handler(
   res: NextApiResponse
 ) {
   // Verificação de segurança
-  const authHeader = req.headers.authorization;
-  const cronSecret = process.env.CRON_SECRET || 'dev-cron-secret-123';
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return res.status(500).json({ error: 'CRON_SECRET not configured' });
+  }
 
+  const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${cronSecret}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -114,6 +117,6 @@ export default async function handler(
  * Para testar manualmente:
  *
  * curl -X POST http://localhost:3002/api/cron/apply-interest \
- *   -H "Authorization: Bearer dev-cron-secret-123" \
+ *   -H "Authorization: Bearer $CRON_SECRET" \
  *   -H "Content-Type: application/json"
  */

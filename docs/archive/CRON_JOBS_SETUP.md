@@ -33,7 +33,7 @@ Você precisa adicionar o `CRON_SECRET` como secret do repositório:
    - **Name**: `CRON_SECRET`
    - **Value**: Use o mesmo valor de `.env.local`:
      ```
-     dev-cron-secret-123
+     $CRON_SECRET
      ```
 
    ⚠️ **IMPORTANTE**: Em produção, troque por um valor mais seguro:
@@ -172,7 +172,7 @@ Se por algum motivo o GitHub Actions falhar, você pode usar **cron-job.org** co
      - Method: `POST`
      - Headers:
        ```
-       Authorization: Bearer dev-cron-secret-123
+       Authorization: Bearer $CRON_SECRET
        Content-Type: application/json
        ```
 
@@ -222,12 +222,12 @@ Para testar os endpoints manualmente:
 ```bash
 # Mesada Diária
 curl -X POST http://localhost:3000/api/cron/apply-allowance \
-  -H "Authorization: Bearer dev-cron-secret-123" \
+  -H "Authorization: Bearer $CRON_SECRET" \
   -H "Content-Type: application/json"
 
 # Juros Mensais
 curl -X POST http://localhost:3000/api/cron/apply-interest \
-  -H "Authorization: Bearer dev-cron-secret-123" \
+  -H "Authorization: Bearer $CRON_SECRET" \
   -H "Content-Type: application/json"
 ```
 

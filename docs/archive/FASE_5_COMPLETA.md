@@ -578,7 +578,7 @@ Resultado:
 ```bash
 # Testar API cron com autenticação
 curl -X POST http://localhost:3000/api/cron/apply-allowance \
-  -H "Authorization: Bearer dev-cron-secret-123" \
+  -H "Authorization: Bearer $CRON_SECRET" \
   -H "Content-Type: application/json"
 ```
 
