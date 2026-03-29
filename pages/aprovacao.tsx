@@ -17,10 +17,9 @@ export default function AprovacaoPage() {
     try {
       const response = await fetch('/api/purchase-requests?status=pending');
       const result = await response.json();
-      
+
       if (response.ok) {
         setPendingRequests(result.data || []);
-        console.log('✅ Pedidos pendentes carregados:', result.data);
       } else {
         console.error('❌ Erro ao carregar pedidos:', result);
         setPendingRequests([]);
@@ -38,7 +37,7 @@ export default function AprovacaoPage() {
     try {
       const status = action === 'approve' ? 'approved' : 'rejected';
       const actionText = action === 'approve' ? 'APROVADA' : 'REJEITADA';
-      
+
       const response = await fetch('/api/purchase-requests', {
         method: 'PUT',
         headers: {
@@ -48,25 +47,32 @@ export default function AprovacaoPage() {
           request_id: request.id,
           status: status,
           approved_by_parent: action === 'approve',
-          parent_note: action === 'reject' ? 'Rejeitado pelo responsável' : 'Aprovado pelo responsável'
-        })
+          parent_note:
+            action === 'reject'
+              ? 'Rejeitado pelo responsável'
+              : 'Aprovado pelo responsável',
+        }),
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
         setMessage(`✅ SUCESSO! Solicitação ${actionText} com êxito!`);
         setApproved(true);
-        console.log(`✅ Pedido ${actionText}:`, result);
-        
+
         // Recarregar lista de pedidos
         await loadPendingRequests();
       } else {
-        alert(`❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} pedido: ${result.error}`);
+        alert(
+          `❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} pedido: ${result.error}`
+        );
         console.error('❌ Erro da API:', result);
       }
     } catch (error) {
-      console.error(`❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} pedido:`, error);
+      console.error(
+        `❌ Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} pedido:`,
+        error
+      );
       alert('❌ Erro de conexão. Tente novamente.');
     } finally {
       setProcessing(false);
@@ -92,7 +98,7 @@ export default function AprovacaoPage() {
           </p>
         </div>
 
-{loading ? (
+        {loading ? (
           /* Loading State */
           <div className="bg-white rounded-xl shadow-lg p-8 mb-6 text-center">
             <div className="text-4xl mb-4">⏳</div>
@@ -105,20 +111,26 @@ export default function AprovacaoPage() {
           /* Solicitações Pendentes Reais */
           <div className="space-y-6">
             {pendingRequests.map((request, index) => (
-              <div key={request.id} className="bg-white rounded-xl shadow-lg p-8 mb-6">
+              <div
+                key={request.id}
+                className="bg-white rounded-xl shadow-lg p-8 mb-6"
+              >
                 <div className="border-l-4 border-yellow-400 pl-6 mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
                     💰 Solicitação Pendente #{index + 1}
                   </h2>
                   <div className="space-y-2 text-gray-700">
                     <p>
-                      <span className="font-medium">Valor:</span> R$ {request.amount.toFixed(2)}
+                      <span className="font-medium">Valor:</span> R${' '}
+                      {request.amount.toFixed(2)}
                     </p>
                     <p>
-                      <span className="font-medium">Descrição:</span> {request.description}
+                      <span className="font-medium">Descrição:</span>{' '}
+                      {request.description}
                     </p>
                     <p>
-                      <span className="font-medium">Categoria:</span> {request.category}
+                      <span className="font-medium">Categoria:</span>{' '}
+                      {request.category}
                     </p>
                     <p>
                       <span className="font-medium">Data:</span>{' '}

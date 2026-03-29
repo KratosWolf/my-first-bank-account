@@ -112,13 +112,11 @@ export default function CategoriesManager({
     try {
       if (editingCategory) {
         // Editar categoria existente
-        console.log('📝 Atualizando categoria:', editingCategory.id, formData);
         const updatedCategory = await CategoriesService.updateCategory(
           editingCategory.id,
           formData
         );
         if (updatedCategory) {
-          console.log('✅ Categoria atualizada:', updatedCategory);
           await loadCategories();
           resetForm();
           alert('✅ Categoria atualizada com sucesso!');
@@ -127,10 +125,8 @@ export default function CategoriesManager({
         }
       } else {
         // Adicionar nova categoria
-        console.log('📝 Criando nova categoria:', formData);
         const newCategory = await CategoriesService.addCategory(formData);
         if (newCategory) {
-          console.log('✅ Nova categoria criada:', newCategory);
           await loadCategories();
           resetForm();
           alert('✅ Categoria criada com sucesso!');
@@ -164,7 +160,6 @@ export default function CategoriesManager({
       try {
         const success = await CategoriesService.deleteCategory(categoryId);
         if (success) {
-          console.log('✅ Categoria desabilitada:', categoryId);
           await loadCategories();
           alert('✅ Categoria desabilitada com sucesso!');
         } else {

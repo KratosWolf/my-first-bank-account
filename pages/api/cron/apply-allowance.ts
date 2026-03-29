@@ -30,8 +30,6 @@ export default async function handler(
   }
 
   try {
-    console.log('📅 Iniciando aplicação automática de mesadas...');
-
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     // Buscar todas as configurações ativas que tem pagamento hoje
@@ -52,7 +50,6 @@ export default async function handler(
     }
 
     if (!configs || configs.length === 0) {
-      console.log('ℹ️  Nenhuma mesada programada para hoje:', today);
       return res.status(200).json({
         success: true,
         message: 'Nenhuma mesada programada para hoje',
@@ -65,8 +62,6 @@ export default async function handler(
         },
       });
     }
-
-    console.log(`💰 ${configs.length} mesadas programadas para hoje`);
 
     let totalAmountPaid = 0;
     const results = [];
@@ -84,10 +79,6 @@ export default async function handler(
           });
           continue;
         }
-
-        console.log(
-          `💵 Processando mesada: ${child.name} - R$ ${config.amount}`
-        );
 
         // 1. Criar transação de mesada
         const { error: txError } = await supabase.from('transactions').insert([
@@ -116,17 +107,16 @@ export default async function handler(
           continue;
         }
 
-        // 2. Atualizar saldo da criança
-        const newBalance = (child.balance || 0) + config.amount;
-        const newTotalEarned = (child.total_earned || 0) + config.amount;
-
-        const { error: updateError } = await supabase
-          .from('children')
-          .update({
-            balance: newBalance,
-            total_earned: newTotalEarned,
-          })
-          .eq('id', config.child_id);
+        // 2. Atualizar saldo da criança (incremento atômico — evita race condition)
+        const { data: balanceResult, error: updateError } = await supabase.rpc(
+          'adjust_child_balance',
+          {
+            p_child_id: config.child_id,
+            p_balance_delta: config.amount,
+            p_total_earned_delta: config.amount,
+            p_total_spent_delta: 0,
+          }
+        );
 
         if (updateError) {
           console.error(`❌ Erro ao atualizar saldo:`, updateError);
@@ -140,6 +130,10 @@ export default async function handler(
           });
           continue;
         }
+
+        const newBalance =
+          balanceResult?.[0]?.new_balance ??
+          (child.balance || 0) + config.amount;
 
         // 3. Calcular próxima data de pagamento
         const nextPaymentDate = calculateNextPaymentDate(config);
@@ -171,10 +165,6 @@ export default async function handler(
           next_payment_date: nextPaymentDate,
           status: 'success',
         });
-
-        console.log(
-          `✅ Mesada aplicada: ${child.name} recebeu R$ ${config.amount.toFixed(2)}`
-        );
       } catch (error) {
         console.error(`❌ Erro ao processar config ${config.id}:`, error);
         results.push({
@@ -193,8 +183,6 @@ export default async function handler(
       total_amount_paid: totalAmountPaid,
       results,
     };
-
-    console.log('🎉 Aplicação de mesadas concluída:', summary);
 
     return res.status(200).json({
       success: true,

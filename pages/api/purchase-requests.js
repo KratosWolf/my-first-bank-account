@@ -49,12 +49,10 @@ async function handleGetRequests(req, res) {
 
   if (error) {
     console.error('Error fetching purchase requests:', error);
-    return res
-      .status(400)
-      .json({
-        error: 'Failed to fetch purchase requests',
-        details: error.message,
-      });
+    return res.status(400).json({
+      error: 'Failed to fetch purchase requests',
+      details: error.message,
+    });
   }
 
   return res.status(200).json({
@@ -81,14 +79,6 @@ async function handleCreateRequest(req, res) {
     });
   }
 
-  console.log('📝 Creating purchase request:', {
-    child_id,
-    item_name,
-    amount,
-    category,
-    type,
-  });
-
   // Primeiro tentar verificar se a criança existe no Supabase
   const { data: existingChild, error: childError } = await supabase
     .from('children')
@@ -100,7 +90,6 @@ async function handleCreateRequest(req, res) {
   let usingLocalStorage = false;
 
   if (childError || !existingChild) {
-    console.log('⚠️ Child not found in Supabase, using localStorage fallback');
     usingLocalStorage = true;
 
     // Criar um pedido simulado para localStorage
@@ -120,7 +109,6 @@ async function handleCreateRequest(req, res) {
 
     // Salvar no localStorage do servidor (simulação)
     // TODO: Implementar storage real no localStorage do cliente
-    console.log('💾 Simulated localStorage request:', request);
   } else {
     // Child exists in Supabase, create normally
     const { data: supabaseRequest, error } = await supabase
@@ -151,11 +139,6 @@ async function handleCreateRequest(req, res) {
     request = supabaseRequest;
   }
 
-  console.log('✅ Purchase request created:', request);
-  console.log(
-    `📍 Storage used: ${usingLocalStorage ? 'localStorage fallback' : 'Supabase'}`
-  );
-
   // TODO: Send real-time notification to parents
   // await notifyParents(child_id, request);
 
@@ -183,13 +166,6 @@ async function handleUpdateRequest(req, res) {
     });
   }
 
-  console.log('🔄 Updating purchase request:', {
-    request_id,
-    status,
-    parent_note,
-    approved_by_parent,
-  });
-
   // Update the request
   const { data: updatedRequest, error } = await supabase
     .from('transactions')
@@ -212,36 +188,21 @@ async function handleUpdateRequest(req, res) {
     });
   }
 
-  // If approved (completed), update child's balance
+  // If approved (completed), update child's balance (incremento atômico — evita race condition)
   if (status === 'completed') {
-    const { data: child, error: childError } = await supabase
-      .from('children')
-      .select('balance, total_spent')
-      .eq('id', updatedRequest.child_id)
-      .single();
-
-    if (!childError && child) {
-      const newBalance = child.balance - updatedRequest.amount;
-      const newTotalSpent = (child.total_spent || 0) + updatedRequest.amount;
-
-      const { error: balanceError } = await supabase
-        .from('children')
-        .update({
-          balance: newBalance,
-          total_spent: newTotalSpent,
-        })
-        .eq('id', updatedRequest.child_id);
-
-      if (balanceError) {
-        console.error('Error updating child balance:', balanceError);
-        // Don't fail the request, just log the error
-      } else {
-        console.log('✅ Child balance updated:', {
-          child_id: updatedRequest.child_id,
-          new_balance: newBalance,
-          new_total_spent: newTotalSpent,
-        });
+    const { data: balanceResult, error: balanceError } = await supabase.rpc(
+      'adjust_child_balance',
+      {
+        p_child_id: updatedRequest.child_id,
+        p_balance_delta: -updatedRequest.amount,
+        p_total_earned_delta: 0,
+        p_total_spent_delta: updatedRequest.amount,
       }
+    );
+
+    if (balanceError) {
+      console.error('Error updating child balance:', balanceError);
+      // Don't fail the request, just log the error
     }
   }
 

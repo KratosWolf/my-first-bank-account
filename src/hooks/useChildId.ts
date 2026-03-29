@@ -29,7 +29,6 @@ export function useChildId() {
       try {
         // 1. Query param (navegação explícita)
         if (router.query.childId && typeof router.query.childId === 'string') {
-          console.log('✅ childId da URL:', router.query.childId);
           setChildId(router.query.childId);
           setIsLoading(false);
           return;
@@ -38,7 +37,6 @@ export function useChildId() {
         // 2. Sessão (criança logada)
         const user = session?.user as any;
         if (user?.role === 'child' && user?.childId) {
-          console.log('✅ childId da sessão (criança logada):', user.childId);
           setChildId(user.childId);
           setIsLoading(false);
           return;
@@ -46,7 +44,6 @@ export function useChildId() {
 
         // 3. Primeira criança da família (pai visualizando)
         if (user?.role === 'parent' && user?.familyId) {
-          console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
           const { data: children } = await supabase
             .from('children')
             .select('id')
@@ -55,7 +52,6 @@ export function useChildId() {
             .limit(1);
 
           if (children && children.length > 0) {
-            console.log('✅ Primeiro filho encontrado:', children[0].id);
             setChildId(children[0].id);
             setIsLoading(false);
             return;

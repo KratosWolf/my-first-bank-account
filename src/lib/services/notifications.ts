@@ -4,7 +4,13 @@ export interface Notification {
   id?: string;
   recipient_id: string; // child or parent ID
   recipient_type: 'child' | 'parent';
-  type: 'achievement' | 'chore_completed' | 'level_up' | 'streak' | 'reward' | 'reminder';
+  type:
+    | 'achievement'
+    | 'chore_completed'
+    | 'level_up'
+    | 'streak'
+    | 'reward'
+    | 'reminder';
   title: string;
   message: string;
   data?: {
@@ -23,14 +29,16 @@ export interface Notification {
 
 export class NotificationService {
   // Create a new notification
-  static async createNotification(notification: Omit<Notification, 'id' | 'created_at' | 'is_read'>): Promise<Notification | null> {
+  static async createNotification(
+    notification: Omit<Notification, 'id' | 'created_at' | 'is_read'>
+  ): Promise<Notification | null> {
     try {
       const { data, error } = await supabase
         .from('notifications')
         .insert({
           ...notification,
           is_read: false,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -43,7 +51,7 @@ export class NotificationService {
 
       // Send real-time notification if possible
       this.sendRealTimeNotification(data);
-      
+
       return data;
     } catch (error) {
       console.error('Error creating notification:', error);
@@ -52,7 +60,10 @@ export class NotificationService {
   }
 
   // Get notifications for a user
-  static async getNotifications(recipientId: string, limit: number = 20): Promise<Notification[]> {
+  static async getNotifications(
+    recipientId: string,
+    limit: number = 20
+  ): Promise<Notification[]> {
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -136,7 +147,11 @@ export class NotificationService {
   }
 
   // Achievement-specific notification creators
-  static async notifyAchievement(childId: string, parentId: string, achievement: any): Promise<void> {
+  static async notifyAchievement(
+    childId: string,
+    parentId: string,
+    achievement: any
+  ): Promise<void> {
     // Notify child
     await this.createNotification({
       recipient_id: childId,
@@ -146,7 +161,7 @@ export class NotificationService {
       message: achievement.description,
       data: { achievement },
       priority: 'high',
-      expires_at: this.getExpirationDate(7) // Expire in 7 days
+      expires_at: this.getExpirationDate(7), // Expire in 7 days
     });
 
     // Notify parent
@@ -158,11 +173,16 @@ export class NotificationService {
       message: `Seu filho desbloqueou a conquista "${achievement.title}"`,
       data: { achievement, child_id: childId },
       priority: 'medium',
-      expires_at: this.getExpirationDate(3)
+      expires_at: this.getExpirationDate(3),
     });
   }
 
-  static async notifyLevelUp(childId: string, parentId: string, newLevel: number, xpReward?: number): Promise<void> {
+  static async notifyLevelUp(
+    childId: string,
+    parentId: string,
+    newLevel: number,
+    xpReward?: number
+  ): Promise<void> {
     // Notify child
     await this.createNotification({
       recipient_id: childId,
@@ -172,7 +192,7 @@ export class NotificationService {
       message: `Parabéns! Você alcançou o nível ${newLevel}!`,
       data: { level: newLevel, xp_reward: xpReward },
       priority: 'high',
-      expires_at: this.getExpirationDate(7)
+      expires_at: this.getExpirationDate(7),
     });
 
     // Notify parent
@@ -184,11 +204,15 @@ export class NotificationService {
       message: `Seu filho subiu para o nível ${newLevel}!`,
       data: { level: newLevel, child_id: childId },
       priority: 'medium',
-      expires_at: this.getExpirationDate(3)
+      expires_at: this.getExpirationDate(3),
     });
   }
 
-  static async notifyStreak(childId: string, parentId: string, streakCount: number): Promise<void> {
+  static async notifyStreak(
+    childId: string,
+    parentId: string,
+    streakCount: number
+  ): Promise<void> {
     if (streakCount < 3) return; // Only notify for significant streaks
 
     // Notify child
@@ -200,7 +224,7 @@ export class NotificationService {
       message: `Incrível! Você completou tarefas por ${streakCount} dias seguidos!`,
       data: { streak_count: streakCount },
       priority: streakCount >= 7 ? 'high' : 'medium',
-      expires_at: this.getExpirationDate(5)
+      expires_at: this.getExpirationDate(5),
     });
 
     // Notify parent
@@ -212,11 +236,16 @@ export class NotificationService {
       message: `Seu filho mantém uma sequência de ${streakCount} dias completando tarefas!`,
       data: { streak_count: streakCount, child_id: childId },
       priority: 'medium',
-      expires_at: this.getExpirationDate(3)
+      expires_at: this.getExpirationDate(3),
     });
   }
 
-  static async notifyChoreCompleted(childId: string, parentId: string, choreName: string, rewardAmount: number): Promise<void> {
+  static async notifyChoreCompleted(
+    childId: string,
+    parentId: string,
+    choreName: string,
+    rewardAmount: number
+  ): Promise<void> {
     // Notify parent only (child gets immediate feedback in app)
     await this.createNotification({
       recipient_id: parentId,
@@ -224,9 +253,13 @@ export class NotificationService {
       type: 'chore_completed',
       title: `✅ Tarefa Concluída!`,
       message: `Tarefa "${choreName}" foi concluída e aguarda aprovação.`,
-      data: { chore_name: choreName, reward_amount: rewardAmount, child_id: childId },
+      data: {
+        chore_name: choreName,
+        reward_amount: rewardAmount,
+        child_id: childId,
+      },
       priority: 'medium',
-      expires_at: this.getExpirationDate(1)
+      expires_at: this.getExpirationDate(1),
     });
   }
 
@@ -240,22 +273,23 @@ export class NotificationService {
   // Fallback in-memory notification system for development
   private static inMemoryNotifications: Notification[] = [];
 
-  private static createInMemoryNotification(notification: Omit<Notification, 'id' | 'created_at' | 'is_read'>): Notification {
+  private static createInMemoryNotification(
+    notification: Omit<Notification, 'id' | 'created_at' | 'is_read'>
+  ): Notification {
     const newNotification: Notification = {
       ...notification,
       id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       created_at: new Date().toISOString(),
-      is_read: false
+      is_read: false,
     };
 
     this.inMemoryNotifications.unshift(newNotification);
-    
+
     // Keep only last 100 notifications in memory
     if (this.inMemoryNotifications.length > 100) {
       this.inMemoryNotifications = this.inMemoryNotifications.slice(0, 100);
     }
 
-    console.log('📬 In-memory notification created:', newNotification.title);
     return newNotification;
   }
 
@@ -272,18 +306,14 @@ export class NotificationService {
     // - Server-Sent Events
     // - Push notifications (service worker)
     // - Email notifications
-    
-    console.log('📡 Real-time notification sent:', notification.title);
-    
-    // For now, just show in console for development
-    if (typeof window !== 'undefined') {
-      // Could trigger a browser notification here
-      console.log(`🔔 ${notification.title}: ${notification.message}`);
-    }
+    // Placeholder for future real-time notification implementation
   }
 
   // Subscribe to real-time notifications (Supabase realtime)
-  static subscribeToNotifications(recipientId: string, callback: (notification: Notification) => void) {
+  static subscribeToNotifications(
+    recipientId: string,
+    callback: (notification: Notification) => void
+  ) {
     try {
       const subscription = supabase
         .channel(`notifications:${recipientId}`)
@@ -293,10 +323,9 @@ export class NotificationService {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `recipient_id=eq.${recipientId}`
+            filter: `recipient_id=eq.${recipientId}`,
           },
-          (payload) => {
-            console.log('📨 Real-time notification received:', payload.new);
+          payload => {
             callback(payload.new as Notification);
           }
         )
@@ -313,7 +342,7 @@ export class NotificationService {
   static async cleanupExpiredNotifications(): Promise<void> {
     try {
       const now = new Date().toISOString();
-      
+
       const { error } = await supabase
         .from('notifications')
         .delete()
@@ -321,8 +350,6 @@ export class NotificationService {
 
       if (error) {
         console.error('Error cleaning up expired notifications:', error);
-      } else {
-        console.log('✨ Expired notifications cleaned up');
       }
     } catch (error) {
       console.error('Error cleaning up expired notifications:', error);

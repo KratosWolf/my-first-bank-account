@@ -87,7 +87,6 @@ const AllowanceConfigManager: React.FC<AllowanceConfigManagerProps> = ({
       const result = await AllowanceService.upsertConfig(childId, editConfig);
 
       if (result) {
-        console.log('✅ Configuração salva:', result);
         await loadData();
         setEditingChildId(null);
         setEditConfig({});

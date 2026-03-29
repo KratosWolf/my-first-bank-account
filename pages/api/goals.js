@@ -90,13 +90,6 @@ async function handleCreateGoal(req, res) {
       ? category.toLowerCase()
       : 'other';
 
-  console.log('🎯 Creating goal:', {
-    child_id,
-    title,
-    target_amount,
-    category: normalizedCategory,
-  });
-
   const { data: goal, error } = await supabase
     .from('goals')
     .insert([
@@ -122,8 +115,6 @@ async function handleCreateGoal(req, res) {
     });
   }
 
-  console.log('✅ Goal created:', goal);
-
   return res.status(201).json({
     success: true,
     data: goal,
@@ -148,8 +139,6 @@ async function handleUpdateGoal(req, res) {
       error: 'Missing required field: goal_id',
     });
   }
-
-  console.log('🔄 Updating goal:', { goal_id, ...req.body });
 
   // Build update object with only provided fields
   // ✅ BUG FIX #5: Removed 'priority' and 'is_active' fields that don't exist in table
@@ -184,8 +173,6 @@ async function handleUpdateGoal(req, res) {
     });
   }
 
-  console.log('✅ Goal updated:', updatedGoal);
-
   return res.status(200).json({
     success: true,
     data: updatedGoal,
@@ -202,8 +189,6 @@ async function handleDeleteGoal(req, res) {
     });
   }
 
-  console.log('🗑️ Deleting goal:', goal_id);
-
   const { data: deletedGoal, error } = await supabase
     .from('goals')
     .delete()
@@ -218,8 +203,6 @@ async function handleDeleteGoal(req, res) {
       details: error.message,
     });
   }
-
-  console.log('✅ Goal deleted:', deletedGoal);
 
   return res.status(200).json({
     success: true,

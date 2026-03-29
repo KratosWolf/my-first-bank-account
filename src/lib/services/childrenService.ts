@@ -43,16 +43,12 @@ export class ChildrenService {
   // Limpar dados corrompidos do localStorage (UUIDs inválidos)
   static clearCorruptedData(): void {
     try {
-      console.log('🧹 Limpando dados corrompidos do localStorage...');
-
       // Remover dados de crianças com IDs inválidos
       localStorage.removeItem('familyChildren');
 
       // Remover outros dados relacionados que podem ter IDs inválidos
       localStorage.removeItem('familyPendingRequests');
       localStorage.removeItem('authenticatedChild');
-
-      console.log('✅ Dados limpos - localStorage resetado');
     } catch (error) {
       console.error('❌ Erro ao limpar dados corrompidos:', error);
     }
@@ -92,8 +88,6 @@ export class ChildrenService {
         return this.addChildToLocalStorage(childData, familyId);
       }
 
-      console.log('✅ Criança adicionada ao Supabase:', child);
-
       // Atualizar localStorage como backup
       const children = await this.getChildren(familyId);
       this.saveChildrenToLocalStorage(children);
@@ -130,8 +124,6 @@ export class ChildrenService {
         return this.updateChildInLocalStorage(id, updates);
       }
 
-      console.log('✅ Criança atualizada no Supabase:', child);
-
       // Atualizar localStorage como backup
       if (child.family_id) {
         const children = await this.getChildren(child.family_id);
@@ -150,11 +142,8 @@ export class ChildrenService {
 
   // Deletar criança
   static async deleteChild(id: string): Promise<boolean> {
-    console.log('🗑️ ChildrenService.deleteChild chamado para ID:', id);
-
     // Primeiro sempre deletar do localStorage para garantir
     const localStorageSuccess = this.deleteChildFromLocalStorage(id);
-    console.log('📱 Resultado localStorage delete:', localStorageSuccess);
 
     try {
       // Tentar deletar no Supabase também
@@ -165,8 +154,6 @@ export class ChildrenService {
           '⚠️ Erro no Supabase (mas localStorage funcionou):',
           error.message
         );
-      } else {
-        console.log('✅ Criança removida do Supabase também:', id);
       }
 
       return localStorageSuccess;
@@ -196,7 +183,6 @@ export class ChildrenService {
           return [];
         }
 
-        console.log('📱 Crianças carregadas do localStorage:', children);
         return children;
       }
 
@@ -211,7 +197,6 @@ export class ChildrenService {
   private static saveChildrenToLocalStorage(children: Child[]): void {
     try {
       localStorage.setItem('familyChildren', JSON.stringify(children));
-      console.log('📱 Crianças salvas no localStorage');
     } catch (error) {
       console.error('❌ Erro ao salvar localStorage:', error);
     }
@@ -237,8 +222,6 @@ export class ChildrenService {
 
       children.push(newChild);
       this.saveChildrenToLocalStorage(children);
-      console.log('📱 Criança adicionada ao localStorage:', newChild);
-
       return newChild;
     } catch (error) {
       console.error('❌ Erro ao adicionar no localStorage:', error);
@@ -262,8 +245,6 @@ export class ChildrenService {
         updated_at: new Date().toISOString(),
       };
       this.saveChildrenToLocalStorage(children);
-      console.log('📱 Criança atualizada no localStorage:', children[index]);
-
       return children[index];
     } catch (error) {
       console.error('❌ Erro ao atualizar localStorage:', error);
@@ -273,27 +254,11 @@ export class ChildrenService {
 
   private static deleteChildFromLocalStorage(id: string): boolean {
     try {
-      console.log('📱 deleteChildFromLocalStorage: Tentando deletar ID:', id);
-
       const children = this.getChildrenFromLocalStorage();
-      console.log(
-        '📱 Crianças antes do delete:',
-        children.map(c => ({ id: c.id, name: c.name }))
-      );
 
-      const filtered = children.filter(child => {
-        const keep = child.id !== id;
-        console.log(`📱 ID: ${child.id}, manter: ${keep}`);
-        return keep;
-      });
-
-      console.log(
-        '📱 Crianças após filtro:',
-        filtered.map(c => ({ id: c.id, name: c.name }))
-      );
+      const filtered = children.filter(child => child.id !== id);
 
       this.saveChildrenToLocalStorage(filtered);
-      console.log('✅ Criança removida do localStorage:', id);
       return true;
     } catch (error) {
       console.error('❌ Erro ao remover do localStorage:', error);

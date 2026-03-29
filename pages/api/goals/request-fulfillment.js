@@ -33,11 +33,6 @@ async function handleRequestFulfillment(req, res) {
     });
   }
 
-  console.log('🎁 Requesting goal fulfillment:', {
-    goal_id,
-    child_id,
-  });
-
   try {
     // 1. Buscar o sonho e validar que pertence à criança
     const { data: goal, error: goalError } = await supabase
@@ -57,14 +52,6 @@ async function handleRequestFulfillment(req, res) {
         details: goalError?.message,
       });
     }
-
-    console.log('✅ Goal found:', {
-      title: goal.title,
-      current_amount: goal.current_amount,
-      target_amount: goal.target_amount,
-      is_completed: goal.is_completed,
-      fulfillment_status: goal.fulfillment_status,
-    });
 
     // 2. Validar que o sonho está completo (100%)
     if (goal.current_amount < goal.target_amount) {
@@ -117,8 +104,6 @@ async function handleRequestFulfillment(req, res) {
         details: updateError.message,
       });
     }
-
-    console.log('✅ Goal fulfillment requested:', updatedGoal);
 
     // 5. Buscar informações da criança para a resposta
     const { data: child, error: childError } = await supabase

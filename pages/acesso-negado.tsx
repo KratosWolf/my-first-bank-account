@@ -18,10 +18,9 @@ export default function AcessoNegado() {
 
   const handleLogout = async () => {
     try {
-      console.log('🚪 Fazendo logout e limpando sessão...');
       await signOut({
         callbackUrl: '/auth/signin',
-        redirect: true
+        redirect: true,
       });
     } catch (error) {
       console.error('❌ Erro ao fazer logout:', error);

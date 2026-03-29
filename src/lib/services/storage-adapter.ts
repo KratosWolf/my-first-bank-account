@@ -291,9 +291,6 @@ export class StorageAdapter {
         }
       }
 
-      console.log(
-        `Successfully migrated ${migratedChildren.length} children and their transactions`
-      );
       return true;
     } catch (error) {
       console.error('Migration failed:', error);

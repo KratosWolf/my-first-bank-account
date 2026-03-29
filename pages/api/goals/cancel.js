@@ -33,11 +33,6 @@ async function handleCancelGoal(req, res) {
     });
   }
 
-  console.log('🚫 Cancelling goal:', {
-    goal_id,
-    child_id,
-  });
-
   try {
     // 1. Buscar o sonho e validar que pertence à criança
     const { data: goal, error: goalError } = await supabase
@@ -58,13 +53,6 @@ async function handleCancelGoal(req, res) {
       });
     }
 
-    console.log('✅ Goal found:', {
-      title: goal.title,
-      current_amount: goal.current_amount,
-      is_completed: goal.is_completed,
-      is_active: goal.is_active,
-    });
-
     // 2. Validar que o sonho não está completo/realizado
     if (goal.is_completed) {
       return res.status(400).json({
@@ -81,7 +69,7 @@ async function handleCancelGoal(req, res) {
       });
     }
 
-    // 4. Buscar saldo atual da criança
+    // 4. Buscar nome da criança (para resposta)
     const { data: child, error: childError } = await supabase
       .from('children')
       .select('balance, name')
@@ -96,21 +84,18 @@ async function handleCancelGoal(req, res) {
       });
     }
 
-    const currentBalance = parseFloat(child.balance || 0);
     const goalAmount = parseFloat(goal.current_amount || 0);
-    const newBalance = currentBalance + goalAmount;
 
-    console.log('💰 Balance calculation:', {
-      current_balance: currentBalance,
-      goal_amount: goalAmount,
-      new_balance: newBalance,
-    });
-
-    // 5. Atualizar saldo da criança (devolver dinheiro do sonho)
-    const { error: balanceError } = await supabase
-      .from('children')
-      .update({ balance: newBalance })
-      .eq('id', child_id);
+    // 5. Devolver dinheiro do sonho para a criança (incremento atômico — evita race condition)
+    const { data: balanceResult, error: balanceError } = await supabase.rpc(
+      'adjust_child_balance',
+      {
+        p_child_id: child_id,
+        p_balance_delta: goalAmount,
+        p_total_earned_delta: 0,
+        p_total_spent_delta: 0,
+      }
+    );
 
     if (balanceError) {
       console.error('❌ Error updating child balance:', balanceError);
@@ -120,12 +105,16 @@ async function handleCancelGoal(req, res) {
       });
     }
 
+    const newBalance =
+      balanceResult?.[0]?.new_balance ??
+      parseFloat(child.balance || 0) + goalAmount;
+
     // 6. Marcar sonho como inativo (cancelado)
     const { data: updatedGoal, error: updateError } = await supabase
       .from('goals')
       .update({
         is_active: false,
-        current_amount: 0, // Zerar o saldo do sonho
+        current_amount: 0,
         updated_at: new Date().toISOString(),
       })
       .eq('id', goal_id)
@@ -134,11 +123,13 @@ async function handleCancelGoal(req, res) {
 
     if (updateError) {
       console.error('❌ Error updating goal:', updateError);
-      // Reverter atualização de saldo
-      await supabase
-        .from('children')
-        .update({ balance: currentBalance })
-        .eq('id', child_id);
+      // Reverter atualização de saldo (atômico)
+      await supabase.rpc('adjust_child_balance', {
+        p_child_id: child_id,
+        p_balance_delta: -goalAmount,
+        p_total_earned_delta: 0,
+        p_total_spent_delta: 0,
+      });
       return res.status(500).json({
         error: 'Failed to cancel goal',
         details: updateError.message,
@@ -166,12 +157,8 @@ async function handleCancelGoal(req, res) {
           transactionError
         );
         // Não falhar a operação por causa da transação
-      } else {
-        console.log('✅ Transaction created for goal cancellation');
       }
     }
-
-    console.log('✅ Goal cancelled successfully:', updatedGoal);
 
     // Retornar sucesso
     return res.status(200).json({

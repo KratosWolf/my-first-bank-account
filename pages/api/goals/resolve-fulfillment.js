@@ -42,12 +42,6 @@ async function handleResolveFulfillment(req, res, session) {
     });
   }
 
-  console.log('👨‍💼 Resolving goal fulfillment:', {
-    goal_id,
-    action,
-    parent_id,
-  });
-
   try {
     // 1. Buscar o sonho
     const { data: goal, error: goalError } = await supabase
@@ -63,14 +57,6 @@ async function handleResolveFulfillment(req, res, session) {
         details: goalError?.message,
       });
     }
-
-    console.log('✅ Goal found:', {
-      title: goal.title,
-      child_id: goal.child_id,
-      current_amount: goal.current_amount,
-      target_amount: goal.target_amount,
-      fulfillment_status: goal.fulfillment_status,
-    });
 
     // 2. Validar que o sonho está com status 'pending'
     if (goal.fulfillment_status !== 'pending') {
@@ -109,11 +95,6 @@ async function handleResolveFulfillment(req, res, session) {
 
       const goalAmount = parseFloat(goal.current_amount || 0);
 
-      console.log('💰 Debiting goal amount from goal balance:', {
-        goal_current_amount: goalAmount,
-        child_balance_before: child.balance,
-      });
-
       // Criar transação de realização do sonho (goal_purchase)
       const { error: transactionError } = await supabase
         .from('transactions')
@@ -134,8 +115,6 @@ async function handleResolveFulfillment(req, res, session) {
           transactionError
         );
         // Não falhar a operação por causa da transação
-      } else {
-        console.log('✅ Transaction created for goal fulfillment');
       }
 
       newChildBalance = child.balance; // Mantém o saldo da criança (dinheiro já estava no sonho)
@@ -172,8 +151,6 @@ async function handleResolveFulfillment(req, res, session) {
         details: updateError.message,
       });
     }
-
-    console.log(`✅ Goal fulfillment ${action}d:`, updatedGoal);
 
     // 5. Buscar informações da criança para a resposta
     const { data: child, error: childError } = await supabase

@@ -32,7 +32,6 @@ export class InterestService {
         throw error;
       }
 
-      console.log('💰 Configurações de juros carregadas:', data?.length || 0);
       return (data || []) as InterestConfigWithChild[];
     } catch (error) {
       console.error('❌ Erro ao buscar configurações:', error);
@@ -54,7 +53,6 @@ export class InterestService {
       if (error) {
         // Erro 406 significa que não encontrou - isso é ok
         if (error.code === 'PGRST116') {
-          console.log('ℹ️  Nenhuma configuração de juros para child:', childId);
           return null;
         }
         console.error('❌ Erro ao buscar configuração:', error);
@@ -74,8 +72,6 @@ export class InterestService {
     updates: Partial<InterestConfigInput>
   ): Promise<InterestConfig | null> {
     try {
-      console.log('💰 Atualizando configuração de juros:', childId, updates);
-
       const { data, error } = await supabase
         .from('interest_config')
         .update(updates)
@@ -88,7 +84,6 @@ export class InterestService {
         throw error;
       }
 
-      console.log('✅ Configuração atualizada:', data);
       return data as InterestConfig;
     } catch (error) {
       console.error('❌ Erro ao atualizar configuração:', error);
@@ -101,8 +96,6 @@ export class InterestService {
     config: InterestConfigInput
   ): Promise<InterestConfig | null> {
     try {
-      console.log('💰 Criando nova configuração de juros:', config);
-
       const newConfig = {
         child_id: config.child_id,
         monthly_rate: config.monthly_rate,
@@ -122,7 +115,6 @@ export class InterestService {
         throw error;
       }
 
-      console.log('✅ Nova configuração criada:', data);
       return data as InterestConfig;
     } catch (error) {
       console.error('❌ Erro ao criar configuração:', error);
@@ -172,7 +164,6 @@ export class InterestService {
         throw error;
       }
 
-      console.log('✅ Configuração desativada:', childId);
       return true;
     } catch (error) {
       console.error('❌ Erro ao desativar configuração:', error);
@@ -193,7 +184,6 @@ export class InterestService {
         throw error;
       }
 
-      console.log('✅ Configuração ativada:', childId);
       return true;
     } catch (error) {
       console.error('❌ Erro ao ativar configuração:', error);

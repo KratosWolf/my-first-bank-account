@@ -31,8 +31,6 @@ export default async function handler(
   }
 
   try {
-    console.log('🤖 Iniciando aplicação automática de juros...');
-
     // Buscar todas as crianças ativas
     const families = await DatabaseService.getAllFamilies();
     let totalChildrenProcessed = 0;
@@ -57,10 +55,6 @@ export default async function handler(
               new_balance: child.balance + interestTransaction.amount,
               status: 'success',
             });
-
-            console.log(
-              `✅ Juros aplicados: ${child.name} ganhou R$ ${interestTransaction.amount.toFixed(2)}`
-            );
           } else {
             results.push({
               child_id: child.id,
@@ -69,8 +63,6 @@ export default async function handler(
               reason: 'Saldo insuficiente ou juros muito baixos',
               status: 'skipped',
             });
-
-            console.log(`⏩ Pulado: ${child.name} (saldo insuficiente)`);
           }
 
           totalChildrenProcessed++;
@@ -93,8 +85,6 @@ export default async function handler(
       total_interest_applied: totalInterestApplied,
       results,
     };
-
-    console.log('🎉 Aplicação de juros concluída:', summary);
 
     return res.status(200).json({
       success: true,

@@ -14,8 +14,6 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      console.log('NextAuth redirect:', { url, baseUrl });
-
       // Após callback do OAuth, redirecionar para página intermediária
       if (
         url.includes('/api/auth/callback') ||
@@ -23,7 +21,6 @@ export const authOptions: NextAuthOptions = {
       ) {
         // Redirecionar para index que fará o roteamento correto
         const indexUrl = `${baseUrl}/`;
-        console.log('🔄 Redirecionando para index para roteamento:', indexUrl);
         return indexUrl;
       }
 
@@ -36,13 +33,6 @@ export const authOptions: NextAuthOptions = {
       return baseUrl;
     },
     async signIn({ user, account, profile }) {
-      // Log do usuário que está fazendo login
-      console.log('🔐 SignIn callback:', {
-        email: user.email,
-        name: user.name,
-        provider: account?.provider,
-      });
-
       // Permitir login (validação será feita no redirect)
       return true;
     },
@@ -55,12 +45,6 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).childId = token.childId;
         (session.user as any).userName = token.userName;
         (session.user as any).avatar = token.avatar;
-
-        console.log('✅ Sessão construída do token:', {
-          email: session.user.email,
-          role: token.role,
-          childId: token.childId,
-        });
       }
 
       return session;
@@ -79,12 +63,6 @@ export const authOptions: NextAuthOptions = {
             token.familyId = userProfile.familyId;
             token.userName = userProfile.name;
             token.avatar = userProfile.avatar;
-
-            console.log('✅ Token enriquecido com perfil:', {
-              email: user.email,
-              role: userProfile.role,
-              childId: userProfile.childId,
-            });
           } else {
             console.warn('⚠️ Perfil não encontrado para:', user.email);
             token.role = 'unauthorized';

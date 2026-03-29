@@ -5,8 +5,6 @@ export const createSampleData = () => {
     return;
   }
 
-  console.log('🔧 Creating sample data for development...');
-
   // Sample children data
   const sampleChildren = [
     {
@@ -127,19 +125,6 @@ export const createSampleData = () => {
       'banco-familia-transactions',
       JSON.stringify(sampleTransactions)
     );
-
-    console.log('✅ Sample data created:');
-    console.log(`- ${sampleChildren.length} children`);
-    console.log(`- ${sampleTransactions.length} transactions`);
-    console.log('');
-    console.log('👶 Children login credentials:');
-    sampleChildren.forEach(child => {
-      console.log(
-        `- ${child.name} (${child.avatar}): PIN ${child.pin} | Saldo: R$ ${child.balance}`
-      );
-    });
-    console.log('');
-    console.log('🔍 Test the child login at: http://localhost:3003');
   } catch (error) {
     console.error('❌ Failed to create sample data:', error);
   }
@@ -153,7 +138,6 @@ export const clearSampleData = () => {
   try {
     localStorage.removeItem('banco-familia-children');
     localStorage.removeItem('banco-familia-transactions');
-    console.log('🗑️ Sample data cleared');
   } catch (error) {
     console.error('❌ Failed to clear sample data:', error);
   }

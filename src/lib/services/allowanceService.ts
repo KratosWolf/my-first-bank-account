@@ -32,7 +32,6 @@ export class AllowanceService {
         throw error;
       }
 
-      console.log('📅 Configurações de mesada carregadas:', data?.length || 0);
       return (data || []) as AllowanceConfigWithChild[];
     } catch (error) {
       console.error('❌ Erro ao buscar configurações:', error);
@@ -54,10 +53,6 @@ export class AllowanceService {
       if (error) {
         // Erro 406 significa que não encontrou - isso é ok
         if (error.code === 'PGRST116') {
-          console.log(
-            'ℹ️  Nenhuma configuração de mesada para child:',
-            childId
-          );
           return null;
         }
         console.error('❌ Erro ao buscar configuração:', error);
@@ -77,8 +72,6 @@ export class AllowanceService {
     updates: Partial<AllowanceConfigInput>
   ): Promise<AllowanceConfig | null> {
     try {
-      console.log('📅 Atualizando configuração de mesada:', childId, updates);
-
       // Calcular next_payment_date se mudou frequência ou dia
       let nextPaymentDate = updates.next_payment_date;
       if (
@@ -111,7 +104,6 @@ export class AllowanceService {
         throw error;
       }
 
-      console.log('✅ Configuração atualizada:', data);
       return data as AllowanceConfig;
     } catch (error) {
       console.error('❌ Erro ao atualizar configuração:', error);
@@ -124,8 +116,6 @@ export class AllowanceService {
     config: AllowanceConfigInput
   ): Promise<AllowanceConfig | null> {
     try {
-      console.log('📅 Criando nova configuração de mesada:', config);
-
       // Calcular next_payment_date
       const nextPaymentDate = this.calculateNextPaymentDate(
         config as AllowanceConfig
@@ -152,7 +142,6 @@ export class AllowanceService {
         throw error;
       }
 
-      console.log('✅ Nova configuração criada:', data);
       return data as AllowanceConfig;
     } catch (error) {
       console.error('❌ Erro ao criar configuração:', error);
@@ -204,7 +193,6 @@ export class AllowanceService {
         throw error;
       }
 
-      console.log('✅ Configuração desativada:', childId);
       return true;
     } catch (error) {
       console.error('❌ Erro ao desativar configuração:', error);
@@ -225,7 +213,6 @@ export class AllowanceService {
         throw error;
       }
 
-      console.log('✅ Configuração ativada:', childId);
       return true;
     } catch (error) {
       console.error('❌ Erro ao ativar configuração:', error);

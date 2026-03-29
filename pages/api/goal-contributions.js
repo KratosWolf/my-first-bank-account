@@ -77,13 +77,6 @@ async function handleCreateContribution(req, res) {
     });
   }
 
-  console.log('💰 Creating goal contribution:', {
-    goal_id,
-    child_id,
-    amount,
-    contribution_type,
-  });
-
   try {
     // Start transaction - buscar balance E total_spent
     const { data: child, error: childError } = await supabase
@@ -151,50 +144,64 @@ async function handleCreateContribution(req, res) {
       });
     }
 
-    // Update child balance and total_spent
-    const newChildBalance = child.balance - amount;
-    const newTotalSpent = (child.total_spent || 0) + parseFloat(amount);
-
-    const { error: balanceError } = await supabase
-      .from('children')
-      .update({
-        balance: newChildBalance,
-        total_spent: newTotalSpent, // ✅ BUG FIX: supabase.sql() não existe no JS client
-      })
-      .eq('id', child_id);
+    // Update child balance and total_spent (incremento atômico — evita race condition)
+    const { data: balanceResult, error: balanceError } = await supabase.rpc(
+      'adjust_child_balance',
+      {
+        p_child_id: child_id,
+        p_balance_delta: -parseFloat(amount),
+        p_total_earned_delta: 0,
+        p_total_spent_delta: parseFloat(amount),
+      }
+    );
 
     if (balanceError) {
       console.error('Error updating child balance:', balanceError);
       // Don't fail the request, just log the error
     }
 
-    // Update goal current amount
-    const newGoalAmount = goal.current_amount + amount;
+    const newChildBalance =
+      balanceResult?.[0]?.new_balance ?? child.balance - amount;
+
+    // Update goal current amount (incremento atômico — evita race condition)
+    const { data: goalResult, error: goalRpcError } = await supabase.rpc(
+      'adjust_goal_amount',
+      {
+        p_goal_id: goal_id,
+        p_amount_delta: parseFloat(amount),
+      }
+    );
+
+    const newGoalAmount =
+      goalResult?.[0]?.new_amount ?? goal.current_amount + amount;
     const isCompleted = newGoalAmount >= goal.target_amount;
 
-    // ✅ BUG FIX #7: Removed 'completed_at' field (doesn't exist in basic schema)
-    const { data: updatedGoal, error: goalUpdateError } = await supabase
-      .from('goals')
-      .update({
-        current_amount: newGoalAmount,
-        is_completed: isCompleted,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', goal_id)
-      .select()
-      .single();
+    // Se completou, atualizar flag is_completed
+    let updatedGoal = null;
+    if (isCompleted || goalRpcError) {
+      const { data: goalData, error: goalUpdateError } = await supabase
+        .from('goals')
+        .update({
+          is_completed: isCompleted,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', goal_id)
+        .select()
+        .single();
 
-    if (goalUpdateError) {
-      console.error('Error updating goal:', goalUpdateError);
-      // Don't fail the request, just log the error
+      if (goalUpdateError) {
+        console.error('Error updating goal:', goalUpdateError);
+      }
+      updatedGoal = goalData;
+    } else {
+      // Buscar goal atualizado para resposta
+      const { data: goalData } = await supabase
+        .from('goals')
+        .select()
+        .eq('id', goal_id)
+        .single();
+      updatedGoal = goalData;
     }
-
-    console.log('✅ Goal contribution created:', {
-      contribution,
-      new_child_balance: newChildBalance,
-      updated_goal: updatedGoal,
-      goal_completed: isCompleted,
-    });
 
     return res.status(201).json({
       success: true,

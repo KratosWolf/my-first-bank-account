@@ -7,11 +7,8 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('🏠 Index - Status:', status, 'Session:', session);
-
     // If not authenticated, redirect to sign in
     if (status === 'unauthenticated') {
-      console.log('⛔ Usuário não autenticado, redirecionando para login...');
       router.push('/auth/signin');
       return;
     }
@@ -20,35 +17,19 @@ export default function HomePage() {
     if (status === 'authenticated' && session?.user) {
       const user = session.user as any;
 
-      console.log('🔍 Index - User Data:', {
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        childId: user.childId,
-      });
-
       // Check for unauthorized access
       if (user.role === 'unauthorized' || user.role === 'error') {
-        console.log('⛔ Acesso não autorizado, redirecionando...');
         router.push('/acesso-negado');
         return;
       }
 
       // Redirect based on role
       if (user.role === 'parent') {
-        console.log('👨‍👩‍👧 Redirecionando pai/mãe para dashboard...');
         router.push('/dashboard');
       } else if (user.role === 'child' && user.childId) {
-        console.log(
-          `👦 Redirecionando criança para perfil: /demo-child-view?childId=${user.childId}`
-        );
         router.push(`/demo-child-view?childId=${user.childId}`);
       } else {
         // Fallback: if has session but no role, redirect to dashboard
-        console.log('🔄 Fallback: redirecionando para dashboard...', {
-          hasRole: !!user.role,
-          hasChildId: !!user.childId,
-        });
         router.push('/dashboard');
       }
     }

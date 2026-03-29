@@ -32,7 +32,6 @@ export class CategoriesService {
         throw error;
       }
 
-      console.log('📂 Categorias carregadas do Supabase:', data?.length || 0);
       return (data || []) as Category[];
     } catch (error) {
       console.error('❌ Erro ao buscar categorias:', error);
@@ -66,7 +65,6 @@ export class CategoriesService {
         throw error;
       }
 
-      console.log('✅ Nova categoria adicionada:', data);
       return data as Category;
     } catch (error) {
       console.error('❌ Erro ao criar categoria:', error);
@@ -92,7 +90,6 @@ export class CategoriesService {
         throw error;
       }
 
-      console.log('✅ Categoria atualizada:', data);
       return data as Category;
     } catch (error) {
       console.error('❌ Erro ao atualizar categoria:', error);
@@ -114,7 +111,6 @@ export class CategoriesService {
         throw error;
       }
 
-      console.log('✅ Categoria desabilitada:', id);
       return true;
     } catch (error) {
       console.error('❌ Erro ao deletar categoria:', error);
@@ -135,7 +131,6 @@ export class CategoriesService {
         throw error;
       }
 
-      console.log('✅ Categoria removida permanentemente:', id);
       return true;
     } catch (error) {
       console.error('❌ Erro ao deletar categoria:', error);

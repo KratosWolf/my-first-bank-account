@@ -72,8 +72,6 @@ export class PersistentStorage {
 
       localStorage.setItem(this.BACKUP_KEY, JSON.stringify(backupData));
       localStorage.setItem(this.LAST_BACKUP_KEY, Date.now().toString());
-
-      console.log('Family data backup created successfully');
     } catch (error) {
       console.error('Failed to create backup:', error);
     }
@@ -86,7 +84,6 @@ export class PersistentStorage {
     try {
       const backupData = localStorage.getItem(this.BACKUP_KEY);
       if (!backupData) {
-        console.log('No backup found');
         return false;
       }
 
@@ -97,9 +94,6 @@ export class PersistentStorage {
         localStorage.setItem(key, JSON.stringify(value));
       });
 
-      console.log(
-        `Data restored from backup (${new Date(backup.timestamp).toLocaleString()})`
-      );
       return true;
     } catch (error) {
       console.error('Failed to restore from backup:', error);

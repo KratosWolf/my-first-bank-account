@@ -37,7 +37,6 @@ export default function ChildLoanRequestsPage() {
     if (status === 'loading') return;
 
     if (status === 'unauthenticated') {
-      console.log('⛔ Usuário não autenticado, redirecionando para login...');
       router.push('/auth/signin');
       return;
     }
@@ -47,10 +46,8 @@ export default function ChildLoanRequestsPage() {
 
       // Aceitar criança ou pai
       if (user?.role === 'child' || user?.role === 'parent') {
-        console.log('✅ Acesso autorizado:', { role: user.role });
         setIsAuthorized(true);
       } else {
-        console.log('⛔ Acesso negado - usuário não autorizado');
         router.push('/acesso-negado');
       }
     }
@@ -64,20 +61,17 @@ export default function ChildLoanRequestsPage() {
     const getChildId = async () => {
       // 1. Query param (navegação explícita)
       if (router.query.childId && typeof router.query.childId === 'string') {
-        console.log('✅ childId da URL:', router.query.childId);
         return router.query.childId;
       }
 
       // 2. Sessão (criança logada)
       const user = session?.user as any;
       if (user?.role === 'child' && user?.childId) {
-        console.log('✅ childId da sessão (criança logada):', user.childId);
         return user.childId;
       }
 
       // 3. Primeiro filho da família (pai visualizando)
       if (user?.role === 'parent' && user?.familyId) {
-        console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
         const { data: children } = await supabase
           .from('children')
           .select('id')
@@ -86,7 +80,6 @@ export default function ChildLoanRequestsPage() {
           .limit(1);
 
         if (children && children.length > 0) {
-          console.log('✅ Primeiro filho encontrado:', children[0].id);
           return children[0].id;
         }
       }

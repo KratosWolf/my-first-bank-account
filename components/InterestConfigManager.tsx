@@ -56,11 +56,6 @@ export default function InterestConfigManager({
           is_active: firstConfig.is_active,
         });
       }
-
-      console.log('💰 Dados carregados:', {
-        children: childrenData.length,
-        configs: configs.length,
-      });
     } catch (error) {
       console.error('❌ Erro ao carregar dados:', error);
       alert('Erro ao carregar configurações. Verifique sua conexão.');
@@ -96,11 +91,6 @@ export default function InterestConfigManager({
 
     setIsSaving(true);
     try {
-      console.log(
-        '💰 Salvando configuração global para todos os filhos:',
-        globalConfig
-      );
-
       // Aplicar a mesma configuração para TODOS os filhos
       let successCount = 0;
       let errorCount = 0;
@@ -112,7 +102,6 @@ export default function InterestConfigManager({
         );
         if (result) {
           successCount++;
-          console.log(`✅ Config salva para ${child.name}`);
         } else {
           errorCount++;
           console.error(`❌ Erro ao salvar config para ${child.name}`);

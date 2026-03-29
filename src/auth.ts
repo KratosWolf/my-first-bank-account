@@ -14,8 +14,6 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      console.log('NextAuth redirect:', { url, baseUrl });
-
       // Always redirect to dashboard after successful signin
       if (
         url === baseUrl ||
@@ -23,7 +21,6 @@ export const authOptions: NextAuthConfig = {
         url.includes('/api/auth/callback')
       ) {
         const dashboardUrl = `${baseUrl}/dashboard`;
-        console.log('Redirecting to dashboard:', dashboardUrl);
         return dashboardUrl;
       }
 

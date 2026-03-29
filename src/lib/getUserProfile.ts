@@ -28,8 +28,6 @@ export async function getUserProfile(
   email: string
 ): Promise<UserProfile | null> {
   try {
-    console.log('🔍 Buscando perfil para:', email);
-
     // Consultar usando a função SQL get_user_by_email
     const { data, error } = await supabase.rpc('get_user_by_email', {
       user_email: email,
@@ -61,12 +59,6 @@ export async function getUserProfile(
       familyName: profile.family_name,
     };
 
-    console.log('✅ Perfil encontrado:', {
-      name: userProfile.name,
-      role: userProfile.role,
-      familyId: userProfile.familyId,
-    });
-
     return userProfile;
   } catch (err) {
     console.error('💥 Exceção ao buscar perfil:', err);
@@ -84,8 +76,6 @@ export async function getUserProfileDirect(
   email: string
 ): Promise<UserProfile | null> {
   try {
-    console.log('🔍 Buscando perfil (direto) para:', email);
-
     const { data, error } = await supabase
       .from('user_links')
       .select(
@@ -133,12 +123,6 @@ export async function getUserProfileDirect(
       childPin: (data.children as any)?.pin,
       familyName: (data.families as any)?.parent_name,
     };
-
-    console.log('✅ Perfil encontrado (direto):', {
-      name: userProfile.name,
-      role: userProfile.role,
-      familyId: userProfile.familyId,
-    });
 
     return userProfile;
   } catch (err) {

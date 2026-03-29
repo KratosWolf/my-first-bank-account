@@ -105,12 +105,6 @@ async function handleProcessAction(req, res) {
       .json({ error: 'child_id and action_type are required' });
   }
 
-  console.log('🎮 Processing gamification action:', {
-    child_id,
-    action_type,
-    action_data,
-  });
-
   try {
     const result = await processGamificationAction(
       child_id,

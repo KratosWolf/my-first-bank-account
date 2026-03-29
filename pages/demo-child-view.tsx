@@ -50,7 +50,6 @@ export default function ChildView() {
     if (status === 'loading') return;
 
     if (status === 'unauthenticated') {
-      console.log('⛔ Usuário não autenticado, redirecionando para login...');
       router.push('/auth/signin');
       return;
     }
@@ -65,14 +64,8 @@ export default function ChildView() {
       const isParent = user.role === 'parent';
 
       if (isChildOwner || isParent) {
-        console.log('✅ Acesso autorizado:', {
-          role: user.role,
-          isChildOwner,
-          isParent,
-        });
         setIsAuthorized(true);
       } else {
-        console.log('⛔ Acesso negado - usuário não autorizado');
         router.push('/acesso-negado');
       }
     }
@@ -100,20 +93,17 @@ export default function ChildView() {
     const getChildId = async () => {
       // 1. Tentar query param primeiro
       if (router.query.childId && typeof router.query.childId === 'string') {
-        console.log('✅ childId da URL:', router.query.childId);
         return router.query.childId;
       }
 
       // 2. Se usuário é criança, usar seu próprio ID
       const user = session?.user as any;
       if (user?.role === 'child' && user?.childId) {
-        console.log('✅ childId da sessão (criança logada):', user.childId);
         return user.childId;
       }
 
       // 3. Se é pai, buscar primeiro filho da família
       if (user?.role === 'parent' && user?.familyId) {
-        console.log('👨‍💼 Pai visualizando - buscando primeiro filho...');
         const { data: children } = await supabase
           .from('children')
           .select('id')
@@ -122,7 +112,6 @@ export default function ChildView() {
           .limit(1);
 
         if (children && children.length > 0) {
-          console.log('✅ Primeiro filho encontrado:', children[0].id);
           return children[0].id;
         }
       }
@@ -147,8 +136,6 @@ export default function ChildView() {
   const loadChildData = async (childId: string) => {
     setLoading(true);
     try {
-      console.log('🔍 Carregando dados da criança do Supabase...', childId);
-
       // Buscar dados da criança no Supabase
       const { data: childData, error: childError } = await supabase
         .from('children')
@@ -163,7 +150,6 @@ export default function ChildView() {
         return;
       }
 
-      console.log('✅ Dados da criança carregados:', childData);
       setCurrentChild(childData);
 
       // Carregar dados relacionados
@@ -181,22 +167,11 @@ export default function ChildView() {
 
   const loadAllowanceConfig = async (childId: string) => {
     try {
-      console.log(
-        '💰 Carregando configuração de mesada para criança:',
-        childId
-      );
       const config = await AllowanceService.getConfigByChildId(childId);
 
       if (config) {
-        console.log('✅ Configuração de mesada carregada:', {
-          amount: config.amount,
-          frequency: config.frequency,
-          next_payment_date: config.next_payment_date,
-          is_active: config.is_active,
-        });
         setAllowanceConfig(config);
       } else {
-        console.log('ℹ️ Nenhuma configuração de mesada encontrada');
         setAllowanceConfig(null);
       }
     } catch (error) {
@@ -215,7 +190,6 @@ export default function ChildView() {
       console.error('❌ Erro ao carregar metas:', error);
       setRealGoals([]);
     } else {
-      console.log('✅ Metas carregadas:', goals);
       setRealGoals(goals || []);
     }
   };
@@ -231,7 +205,6 @@ export default function ChildView() {
       console.error('❌ Erro ao carregar transações:', error);
       setRealTransactions([]);
     } else {
-      console.log('✅ Transações carregadas:', transactions);
       setRealTransactions(transactions || []);
     }
   };
@@ -255,7 +228,6 @@ export default function ChildView() {
         );
       } else {
         requests = supabaseRequests || [];
-        console.log('✅ Pedidos carregados do Supabase:', requests);
       }
     } catch (error) {
       console.warn('⚠️ Supabase não disponível, usando localStorage fallback');
@@ -274,24 +246,18 @@ export default function ChildView() {
       );
 
       if (childLocalRequests.length > 0) {
-        console.log(
-          '💾 Pedidos adicionais carregados do localStorage:',
-          childLocalRequests
-        );
         requests = [...requests, ...childLocalRequests];
       }
     } catch (localError) {
       console.warn('⚠️ Erro ao ler localStorage:', localError);
     }
 
-    console.log('🎯 Total de pedidos carregados para criança:', requests);
     setPendingPurchases(requests);
   };
 
   // Carregar pedidos de empréstimo da tabela purchase_requests
   const loadLoanRequests = async (childId: string) => {
     try {
-      console.log('🔍 Carregando pedidos de empréstimo para criança:', childId);
       const loanRequests = await LoanService.getLoanRequests();
 
       // Filtrar apenas os pedidos desta criança
@@ -299,7 +265,6 @@ export default function ChildView() {
         request => request.child_id === childId
       );
 
-      console.log('✅ Pedidos de empréstimo carregados:', childLoanRequests);
       setPendingRequests(childLoanRequests);
     } catch (error) {
       console.error('❌ Erro ao carregar pedidos de empréstimo:', error);
@@ -307,25 +272,31 @@ export default function ChildView() {
     }
   };
 
-  const updateChildBalance = async (childId: string, newBalance: number) => {
-    const { data: updatedChild, error } = await supabase
-      .from('children')
-      .update({ balance: newBalance })
-      .eq('id', childId)
-      .select()
-      .single();
+  const updateChildBalance = async (childId: string, balanceDelta: number) => {
+    // Incremento atômico — evita race condition
+    const { data: result, error } = await supabase.rpc('adjust_child_balance', {
+      p_child_id: childId,
+      p_balance_delta: balanceDelta,
+      p_total_earned_delta: 0,
+      p_total_spent_delta: 0,
+    });
 
     if (error) {
       console.error('❌ Erro ao atualizar saldo:', error);
       return false;
     }
 
+    const newBalance = result?.[0]?.new_balance;
+
     // Update current child state
-    if (currentChild && currentChild.id === childId) {
+    if (
+      currentChild &&
+      currentChild.id === childId &&
+      newBalance !== undefined
+    ) {
       setCurrentChild({ ...currentChild, balance: newBalance });
     }
 
-    console.log('✅ Saldo atualizado no Supabase:', updatedChild);
     return true;
   };
 
@@ -371,10 +342,6 @@ export default function ChildView() {
           icon: cat.icon,
         }));
         setAvailableCategories(formattedCategories);
-        console.log(
-          '📂 Categorias carregadas para criança:',
-          formattedCategories
-        );
       } catch (error) {
         console.error('❌ Erro ao carregar categorias:', error);
         setAvailableCategories([]);
@@ -411,11 +378,11 @@ export default function ChildView() {
       return;
     }
 
-    // Atualizar saldo no Supabase
-    const newBalance = currentBalance - amount;
+    // Atualizar saldo no Supabase (delta negativo = débito)
     if (currentChild) {
-      await updateChildBalance(currentChild.id, newBalance);
+      await updateChildBalance(currentChild.id, -amount);
     }
+    const newBalance = currentBalance - amount;
     setActiveLoan(prev => ({
       ...prev,
       amount: prev.amount - amount,
@@ -469,13 +436,6 @@ export default function ChildView() {
     }
 
     try {
-      console.log('💰 Contribuindo para meta via API:', {
-        goal_id: goalId,
-        child_id: currentChild.id,
-        amount,
-        goalName,
-      });
-
       const response = await fetch('/api/goal-contributions', {
         method: 'POST',
         headers: {
@@ -497,8 +457,6 @@ export default function ChildView() {
         alert(`❌ Erro ao contribuir:\n${result.error}`);
         return;
       }
-
-      console.log('✅ Contribuição realizada via API:', result);
 
       // Update local state
       if (currentChild) {
@@ -529,9 +487,6 @@ export default function ChildView() {
   };
 
   const requestPurchase = async (category: string) => {
-    console.log('🛍️ Iniciando pedido de compra...');
-    console.log('👶 Dados da criança atual:', currentChild);
-
     if (!currentChild) {
       alert('❌ Erro: Dados da criança não encontrados. Faça login novamente.');
       return;
@@ -554,13 +509,6 @@ export default function ChildView() {
       alert('❌ Digite um valor válido!');
       return;
     }
-
-    console.log('💰 Criando pedido via API:', {
-      child_id: currentChild.id,
-      itemName,
-      category,
-      amount,
-    });
 
     try {
       // Usar nova API para criar pedido
@@ -585,8 +533,6 @@ export default function ChildView() {
         alert(`❌ Erro ao enviar pedido:\n${result.error}\n\nTente novamente.`);
         return;
       }
-
-      console.log('✅ Pedido criado via API:', result);
 
       // Recarregar lista de pedidos para mostrar atualizada
       if (currentChild) {
@@ -632,13 +578,6 @@ export default function ChildView() {
     );
 
     try {
-      console.log('🎯 Criando nova meta via API:', {
-        child_id: currentChild.id,
-        title: newGoalData.name,
-        target_amount: amount,
-        category: newGoalData.category,
-      });
-
       const response = await fetch('/api/goals', {
         method: 'POST',
         headers: {
@@ -661,8 +600,6 @@ export default function ChildView() {
         alert(`❌ Erro ao criar meta:\n${result.error}`);
         return;
       }
-
-      console.log('✅ Meta criada via API:', result);
 
       setShowGoalModal(false);
 
@@ -692,12 +629,6 @@ export default function ChildView() {
     }
 
     try {
-      console.log('🎁 Solicitando realização de sonho via API:', {
-        goal_id: goalId,
-        child_id: currentChild.id,
-        goalTitle,
-      });
-
       const response = await fetch('/api/goals/request-fulfillment', {
         method: 'POST',
         headers: {
@@ -716,8 +647,6 @@ export default function ChildView() {
         alert(`❌ Erro ao enviar pedido:\n${result.error}`);
         return;
       }
-
-      console.log('✅ Pedido de realização enviado via API:', result);
 
       // Reload data to show updated status
       await loadChildData(currentChild.id);
@@ -751,13 +680,6 @@ export default function ChildView() {
     if (!confirmCancel) return;
 
     try {
-      console.log('❌ Cancelando sonho via API:', {
-        goal_id: goalId,
-        child_id: currentChild.id,
-        goalName,
-        currentAmount,
-      });
-
       const response = await fetch('/api/goals/cancel', {
         method: 'POST',
         headers: {
@@ -776,8 +698,6 @@ export default function ChildView() {
         alert(`❌ Erro ao cancelar sonho:\n${result.error}`);
         return;
       }
-
-      console.log('✅ Sonho cancelado via API:', result);
 
       // Reload data to show updated goals and balance
       await loadChildData(currentChild.id);
@@ -824,7 +744,6 @@ export default function ChildView() {
 
       if (newRequest) {
         setPendingRequests(prev => [newRequest, ...prev]);
-        console.log('✅ Pedido de empréstimo criado:', newRequest);
 
         // Recarregar pedidos de empréstimo para garantir sincronização
         if (currentChild?.id) {
@@ -858,7 +777,6 @@ export default function ChildView() {
 
       // Se a data armazenada é no passado, recalcular próxima data futura
       if (storedDate < today) {
-        console.log('⚠️ Data da mesada está no passado, recalculando...');
         nextPaymentDate =
           AllowanceService.calculateNextPaymentDate(allowanceConfig);
       }

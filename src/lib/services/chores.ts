@@ -1,10 +1,14 @@
 import { supabase } from '@/lib/supabase';
-import type { ChoreTemplate, AssignedChore, ChoreCompletion } from '@/lib/supabase';
+import type {
+  ChoreTemplate,
+  AssignedChore,
+  ChoreCompletion,
+} from '@/lib/supabase';
 import { GamificationService } from './gamification';
 
 export class ChoresService {
   // CHORE TEMPLATES MANAGEMENT
-  
+
   static async getChoreTemplates(familyId: string): Promise<ChoreTemplate[]> {
     const { data, error } = await supabase
       .from('chore_templates')
@@ -18,7 +22,9 @@ export class ChoresService {
     return data || [];
   }
 
-  static async createChoreTemplate(template: Omit<ChoreTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<ChoreTemplate | null> {
+  static async createChoreTemplate(
+    template: Omit<ChoreTemplate, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<ChoreTemplate | null> {
     const { data, error } = await supabase
       .from('chore_templates')
       .insert(template)
@@ -32,7 +38,10 @@ export class ChoresService {
     return data;
   }
 
-  static async updateChoreTemplate(id: string, updates: Partial<ChoreTemplate>): Promise<ChoreTemplate | null> {
+  static async updateChoreTemplate(
+    id: string,
+    updates: Partial<ChoreTemplate>
+  ): Promise<ChoreTemplate | null> {
     const { data, error } = await supabase
       .from('chore_templates')
       .update(updates)
@@ -61,15 +70,20 @@ export class ChoresService {
   }
 
   // ASSIGNED CHORES MANAGEMENT
-  
-  static async getChildChores(childId: string, status?: string): Promise<AssignedChore[]> {
+
+  static async getChildChores(
+    childId: string,
+    status?: string
+  ): Promise<AssignedChore[]> {
     let query = supabase
       .from('assigned_chores')
-      .select(`
+      .select(
+        `
         *,
         chore_template:chore_templates(*),
         child:children(*)
-      `)
+      `
+      )
       .eq('child_id', childId);
 
     if (status) {
@@ -85,14 +99,19 @@ export class ChoresService {
     return data || [];
   }
 
-  static async getFamilyChores(familyId: string, status?: string): Promise<AssignedChore[]> {
+  static async getFamilyChores(
+    familyId: string,
+    status?: string
+  ): Promise<AssignedChore[]> {
     let query = supabase
       .from('assigned_chores')
-      .select(`
+      .select(
+        `
         *,
         chore_template:chore_templates(*),
         child:children(*)
-      `)
+      `
+      )
       .eq('child.family_id', familyId);
 
     if (status) {
@@ -108,18 +127,22 @@ export class ChoresService {
     return data || [];
   }
 
-  static async assignChore(chore: Omit<AssignedChore, 'id' | 'status' | 'created_at' | 'updated_at'>): Promise<AssignedChore | null> {
+  static async assignChore(
+    chore: Omit<AssignedChore, 'id' | 'status' | 'created_at' | 'updated_at'>
+  ): Promise<AssignedChore | null> {
     const { data, error } = await supabase
       .from('assigned_chores')
       .insert({
         ...chore,
-        status: 'assigned'
+        status: 'assigned',
       })
-      .select(`
+      .select(
+        `
         *,
         chore_template:chore_templates(*),
         child:children(*)
-      `)
+      `
+      )
       .single();
 
     if (error) {
@@ -130,8 +153,8 @@ export class ChoresService {
   }
 
   static async updateChoreStatus(
-    choreId: string, 
-    status: AssignedChore['status'], 
+    choreId: string,
+    status: AssignedChore['status'],
     updates?: {
       notes?: string;
       photo_evidence?: string;
@@ -158,11 +181,13 @@ export class ChoresService {
       .from('assigned_chores')
       .update(updateData)
       .eq('id', choreId)
-      .select(`
+      .select(
+        `
         *,
         chore_template:chore_templates(*),
         child:children(*)
-      `)
+      `
+      )
       .single();
 
     if (error) {
@@ -173,7 +198,7 @@ export class ChoresService {
     // If approved, create transaction and completion record
     if (status === 'approved' && data) {
       await this.processChoreApproval(data);
-      
+
       // Check for achievements and gamification rewards
       await this.processGamificationRewards(data);
     }
@@ -181,31 +206,34 @@ export class ChoresService {
     return data;
   }
 
-  static async startChore(choreId: string, childNotes?: string): Promise<AssignedChore | null> {
+  static async startChore(
+    choreId: string,
+    childNotes?: string
+  ): Promise<AssignedChore | null> {
     return this.updateChoreStatus(choreId, 'in_progress', {
-      notes: childNotes
+      notes: childNotes,
     });
   }
 
   static async completeChore(
-    choreId: string, 
-    childNotes?: string, 
+    choreId: string,
+    childNotes?: string,
     photoEvidence?: string
   ): Promise<AssignedChore | null> {
     return this.updateChoreStatus(choreId, 'completed', {
       notes: childNotes,
-      photo_evidence: photoEvidence
+      photo_evidence: photoEvidence,
     });
   }
 
   static async approveChore(
-    choreId: string, 
-    parentId: string, 
+    choreId: string,
+    parentId: string,
     qualityRating?: number,
     bonusReward?: number
   ): Promise<AssignedChore | null> {
     const chore = await this.updateChoreStatus(choreId, 'approved', {
-      approved_by_parent_id: parentId
+      approved_by_parent_id: parentId,
     });
 
     if (chore && qualityRating) {
@@ -216,19 +244,21 @@ export class ChoresService {
   }
 
   static async rejectChore(
-    choreId: string, 
-    parentId: string, 
+    choreId: string,
+    parentId: string,
     reason: string
   ): Promise<AssignedChore | null> {
     return this.updateChoreStatus(choreId, 'rejected', {
       approved_by_parent_id: parentId,
-      rejection_reason: reason
+      rejection_reason: reason,
     });
   }
 
   // COMPLETION AND REWARDS
-  
-  private static async processChoreApproval(chore: AssignedChore): Promise<void> {
+
+  private static async processChoreApproval(
+    chore: AssignedChore
+  ): Promise<void> {
     try {
       // Create transaction for the reward
       const { error: transactionError } = await supabase
@@ -244,33 +274,38 @@ export class ChoresService {
           approved_by_parent: true,
           metadata: {
             chore_id: chore.id,
-            chore_name: chore.name
-          }
+            chore_name: chore.name,
+          },
         });
 
       if (transactionError) {
-        console.error('Error creating chore reward transaction:', transactionError);
+        console.error(
+          'Error creating chore reward transaction:',
+          transactionError
+        );
         return;
       }
 
       // Update child balance and XP
-      const { error: balanceError } = await supabase.rpc('update_child_balance_and_xp', {
-        p_child_id: chore.child_id,
-        p_amount: chore.reward_amount,
-        p_xp: Math.floor(chore.reward_amount / 2) // 1 XP per R$ 2.00 earned
-      });
+      const { error: balanceError } = await supabase.rpc(
+        'update_child_balance_and_xp',
+        {
+          p_child_id: chore.child_id,
+          p_amount: chore.reward_amount,
+          p_xp: Math.floor(chore.reward_amount / 2), // 1 XP per R$ 2.00 earned
+        }
+      );
 
       if (balanceError) {
         console.error('Error updating child balance:', balanceError);
       }
-
     } catch (error) {
       console.error('Error processing chore approval:', error);
     }
   }
 
   private static async recordChoreCompletion(
-    chore: AssignedChore, 
+    chore: AssignedChore,
     qualityRating: number,
     bonusReward: number
   ): Promise<ChoreCompletion | null> {
@@ -281,7 +316,7 @@ export class ChoresService {
         child_id: chore.child_id,
         quality_rating,
         bonus_reward,
-        completed_at: chore.completed_at || new Date().toISOString()
+        completed_at: chore.completed_at || new Date().toISOString(),
       })
       .select()
       .single();
@@ -293,24 +328,22 @@ export class ChoresService {
 
     // If there's a bonus reward, create another transaction
     if (bonusReward > 0) {
-      await supabase
-        .from('transactions')
-        .insert({
-          child_id: chore.child_id,
-          type: 'earning',
-          amount: bonusReward,
-          description: `Bônus por excelente trabalho: ${chore.name}`,
-          category: 'bonus_reward',
-          status: 'completed',
-          requires_approval: false,
-          approved_by_parent: true
-        });
+      await supabase.from('transactions').insert({
+        child_id: chore.child_id,
+        type: 'earning',
+        amount: bonusReward,
+        description: `Bônus por excelente trabalho: ${chore.name}`,
+        category: 'bonus_reward',
+        status: 'completed',
+        requires_approval: false,
+        approved_by_parent: true,
+      });
 
       // Update balance again
       await supabase.rpc('update_child_balance_and_xp', {
         p_child_id: chore.child_id,
         p_amount: bonusReward,
-        p_xp: Math.floor(bonusReward) // 1 XP per R$ 1.00 bonus
+        p_xp: Math.floor(bonusReward), // 1 XP per R$ 1.00 bonus
       });
     }
 
@@ -318,8 +351,11 @@ export class ChoresService {
   }
 
   // ANALYTICS AND REPORTS
-  
-  static async getChoreStats(childId: string, period?: 'week' | 'month' | 'year'): Promise<any> {
+
+  static async getChoreStats(
+    childId: string,
+    period?: 'week' | 'month' | 'year'
+  ): Promise<any> {
     let dateFilter = '';
     if (period === 'week') {
       dateFilter = "AND completed_at >= NOW() - INTERVAL '7 days'";
@@ -331,7 +367,7 @@ export class ChoresService {
 
     const { data, error } = await supabase.rpc('get_chore_statistics', {
       p_child_id: childId,
-      p_period: period || 'all'
+      p_period: period || 'all',
     });
 
     if (error) {
@@ -341,24 +377,29 @@ export class ChoresService {
         total_earned: 0,
         average_rating: 0,
         completion_rate: 0,
-        categories: {}
+        categories: {},
       };
     }
 
     return data;
   }
 
-  static async getUpcomingChores(childId: string, days: number = 7): Promise<AssignedChore[]> {
+  static async getUpcomingChores(
+    childId: string,
+    days: number = 7
+  ): Promise<AssignedChore[]> {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
 
     const { data, error } = await supabase
       .from('assigned_chores')
-      .select(`
+      .select(
+        `
         *,
         chore_template:chore_templates(*),
         child:children(*)
-      `)
+      `
+      )
       .eq('child_id', childId)
       .in('status', ['assigned', 'in_progress'])
       .lte('due_date', endDate.toISOString())
@@ -369,27 +410,26 @@ export class ChoresService {
   }
 
   // GAMIFICATION INTEGRATION
-  private static async processGamificationRewards(chore: AssignedChore): Promise<void> {
+  private static async processGamificationRewards(
+    chore: AssignedChore
+  ): Promise<void> {
     try {
       // Update daily streak
-      const streakCount = await GamificationService.updateDailyChoreStreak(chore.child_id);
-      
+      const streakCount = await GamificationService.updateDailyChoreStreak(
+        chore.child_id
+      );
+
       // Check for first chore achievement
       await GamificationService.checkFirstChoreAchievement(chore.child_id);
-      
+
       // Check for level progression (after XP from chore reward)
-      const levelProgress = await GamificationService.checkLevelProgression(chore.child_id);
-      
+      const levelProgress = await GamificationService.checkLevelProgression(
+        chore.child_id
+      );
+
       if (levelProgress.leveled_up) {
-        console.log(`🎉 Child ${chore.child_id} leveled up to level ${levelProgress.new_level}!`);
-        
         // Could trigger a celebration notification here
       }
-
-      if (streakCount >= 7) {
-        console.log(`🔥 Child ${chore.child_id} has a ${streakCount}-day streak!`);
-      }
-
     } catch (error) {
       console.error('Error processing gamification rewards:', error);
     }

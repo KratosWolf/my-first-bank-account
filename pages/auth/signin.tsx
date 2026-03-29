@@ -16,7 +16,6 @@ export default function SignInPage() {
 
       // Verificar se o usuário tem role definido na sessão
       if (user.role === 'unauthorized' || user.role === 'error') {
-        console.log('⛔ Acesso não autorizado, redirecionando...');
         setIsRedirecting(true);
         router.push('/acesso-negado');
         return;
@@ -24,16 +23,13 @@ export default function SignInPage() {
 
       // Redirecionar baseado no role
       if (user.role === 'parent') {
-        console.log('👨‍👩‍👧 Redirecionando pai/mãe para dashboard...');
         setIsRedirecting(true);
         router.push('/dashboard');
       } else if (user.role === 'child' && user.childId) {
-        console.log('👦 Redirecionando criança para perfil...');
         setIsRedirecting(true);
         router.push(`/demo-child-view?childId=${user.childId}`);
       } else if (session) {
         // Fallback: se tem sessão mas não tem role, redirecionar para dashboard
-        console.log('🔄 Fallback: redirecionando para dashboard...');
         setIsRedirecting(true);
         router.push('/dashboard');
       }

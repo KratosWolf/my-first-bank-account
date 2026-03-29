@@ -24,7 +24,6 @@ export default function DashboardPage() {
   // Protect route - redirect to signin if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
-      console.log('⛔ Usuário não autenticado, redirecionando para login...');
       router.push('/auth/signin');
     }
   }, [status, router]);
@@ -84,14 +83,14 @@ export default function DashboardPage() {
         );
 
         if (hasInvalidIds) {
-          console.log(
-            '🧹 Detectados dados corrompidos, limpando automaticamente...'
-          );
           ChildrenService.clearCorruptedData();
         }
       }
     } catch (error) {
-      console.log('🧹 Erro ao verificar dados, limpando por segurança...');
+      console.error(
+        '🧹 Erro ao verificar dados, limpando por segurança...',
+        error
+      );
       ChildrenService.clearCorruptedData();
     }
   };
@@ -123,10 +122,6 @@ export default function DashboardPage() {
       });
 
       setChildren(sortedChildren);
-      console.log(
-        '🎯 Dashboard: Crianças carregadas e ordenadas:',
-        sortedChildren
-      );
     } catch (error) {
       console.error('❌ Erro ao carregar crianças:', error);
       setChildren([]);
@@ -156,7 +151,6 @@ export default function DashboardPage() {
       try {
         const realAnalytics = await calculateRealAnalytics();
         setCalculatedAnalytics(realAnalytics);
-        console.log('✅ Calculated analytics loaded:', realAnalytics);
       } catch (error) {
         console.error('❌ Error loading calculated analytics:', error);
         setCalculatedAnalytics(null);
@@ -180,7 +174,6 @@ export default function DashboardPage() {
 
       if (response.ok) {
         setAnalytics(result.data);
-        console.log('✅ Analytics loaded:', result.data);
       } else {
         console.error('❌ Analytics error:', result);
         // Keep existing mock data
@@ -206,11 +199,11 @@ export default function DashboardPage() {
         if (response.ok) {
           const result = await response.json();
           apiRequests = result.data || [];
-          console.log('✅ Pedidos de compra carregados da API:', apiRequests);
         }
       } catch (apiError) {
-        console.log(
-          '⚠️ API de compras não disponível, usando localStorage fallback'
+        console.error(
+          '⚠️ API de compras não disponível, usando localStorage fallback',
+          apiError
         );
       }
 
@@ -224,14 +217,10 @@ export default function DashboardPage() {
         );
 
         if (pendingLocalRequests.length > 0) {
-          console.log(
-            '💾 Pedidos de compra carregados do localStorage:',
-            pendingLocalRequests
-          );
           apiRequests = [...apiRequests, ...pendingLocalRequests];
         }
       } catch (localError) {
-        console.log('⚠️ Erro ao ler localStorage:', localError);
+        console.error('⚠️ Erro ao ler localStorage:', localError);
       }
 
       // Combinar empréstimos e compras
@@ -240,8 +229,6 @@ export default function DashboardPage() {
         ...apiRequests,
       ];
       setPendingRequests(allRequests);
-
-      console.log('🎯 Dashboard: Pedidos pendentes carregados:', allRequests);
     } catch (error) {
       console.error('❌ Erro ao carregar pedidos:', error);
       setPendingRequests([]);
@@ -272,7 +259,6 @@ export default function DashboardPage() {
         return;
       }
 
-      console.log('✅ Pedidos de realização carregados:', data);
       setPendingFulfillments(data || []);
     } catch (error) {
       console.error('❌ Erro ao carregar pedidos de realização:', error);
@@ -288,7 +274,6 @@ export default function DashboardPage() {
   ) => {
     try {
       const actionText = action === 'approve' ? 'APROVADO' : 'REJEITADO';
-      console.log(`🔄 ${actionText} realização de sonho:`, goalId);
 
       const response = await fetch('/api/goals/resolve-fulfillment', {
         method: 'POST',
@@ -310,7 +295,6 @@ export default function DashboardPage() {
               ? `🎁 Lembre-se de comprar: ${goalTitle}`
               : `A criança será notificada.`)
         );
-        console.log(`✅ Sonho ${actionText}:`, result);
 
         // Recarregar pedidos de realização
         await loadPendingFulfillments();
@@ -369,12 +353,6 @@ export default function DashboardPage() {
     try {
       setIsProcessingRequest(true);
 
-      console.log('🔄 Criando empréstimo:', {
-        childId: selectedRequest.child_id,
-        amount: selectedRequest.amount,
-        installments: installmentCount,
-      });
-
       // 1. Criar empréstimo com parcelas usando LoanService
       const loan = await LoanService.createLoan(
         selectedRequest.child_id,
@@ -388,8 +366,6 @@ export default function DashboardPage() {
         setIsProcessingRequest(false);
         return;
       }
-
-      console.log('✅ Empréstimo criado com sucesso:', loan);
 
       // 2. Atualizar status do pedido para 'approved'
       const success = await LoanService.updateLoanStatus(
@@ -416,8 +392,6 @@ export default function DashboardPage() {
           `Parcelas: ${installmentCount}x de R$ ${(selectedRequest.amount / installmentCount).toFixed(2)}\n\n` +
           `🎯 A criança já pode acompanhar o empréstimo!`
       );
-
-      console.log('✅ Empréstimo aprovado:', selectedRequest.id);
     } catch (error) {
       console.error('❌ Erro ao processar aprovação de empréstimo:', error);
       alert('❌ Erro ao processar empréstimo. Tente novamente.');
@@ -439,13 +413,6 @@ export default function DashboardPage() {
       setIsProcessingRequest(true);
 
       const motivo = parentNote || 'Pedido recusado pelo responsável';
-
-      console.log(
-        '🔄 Recusando pedido:',
-        selectedRequest.id,
-        'motivo:',
-        motivo
-      );
 
       // Verificar se é empréstimo ou compra
       if (selectedRequest.type === 'loan') {
@@ -498,8 +465,6 @@ export default function DashboardPage() {
 
       // Fechar modal
       setShowRejectionModal(false);
-
-      console.log('✅ Pedido recusado:', selectedRequest.id);
     } catch (error) {
       console.error('❌ Erro ao recusar pedido:', error);
       alert('❌ Erro de conexão. Tente novamente.');
@@ -563,7 +528,6 @@ export default function DashboardPage() {
       if (modalMode === 'add') {
         const newChild = await ChildrenService.addChild(childData, familyId);
         if (newChild) {
-          console.log('✅ Criança adicionada:', newChild);
           await loadChildren(); // Recarregar lista
         }
       } else {
@@ -572,7 +536,6 @@ export default function DashboardPage() {
           childData
         );
         if (updatedChild) {
-          console.log('✅ Criança editada:', updatedChild);
           await loadChildren(); // Recarregar lista
         }
       }
@@ -591,13 +554,9 @@ export default function DashboardPage() {
       )
     ) {
       try {
-        console.log('🗑️ Tentando deletar criança:', childId, childName);
-
         const success = await ChildrenService.deleteChild(childId);
 
         if (success) {
-          console.log('✅ Criança removida com sucesso:', childId);
-
           // Forçar recarregamento completo da lista
           await loadChildren();
 
@@ -699,13 +658,6 @@ export default function DashboardPage() {
           `Descrição: ${transactionDescription}\n` +
           `Novo saldo de ${selectedChild.name}: R$ ${newBalance.toFixed(2)}`
       );
-
-      console.log('✅ Transação concluída:', {
-        child: selectedChild.name,
-        amount,
-        type: transactionType,
-        newBalance,
-      });
     } catch (error) {
       console.error('❌ Erro ao processar transação:', error);
       alert('Erro ao processar transação. Tente novamente.');
@@ -724,7 +676,6 @@ export default function DashboardPage() {
   // Handle logout with complete session cleanup
   const handleLogout = async () => {
     try {
-      console.log('🚪 Iniciando logout...');
       // Force signOut with redirect
       await signOut({
         callbackUrl: '/auth/signin',

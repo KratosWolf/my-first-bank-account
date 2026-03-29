@@ -42,12 +42,6 @@ async function handleAddMoney(req, res) {
     });
   }
 
-  console.log('💰 Adding money to goal:', {
-    goal_id,
-    child_id,
-    amount: depositAmount,
-  });
-
   try {
     // 1. Buscar o sonho e validar que pertence à criança
     const { data: goal, error: goalError } = await supabase
@@ -68,14 +62,6 @@ async function handleAddMoney(req, res) {
       });
     }
 
-    console.log('✅ Goal found:', {
-      title: goal.title,
-      current_amount: goal.current_amount,
-      target_amount: goal.target_amount,
-      is_completed: goal.is_completed,
-      is_active: goal.is_active,
-    });
-
     // 2. Validar que o sonho está ativo
     if (!goal.is_active) {
       return res.status(400).json({
@@ -92,7 +78,7 @@ async function handleAddMoney(req, res) {
       });
     }
 
-    // 4. Buscar saldo atual da criança
+    // 4. Buscar saldo atual da criança (para validação)
     const { data: child, error: childError } = await supabase
       .from('children')
       .select('balance, name')
@@ -109,11 +95,6 @@ async function handleAddMoney(req, res) {
 
     const currentBalance = parseFloat(child.balance || 0);
 
-    console.log('💳 Balance check:', {
-      current_balance: currentBalance,
-      deposit_amount: depositAmount,
-    });
-
     // 5. Validar que a criança tem saldo suficiente
     if (currentBalance < depositAmount) {
       return res.status(400).json({
@@ -124,19 +105,16 @@ async function handleAddMoney(req, res) {
       });
     }
 
-    const newBalance = currentBalance - depositAmount;
-    const newGoalAmount = parseFloat(goal.current_amount || 0) + depositAmount;
-
-    console.log('💰 Transaction calculation:', {
-      new_balance: newBalance,
-      new_goal_amount: newGoalAmount,
-    });
-
-    // 6. Atualizar saldo da criança (debitar)
-    const { error: balanceError } = await supabase
-      .from('children')
-      .update({ balance: newBalance })
-      .eq('id', child_id);
+    // 6. Debitar saldo da criança (incremento atômico — evita race condition)
+    const { data: balanceResult, error: balanceError } = await supabase.rpc(
+      'adjust_child_balance',
+      {
+        p_child_id: child_id,
+        p_balance_delta: -depositAmount,
+        p_total_earned_delta: 0,
+        p_total_spent_delta: 0,
+      }
+    );
 
     if (balanceError) {
       console.error('❌ Error updating child balance:', balanceError);
@@ -146,29 +124,43 @@ async function handleAddMoney(req, res) {
       });
     }
 
-    // 7. Atualizar saldo do sonho (creditar)
-    const { data: updatedGoal, error: updateError } = await supabase
-      .from('goals')
-      .update({
-        current_amount: newGoalAmount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', goal_id)
-      .select()
-      .single();
+    const newBalance =
+      balanceResult?.[0]?.new_balance ?? currentBalance - depositAmount;
 
-    if (updateError) {
-      console.error('❌ Error updating goal:', updateError);
-      // Reverter atualização de saldo da criança
-      await supabase
-        .from('children')
-        .update({ balance: currentBalance })
-        .eq('id', child_id);
+    // 7. Creditar saldo do sonho (incremento atômico — evita race condition)
+    const { data: goalResult, error: goalRpcError } = await supabase.rpc(
+      'adjust_goal_amount',
+      {
+        p_goal_id: goal_id,
+        p_amount_delta: depositAmount,
+      }
+    );
+
+    if (goalRpcError) {
+      console.error('❌ Error updating goal:', goalRpcError);
+      // Reverter atualização de saldo da criança (atômico)
+      await supabase.rpc('adjust_child_balance', {
+        p_child_id: child_id,
+        p_balance_delta: depositAmount,
+        p_total_earned_delta: 0,
+        p_total_spent_delta: 0,
+      });
       return res.status(500).json({
         error: 'Failed to add money to goal',
-        details: updateError.message,
+        details: goalRpcError.message,
       });
     }
+
+    const newGoalAmount =
+      goalResult?.[0]?.new_amount ??
+      parseFloat(goal.current_amount || 0) + depositAmount;
+
+    // Buscar goal atualizado para resposta
+    const { data: updatedGoal } = await supabase
+      .from('goals')
+      .select()
+      .eq('id', goal_id)
+      .single();
 
     // 8. Criar transação de depósito no sonho (goal_deposit)
     const { error: transactionError } = await supabase
@@ -190,11 +182,7 @@ async function handleAddMoney(req, res) {
         transactionError
       );
       // Não falhar a operação por causa da transação
-    } else {
-      console.log('✅ Transaction created for goal deposit');
     }
-
-    console.log('✅ Money added to goal successfully:', updatedGoal);
 
     // Retornar sucesso
     return res.status(200).json({

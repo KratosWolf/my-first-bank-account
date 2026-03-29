@@ -16,14 +16,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Log de inicialização (apenas em dev)
-if (process.env.NODE_ENV === 'development') {
-  console.log('✅ Supabase client initialized:', {
-    url: supabaseUrl.substring(0, 30) + '...',
-    keyLength: supabaseAnonKey.length,
-  });
-}
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Database Types
