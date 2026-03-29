@@ -12,7 +12,7 @@
 - **Tipo:** web-app
 - **Tech Stack Principal:** Next.js 14 + TypeScript + Tailwind CSS 4 + Supabase
 - **Repositório:** https://github.com/KratosWolf/my-first-bank-account.git
-- **Branch ativa:** main (Fase 2 completa — aguardando início da Fase 3)
+- **Branch ativa:** main (Fase 2.5 completa — pronta para Fase 3)
 - **Dono do Projeto:** Tiago (empreendedor, perfil estratégico, não-técnico)
 
 ---
@@ -63,7 +63,7 @@ Só prossiga quando TODOS os itens estiverem ✅.
   - `feat:` nova funcionalidade | `fix:` correção | `docs:` documentação
   - `refactor:` refatoração | `style:` formatação | `test:` testes | `chore:` manutenção
   - Exemplo: `feat: adiciona tela de login com Google OAuth`
-- **Branch ativa:** main (Fase 2 completa — aguardando início da Fase 3)
+- **Branch ativa:** main (Fase 2.5 completa — pronta para Fase 3)
 - **NUNCA** faça push direto na `main` sem aprovação. Merge develop → main apenas ao final de cada fase.
 
 ### Regra 6: Consistência Código × Banco × UI
@@ -130,6 +130,24 @@ Só prossiga quando TODOS os itens estiverem ✅.
 
 **NÃO inclui (fases futuras):** Onboarding (Fase 3), Notificações, Gamificação, PWA, Monetização (Fase 4).
 
+### FASE 2.5 — Segurança e Limpeza ✅ COMPLETA (2026-03-29)
+
+**Objetivo:** Resolver vulnerabilidades de segurança e limpar código antes da Fase 3.
+
+- ✅ 2.16 Fix CRON_SECRET sem fallback hardcoded
+- ✅ 2.17 Fix family-service + childrenService (filtros de família reais)
+- ✅ 2.18 Auth em todas as API routes (10 endpoints protegidos com requireAuth())
+- ✅ 2.19 Fix race conditions — 3 funções atômicas no Supabase
+- ✅ 2.20 Removidos 236 console.logs de código de produção
+- ✅ 2.21 Deletados arquivos órfãos (src/app-backup/, src/app/, next.config.ts, 28 scripts arquivados)
+- ✅ 2.22 Removido FamilyLeaderboard duplicado (versão gamification/ removida)
+- ✅ 2.23 Smoke test completo — todos os fluxos funcionando, build limpo
+
+**Pendentes para Fase 3 (não-bloqueantes):**
+
+- isPinUnique() em family-service.ts sem filtro de família
+- addToGoal() em goals.ts usa .update() direto em vez de RPC atômico
+
 ### FASE 3 — Onboarding Profissional ⬅️ PRÓXIMA FASE | 🔒 Bloqueada
 
 ### FASE 4 — Melhorias Futuras | 🔒 Bloqueada
@@ -159,9 +177,12 @@ Só prossiga quando TODOS os itens estiverem ✅.
 | loans                 | Empréstimos ativos com parcelas                                    | 2026-02-18       |
 | loan_installments     | Parcelas individuais de empréstimos                                | 2026-02-18       |
 | allowance_config      | Config de mesada automática (valor, frequência, next_payment_date) | 2026-02-21       |
-| [+ outras]            | Mapear quando necessário                                           | —                |
 
-### Reconciliação (última verificação: 2026-02-21)
+> **RLS:** Habilitado em todas as tabelas — policies SELECT permissiva + escrita autenticada
+> **Funções atômicas (migration 006):** adjust_child_balance, adjust_goal_amount, adjust_loan_paid
+> **Removidas:** workout_programs, workout_days, workout_sessions, view user_workout_stats (lixo BWS)
+
+### Reconciliação (última verificação: 2026-03-29)
 
 | Feature na UI         | Código referencia                                  | Tabela no banco                  | Status |
 | --------------------- | -------------------------------------------------- | -------------------------------- | ------ |
@@ -247,8 +268,7 @@ MyFirstBA2/
 ### Banco de Dados (Supabase)
 
 - Relacionamentos via `family_id` (NÃO `user_id`)
-- Maioria das tabelas antigas com RLS desabilitado (segurança na aplicação)
-- RLS habilitado nas tabelas novas (loans, loan_installments)
+- RLS habilitado em todas as tabelas — policies SELECT permissiva + escrita autenticada
 - Migrations em `supabase/migrations/`
 - Credenciais em variáveis de ambiente (.env.local)
 - Projeto Supabase: mqcfdwyhbtvaclslured
@@ -270,26 +290,37 @@ MyFirstBA2/
 
 ## 📝 DECISÕES TÉCNICAS REGISTRADAS
 
-| Data       | Decisão                                                               | Motivo                                                                                 |
-| ---------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)                                  | Educacional, taxa mensal é mais intuitiva                                              |
-| 2026-02-17 | Goals rendem juros separados                                          | Transparência: cada goal tem transações rastreáveis                                    |
-| 2026-02-17 | LoanService usa purchase_requests                                     | Já existia, CRUD funcional, mantido como abstração                                     |
-| 2026-02-17 | Empréstimo com saldo separado (não negativo)                          | Mais educativo e seguro tecnicamente                                                   |
-| 2026-02-17 | Sem juros em empréstimos (por enquanto)                               | Simplicidade para MVP de empréstimos                                                   |
-| 2026-02-17 | Deploy Vercel no final da Fase 2                                      | App precisa ter visual novo antes de ir pra produção                                   |
-| 2026-02-18 | family_id é chave de relacionamento (não user_id)                     | Descoberto durante task 2.10: children, loans etc. usam family_id                      |
-| 2026-02-18 | Maioria das tabelas antigas tem RLS desabilitado                      | Segurança feita na camada de aplicação; tabelas novas (loans) têm RLS                  |
-| 2026-02-18 | Empréstimos: 3 componentes criança + 2 componentes pai                | LoanCard, InstallmentList, PayInstallmentModal + LoanApprovalModal, RejectionModal     |
-| 2026-02-18 | Pedidos aprovados linkam para empréstimo via purchase_request_id      | Navegação child-loan-requests → child-loans com query param                            |
-| 2026-02-18 | Mesada automática NÃO implementada                                    | payInstallment pronto para integração futura quando mesada automática existir          |
-| 2026-02-18 | Parcelas com detecção automática de atraso                            | InstallmentList compara due_date com data atual para marcar overdue                    |
-| 2026-02-21 | Fix mesada: removido last_paid_at inexistente do apply-allowance.ts   | Coluna não existe em allowance_config; update falhava silenciosamente desde 05/12/2025 |
-| 2026-02-21 | Mesadas retroativas jan+fev 2026 creditadas manualmente (R$400 total) | 2 meses sem pagamento por causa do bug last_paid_at                                    |
-| 2026-02-21 | allowance_config usa apenas next_payment_date + updated_at            | Confirmado schema real da tabela; não tem last_paid_at                                 |
-| 2026-02-22 | Task 2.15: Opção C (híbrida) para cancelar/realizar sonhos            | Aproveitou fulfillment_status existente + débito de saldo ao aprovar realização        |
-| 2026-02-22 | demo-child-view.tsx renderiza sonhos inline (não usa GoalCard)        | Descoberto durante 2.15b; botão Desistir adicionado na renderização inline existente   |
-| 2026-02-22 | CI Pipeline corrigido — ESLint configurado para não bloquear          | Incompatibilidade Next.js 14.2 + ESLint 9; script lint modificado para exit 0          |
+| Data       | Decisão                                                               | Motivo                                                                                                     |
+| ---------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 2026-02-17 | Taxa de juros: monthly_rate (0-100%)                                  | Educacional, taxa mensal é mais intuitiva                                                                  |
+| 2026-02-17 | Goals rendem juros separados                                          | Transparência: cada goal tem transações rastreáveis                                                        |
+| 2026-02-17 | LoanService usa purchase_requests                                     | Já existia, CRUD funcional, mantido como abstração                                                         |
+| 2026-02-17 | Empréstimo com saldo separado (não negativo)                          | Mais educativo e seguro tecnicamente                                                                       |
+| 2026-02-17 | Sem juros em empréstimos (por enquanto)                               | Simplicidade para MVP de empréstimos                                                                       |
+| 2026-02-17 | Deploy Vercel no final da Fase 2                                      | App precisa ter visual novo antes de ir pra produção                                                       |
+| 2026-02-18 | family_id é chave de relacionamento (não user_id)                     | Descoberto durante task 2.10: children, loans etc. usam family_id                                          |
+| 2026-02-18 | Maioria das tabelas antigas tem RLS desabilitado                      | Segurança feita na camada de aplicação; tabelas novas (loans) têm RLS                                      |
+| 2026-02-18 | Empréstimos: 3 componentes criança + 2 componentes pai                | LoanCard, InstallmentList, PayInstallmentModal + LoanApprovalModal, RejectionModal                         |
+| 2026-02-18 | Pedidos aprovados linkam para empréstimo via purchase_request_id      | Navegação child-loan-requests → child-loans com query param                                                |
+| 2026-02-18 | Mesada automática NÃO implementada                                    | payInstallment pronto para integração futura quando mesada automática existir                              |
+| 2026-02-18 | Parcelas com detecção automática de atraso                            | InstallmentList compara due_date com data atual para marcar overdue                                        |
+| 2026-02-21 | Fix mesada: removido last_paid_at inexistente do apply-allowance.ts   | Coluna não existe em allowance_config; update falhava silenciosamente desde 05/12/2025                     |
+| 2026-02-21 | Mesadas retroativas jan+fev 2026 creditadas manualmente (R$400 total) | 2 meses sem pagamento por causa do bug last_paid_at                                                        |
+| 2026-02-21 | allowance_config usa apenas next_payment_date + updated_at            | Confirmado schema real da tabela; não tem last_paid_at                                                     |
+| 2026-02-22 | Task 2.15: Opção C (híbrida) para cancelar/realizar sonhos            | Aproveitou fulfillment_status existente + débito de saldo ao aprovar realização                            |
+| 2026-02-22 | demo-child-view.tsx renderiza sonhos inline (não usa GoalCard)        | Descoberto durante 2.15b; botão Desistir adicionado na renderização inline existente                       |
+| 2026-02-22 | CI Pipeline corrigido — ESLint configurado para não bloquear          | Incompatibilidade Next.js 14.2 + ESLint 9; script lint modificado para exit 0                              |
+| 2026-03-29 | RLS habilitado com USING(true) em 16 tabelas                          | Fecha acesso anônimo direto via PostgREST                                                                  |
+| 2026-03-29 | Tabelas BWS removidas do MyFirstBA                                    | workout_programs, workout_days, workout_sessions e view user_workout_stats eram lixo do Built With Science |
+| 2026-03-29 | Função get_last_workout_data removida                                 | Resquício do BWS — referenciava tabela inexistente                                                         |
+| 2026-03-29 | search_path fixado em 6 funções                                       | Previne search_path injection (Supabase Security Advisor)                                                  |
+| 2026-03-29 | Postgres atualizado 17.4 → 17.6                                       | Patches de segurança aplicados via dashboard Supabase                                                      |
+| 2026-03-29 | Policies RLS refinadas — SELECT vs write separados                    | Resolve rls_policy_always_true — escrita exige auth.role() = authenticated ou service_role                 |
+| 2026-03-29 | requireAuth() criado em src/lib/apiAuth.ts                            | Helper único para proteção de todas as API routes                                                          |
+| 2026-03-29 | parent_id vem da sessão (não do body) em resolve-fulfillment          | Previne parent_id spoofing                                                                                 |
+| 2026-03-29 | 3 funções atômicas criadas no Supabase                                | adjust_child_balance, adjust_goal_amount, adjust_loan_paid — eliminam race conditions                      |
+| 2026-03-29 | isPinUnique() sem filtro de família                                   | Não-bloqueante — fix na Fase 3                                                                             |
+| 2026-03-29 | addToGoal() usa .update() direto sem RPC                              | Race condition teórica — fix na Fase 3                                                                     |
 
 ---
 
