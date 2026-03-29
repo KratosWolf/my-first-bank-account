@@ -110,11 +110,6 @@ export class LoanService {
               : undefined,
         })) || [];
 
-      console.log(
-        '✅ Pedidos de empréstimo carregados do Supabase:',
-        loanRequests
-      );
-
       // Também carregar do localStorage e combinar
       const localRequests = this.getLoanRequestsFromLocalStorage();
       const allRequests = [...loanRequests, ...localRequests];
@@ -191,11 +186,6 @@ export class LoanService {
         requestedAt: purchase.created_at,
       };
 
-      console.log(
-        '✅ Pedido de empréstimo criado no Supabase:',
-        newLoanRequest
-      );
-
       // Também salvar no localStorage como backup
       this.addToLocalStorage(newLoanRequest);
 
@@ -234,11 +224,6 @@ export class LoanService {
         return this.updateLoanStatusInLocalStorage(id, status, parentNote);
       }
 
-      console.log('✅ Status do empréstimo atualizado no Supabase:', {
-        id,
-        status,
-      });
-
       // Também atualizar no localStorage
       this.updateLoanStatusInLocalStorage(id, status, parentNote);
 
@@ -263,10 +248,6 @@ export class LoanService {
         const loanRequests = allRequests.filter(
           (req: any) => req.type === 'loan'
         );
-        console.log(
-          '📱 Pedidos de empréstimo carregados do localStorage:',
-          loanRequests
-        );
         return loanRequests;
       }
       return [];
@@ -283,7 +264,6 @@ export class LoanService {
       );
       existing.unshift(loanRequest);
       localStorage.setItem('familyPendingRequests', JSON.stringify(existing));
-      console.log('📱 Empréstimo salvo no localStorage');
     } catch (error) {
       console.error('❌ Erro ao salvar empréstimo no localStorage:', error);
     }
@@ -300,10 +280,6 @@ export class LoanService {
     };
 
     this.addToLocalStorage(newLoanRequest);
-    console.log(
-      '📱 Pedido de empréstimo criado no localStorage:',
-      newLoanRequest
-    );
 
     return newLoanRequest;
   }
@@ -330,10 +306,6 @@ export class LoanService {
       };
 
       localStorage.setItem('familyPendingRequests', JSON.stringify(requests));
-      console.log('📱 Status do empréstimo atualizado no localStorage:', {
-        id,
-        status,
-      });
 
       return true;
     } catch (error) {
@@ -414,8 +386,6 @@ export class LoanService {
         await supabase.from('loans').delete().eq('id', loan.id);
         return null;
       }
-
-      console.log('✅ Empréstimo criado com sucesso:', loan.id);
 
       return {
         ...loan,
@@ -542,29 +512,21 @@ export class LoanService {
         return false;
       }
 
-      // Atualizar valor pago do empréstimo
-      const loan = (installment as any).loans;
-      const newPaidAmount =
-        parseFloat(loan.paid_amount) + parseFloat(installment.amount);
-      const isFullyPaid = newPaidAmount >= parseFloat(loan.total_amount);
-
-      const { error: loanUpdateError } = await supabase
-        .from('loans')
-        .update({
-          paid_amount: newPaidAmount,
-          status: isFullyPaid ? 'paid_off' : 'active',
-        })
-        .eq('id', installment.loan_id);
+      // Atualizar valor pago do empréstimo (incremento atômico — evita race condition)
+      const { data: loanResult, error: loanUpdateError } = await supabase.rpc(
+        'adjust_loan_paid',
+        {
+          p_loan_id: installment.loan_id,
+          p_amount_delta: parseFloat(installment.amount),
+        }
+      );
 
       if (loanUpdateError) {
         console.error('❌ Erro ao atualizar empréstimo:', loanUpdateError);
         return false;
       }
 
-      console.log('✅ Parcela paga com sucesso:', installmentId);
-      if (isFullyPaid) {
-        console.log('🎉 Empréstimo quitado completamente!');
-      }
+      const isFullyPaid = loanResult?.[0]?.is_fully_paid ?? false;
 
       return true;
     } catch (error) {
@@ -622,7 +584,6 @@ export class LoanService {
         return false;
       }
 
-      console.log('✅ Empréstimo cancelado com sucesso:', loanId);
       return true;
     } catch (error) {
       console.error('❌ Erro ao cancelar empréstimo:', error);

@@ -163,8 +163,6 @@ export class TransactionService {
   static async createTransaction(
     transactionData: any
   ): Promise<Transaction | null> {
-    console.log('💰 Creating transaction:', transactionData);
-
     // Build dbData with all supported fields
     const dbData: any = {
       child_id: transactionData.child_id,
@@ -200,8 +198,6 @@ export class TransactionService {
       dbData.to_child_id = transactionData.to_child_id;
     }
 
-    console.log('💰 Inserting to DB:', dbData);
-
     const { data, error } = await supabase
       .from('transactions')
       .insert(dbData)
@@ -213,7 +209,6 @@ export class TransactionService {
       return null;
     }
 
-    console.log('✅ Transaction created:', data);
     return data;
   }
 
@@ -488,7 +483,6 @@ export class TransactionService {
         .single();
 
       if (configError || !config) {
-        console.log('No interest config found for child:', childId);
         return null;
       }
 
@@ -506,12 +500,6 @@ export class TransactionService {
 
       // Check if balance meets minimum
       if (child.balance < config.minimum_balance) {
-        console.log(
-          'Balance below minimum for interest:',
-          child.balance,
-          '<',
-          config.minimum_balance
-        );
         return null;
       }
 
@@ -549,12 +537,6 @@ export class TransactionService {
       eligibleBalance = Math.max(0, eligibleBalance);
 
       if (eligibleBalance < config.minimum_balance) {
-        console.log(
-          'Eligible balance (30+ days) below minimum:',
-          eligibleBalance,
-          '<',
-          config.minimum_balance
-        );
         return null;
       }
 
@@ -567,7 +549,6 @@ export class TransactionService {
         Math.round(eligibleBalance * monthlyDecimal * 100) / 100;
 
       if (interestAmount < 0.01) {
-        console.log('Interest amount too small:', interestAmount);
         return null;
       }
 
@@ -591,10 +572,6 @@ export class TransactionService {
             last_interest_date: new Date().toISOString().split('T')[0],
           })
           .eq('child_id', childId);
-
-        console.log(
-          `✅ Juros aplicados: R$ ${interestAmount.toFixed(2)} sobre R$ ${eligibleBalance.toFixed(2)} (saldo elegível de 30+ dias)`
-        );
       }
 
       // ============ GOAL INTEREST CALCULATION (ADDITIONAL) ============
@@ -615,9 +592,6 @@ export class TransactionService {
             // Check 30-day carência for this goal
             const goalCreatedDate = new Date(goal.created_at);
             if (goalCreatedDate > thirtyDaysAgoGoals) {
-              console.log(
-                `Goal "${goal.title}" not eligible yet (created less than 30 days ago)`
-              );
               continue;
             }
 
@@ -626,19 +600,14 @@ export class TransactionService {
               Math.round(goal.current_amount * monthlyDecimal * 100) / 100;
 
             if (goalInterestAmount < 0.01) {
-              console.log(
-                `Goal "${goal.title}" interest too small: ${goalInterestAmount}`
-              );
               continue;
             }
 
-            // Update goal's current_amount
-            await supabase
-              .from('goals')
-              .update({
-                current_amount: goal.current_amount + goalInterestAmount,
-              })
-              .eq('id', goal.id);
+            // Update goal's current_amount (incremento atômico — evita race condition)
+            await supabase.rpc('adjust_goal_amount', {
+              p_goal_id: goal.id,
+              p_amount_delta: goalInterestAmount,
+            });
 
             // Create tracking transaction
             await this.createTransaction({
@@ -652,10 +621,6 @@ export class TransactionService {
               requires_approval: false,
               approved_by_parent: true,
             });
-
-            console.log(
-              `✅ Goal interest: R$ ${goalInterestAmount.toFixed(2)} applied to "${goal.title}"`
-            );
           }
         }
       } catch (goalError) {
