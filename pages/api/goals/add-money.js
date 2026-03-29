@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
+  const session = await requireAuth(req, res);
+  if (!session) return;
+
   const { method } = req;
 
   try {

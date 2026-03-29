@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
+  const session = await requireAuth(req, res);
+  if (!session) return;
+
   const { method } = req;
 
   try {
@@ -13,7 +17,9 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Analytics API Error:', error);
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Internal server error', details: error.message });
   }
 }
 
@@ -26,11 +32,13 @@ async function handleGetAnalytics(req, res) {
 
   try {
     const periodDays = parseInt(period);
-    const startDate = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString();
+    const startDate = new Date(
+      Date.now() - periodDays * 24 * 60 * 60 * 1000
+    ).toISOString();
 
     // Base query conditions
     let childQuery = supabase.from('children').select('*');
-    
+
     if (family_id) {
       childQuery = childQuery.eq('family_id', family_id);
     } else if (child_id) {
@@ -40,7 +48,12 @@ async function handleGetAnalytics(req, res) {
     const { data: children, error: childrenError } = await childQuery;
 
     if (childrenError) {
-      return res.status(400).json({ error: 'Failed to fetch children', details: childrenError.message });
+      return res
+        .status(400)
+        .json({
+          error: 'Failed to fetch children',
+          details: childrenError.message,
+        });
     }
 
     if (!children || children.length === 0) {
@@ -56,14 +69,14 @@ async function handleGetAnalytics(req, res) {
       categorySpending,
       weeklyActivity,
       achievementStats,
-      financialSummary
+      financialSummary,
     ] = await Promise.all([
       getTransactionStats(childIds, startDate, periodDays),
       getGoalStats(childIds, startDate),
       getCategorySpending(childIds, startDate),
       getWeeklyActivity(childIds, startDate),
       getAchievementStats(childIds, startDate),
-      getFinancialSummary(children)
+      getFinancialSummary(children),
     ]);
 
     const analytics = {
@@ -74,7 +87,7 @@ async function handleGetAnalytics(req, res) {
         avatar: child.avatar || '👶',
         balance: child.balance || 0,
         level: child.current_level || 1,
-        xp: child.xp || 0
+        xp: child.xp || 0,
       })),
       financial_summary: financialSummary,
       transaction_stats: transactionStats,
@@ -82,17 +95,23 @@ async function handleGetAnalytics(req, res) {
       category_spending: categorySpending,
       weekly_activity: weeklyActivity,
       achievement_stats: achievementStats,
-      insights: generateInsights(transactionStats, goalStats, categorySpending, children)
+      insights: generateInsights(
+        transactionStats,
+        goalStats,
+        categorySpending,
+        children
+      ),
     };
 
-    return res.status(200).json({ 
-      success: true, 
-      data: analytics
+    return res.status(200).json({
+      success: true,
+      data: analytics,
     });
-
   } catch (error) {
     console.error('Error fetching analytics:', error);
-    return res.status(500).json({ error: 'Failed to fetch analytics', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Failed to fetch analytics', details: error.message });
   }
 }
 
@@ -111,7 +130,7 @@ async function getTransactionStats(childIds, startDate, periodDays) {
     pending_requests: 0,
     approved_requests: 0,
     rejected_requests: 0,
-    by_type: {}
+    by_type: {},
   };
 
   if (transactions && transactions.length > 0) {
@@ -131,7 +150,8 @@ async function getTransactionStats(childIds, startDate, periodDays) {
       stats.by_type[tx.type] = (stats.by_type[tx.type] || 0) + 1;
     });
 
-    stats.avg_transaction = stats.total_spent > 0 ? stats.total_spent / transactions.length : 0;
+    stats.avg_transaction =
+      stats.total_spent > 0 ? stats.total_spent / transactions.length : 0;
   }
 
   return stats;
@@ -151,26 +171,27 @@ async function getGoalStats(childIds, startDate) {
 
   const stats = {
     total_goals: goals?.length || 0,
-    active_goals: goals?.filter(g => g.is_active && !g.is_completed).length || 0,
+    active_goals:
+      goals?.filter(g => g.is_active && !g.is_completed).length || 0,
     completed_goals: goals?.filter(g => g.is_completed).length || 0,
     new_goals_this_period: recentGoals?.length || 0,
     total_target_amount: 0,
     total_current_amount: 0,
     avg_completion_rate: 0,
-    by_category: {}
+    by_category: {},
   };
 
   if (goals && goals.length > 0) {
     goals.forEach(goal => {
       stats.total_target_amount += goal.target_amount;
       stats.total_current_amount += goal.current_amount;
-      
+
       const category = goal.category || 'other';
       if (!stats.by_category[category]) {
         stats.by_category[category] = {
           count: 0,
           total_target: 0,
-          total_current: 0
+          total_current: 0,
         };
       }
       stats.by_category[category].count++;
@@ -178,9 +199,12 @@ async function getGoalStats(childIds, startDate) {
       stats.by_category[category].total_current += goal.current_amount;
     });
 
-    stats.avg_completion_rate = stats.total_target_amount > 0 
-      ? Math.round((stats.total_current_amount / stats.total_target_amount) * 100)
-      : 0;
+    stats.avg_completion_rate =
+      stats.total_target_amount > 0
+        ? Math.round(
+            (stats.total_current_amount / stats.total_target_amount) * 100
+          )
+        : 0;
   }
 
   return stats;
@@ -203,19 +227,23 @@ async function getCategorySpending(childIds, startDate) {
         categoryData[category] = {
           amount: 0,
           count: 0,
-          percentage: 0
+          percentage: 0,
         };
       }
       categoryData[category].amount += tx.amount;
       categoryData[category].count++;
     });
 
-    const totalSpent = Object.values(categoryData).reduce((sum, cat) => sum + cat.amount, 0);
-    
+    const totalSpent = Object.values(categoryData).reduce(
+      (sum, cat) => sum + cat.amount,
+      0
+    );
+
     Object.keys(categoryData).forEach(category => {
-      categoryData[category].percentage = totalSpent > 0 
-        ? Math.round((categoryData[category].amount / totalSpent) * 100)
-        : 0;
+      categoryData[category].percentage =
+        totalSpent > 0
+          ? Math.round((categoryData[category].amount / totalSpent) * 100)
+          : 0;
     });
   }
 
@@ -246,23 +274,25 @@ async function getWeeklyActivity(childIds, startDate) {
           transaction_count: 0,
           total_amount: 0,
           spending_amount: 0,
-          earning_amount: 0
+          earning_amount: 0,
         };
       }
 
       weeklyData[weekKey].transaction_count++;
-      
+
       if (tx.type === 'spending' || tx.type === 'goal_deposit') {
         weeklyData[weekKey].spending_amount += tx.amount;
       } else if (tx.type === 'earning' || tx.type === 'allowance') {
         weeklyData[weekKey].earning_amount += tx.amount;
       }
-      
+
       weeklyData[weekKey].total_amount += tx.amount;
     });
   }
 
-  return Object.values(weeklyData).sort((a, b) => new Date(a.week_start) - new Date(b.week_start));
+  return Object.values(weeklyData).sort(
+    (a, b) => new Date(a.week_start) - new Date(b.week_start)
+  );
 }
 
 async function getAchievementStats(childIds, startDate) {
@@ -280,7 +310,7 @@ async function getAchievementStats(childIds, startDate) {
   return {
     total_achievements: allBadges?.length || 0,
     new_achievements_this_period: recentBadges?.length || 0,
-    recent_badges: recentBadges || []
+    recent_badges: recentBadges || [],
   };
 }
 
@@ -291,7 +321,7 @@ async function getFinancialSummary(children) {
     total_family_spent: 0,
     average_child_balance: 0,
     highest_balance: 0,
-    lowest_balance: 0
+    lowest_balance: 0,
   };
 
   if (children && children.length > 0) {
@@ -302,7 +332,8 @@ async function getFinancialSummary(children) {
     summary.total_family_balance = balances.reduce((sum, b) => sum + b, 0);
     summary.total_family_earned = earned.reduce((sum, e) => sum + e, 0);
     summary.total_family_spent = spent.reduce((sum, s) => sum + s, 0);
-    summary.average_child_balance = summary.total_family_balance / children.length;
+    summary.average_child_balance =
+      summary.total_family_balance / children.length;
     summary.highest_balance = Math.max(...balances);
     summary.lowest_balance = Math.min(...balances);
   }
@@ -310,7 +341,12 @@ async function getFinancialSummary(children) {
   return summary;
 }
 
-function generateInsights(transactionStats, goalStats, categorySpending, children) {
+function generateInsights(
+  transactionStats,
+  goalStats,
+  categorySpending,
+  children
+) {
   const insights = [];
 
   // Spending insights
@@ -321,7 +357,7 @@ function generateInsights(transactionStats, goalStats, categorySpending, childre
         type: 'warning',
         title: 'Concentração de Gastos',
         description: `${topCategory.percentage}% dos gastos estão na categoria "${topCategory.category}". Considere diversificar.`,
-        icon: '⚠️'
+        icon: '⚠️',
       });
     }
   }
@@ -332,14 +368,15 @@ function generateInsights(transactionStats, goalStats, categorySpending, childre
       type: 'success',
       title: 'Excelente Progresso!',
       description: `As crianças estão ${goalStats.avg_completion_rate}% próximas de completar suas metas em média.`,
-      icon: '🎯'
+      icon: '🎯',
     });
   } else if (goalStats.avg_completion_rate < 30) {
     insights.push({
       type: 'info',
       title: 'Metas Desafiadoras',
-      description: 'As metas podem estar muito altas. Considere dividir em objetivos menores.',
-      icon: '💡'
+      description:
+        'As metas podem estar muito altas. Considere dividir em objetivos menores.',
+      icon: '💡',
     });
   }
 
@@ -349,7 +386,7 @@ function generateInsights(transactionStats, goalStats, categorySpending, childre
       type: 'info',
       title: 'Solicitações Pendentes',
       description: `Existem ${transactionStats.pending_requests} pedidos aguardando aprovação.`,
-      icon: '⏰'
+      icon: '⏰',
     });
   }
 
@@ -358,8 +395,9 @@ function generateInsights(transactionStats, goalStats, categorySpending, childre
     insights.push({
       type: 'info',
       title: 'Pouca Atividade',
-      description: 'Incentive as crianças a participar mais das atividades financeiras.',
-      icon: '📈'
+      description:
+        'Incentive as crianças a participar mais das atividades financeiras.',
+      icon: '📈',
     });
   }
 

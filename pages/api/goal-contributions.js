@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
+  const session = await requireAuth(req, res);
+  if (!session) return;
+
   const { method } = req;
 
   try {
@@ -15,7 +19,9 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Goal Contributions API Error:', error);
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Internal server error', details: error.message });
   }
 }
 
@@ -43,29 +49,31 @@ async function handleGetContributions(req, res) {
 
   if (error) {
     console.error('Error fetching contributions:', error);
-    return res.status(400).json({ error: 'Failed to fetch contributions', details: error.message });
+    return res
+      .status(400)
+      .json({ error: 'Failed to fetch contributions', details: error.message });
   }
 
-  return res.status(200).json({ 
-    success: true, 
+  return res.status(200).json({
+    success: true,
     data: contributions,
-    count: contributions.length 
+    count: contributions.length,
   });
 }
 
 async function handleCreateContribution(req, res) {
-  const { 
-    goal_id, 
-    child_id, 
+  const {
+    goal_id,
+    child_id,
     amount,
     description,
-    contribution_type = 'manual'
+    contribution_type = 'manual',
   } = req.body;
 
   // Validation
   if (!goal_id || !child_id || !amount || amount <= 0) {
-    return res.status(400).json({ 
-      error: 'Missing required fields: goal_id, child_id, amount' 
+    return res.status(400).json({
+      error: 'Missing required fields: goal_id, child_id, amount',
     });
   }
 
@@ -73,7 +81,7 @@ async function handleCreateContribution(req, res) {
     goal_id,
     child_id,
     amount,
-    contribution_type
+    contribution_type,
   });
 
   try {
@@ -85,17 +93,17 @@ async function handleCreateContribution(req, res) {
       .single();
 
     if (childError) {
-      return res.status(400).json({ 
-        error: 'Child not found', 
-        details: childError.message 
+      return res.status(400).json({
+        error: 'Child not found',
+        details: childError.message,
       });
     }
 
     if (child.balance < amount) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Insufficient balance',
         current_balance: child.balance,
-        requested_amount: amount
+        requested_amount: amount,
       });
     }
 
@@ -107,15 +115,15 @@ async function handleCreateContribution(req, res) {
       .single();
 
     if (goalError) {
-      return res.status(400).json({ 
-        error: 'Goal not found', 
-        details: goalError.message 
+      return res.status(400).json({
+        error: 'Goal not found',
+        details: goalError.message,
       });
     }
 
     if (goal.is_completed) {
-      return res.status(400).json({ 
-        error: 'Cannot contribute to completed goal' 
+      return res.status(400).json({
+        error: 'Cannot contribute to completed goal',
       });
     }
 
@@ -124,20 +132,22 @@ async function handleCreateContribution(req, res) {
     // Type alterado: 'goal_deposit' → 'spending' (goal_deposit não está no CHECK constraint)
     const { data: contribution, error: transactionError } = await supabase
       .from('transactions')
-      .insert([{
-        child_id,
-        type: 'spending',  // Usando 'spending' pois 'goal_deposit' não existe no schema básico
-        amount: parseFloat(amount),
-        description: description || `Contribuição para ${goal.title}`,
-        category: 'Sonhos'
-      }])
+      .insert([
+        {
+          child_id,
+          type: 'spending', // Usando 'spending' pois 'goal_deposit' não existe no schema básico
+          amount: parseFloat(amount),
+          description: description || `Contribuição para ${goal.title}`,
+          category: 'Sonhos',
+        },
+      ])
       .select()
       .single();
 
     if (transactionError) {
-      return res.status(400).json({ 
-        error: 'Failed to create contribution transaction', 
-        details: transactionError.message 
+      return res.status(400).json({
+        error: 'Failed to create contribution transaction',
+        details: transactionError.message,
       });
     }
 
@@ -149,7 +159,7 @@ async function handleCreateContribution(req, res) {
       .from('children')
       .update({
         balance: newChildBalance,
-        total_spent: newTotalSpent  // ✅ BUG FIX: supabase.sql() não existe no JS client
+        total_spent: newTotalSpent, // ✅ BUG FIX: supabase.sql() não existe no JS client
       })
       .eq('id', child_id);
 
@@ -168,7 +178,7 @@ async function handleCreateContribution(req, res) {
       .update({
         current_amount: newGoalAmount,
         is_completed: isCompleted,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', goal_id)
       .select()
@@ -183,25 +193,26 @@ async function handleCreateContribution(req, res) {
       contribution,
       new_child_balance: newChildBalance,
       updated_goal: updatedGoal,
-      goal_completed: isCompleted
+      goal_completed: isCompleted,
     });
 
-    return res.status(201).json({ 
-      success: true, 
+    return res.status(201).json({
+      success: true,
       data: {
         contribution,
         updated_goal: updatedGoal,
         new_child_balance: newChildBalance,
-        goal_completed: isCompleted
+        goal_completed: isCompleted,
       },
-      message: isCompleted ? 'Contribution made and goal completed! 🎉' : 'Contribution made successfully' 
+      message: isCompleted
+        ? 'Contribution made and goal completed! 🎉'
+        : 'Contribution made successfully',
     });
-
   } catch (error) {
     console.error('Error in goal contribution transaction:', error);
-    return res.status(500).json({ 
-      error: 'Transaction failed', 
-      details: error.message 
+    return res.status(500).json({
+      error: 'Transaction failed',
+      details: error.message,
     });
   }
 }

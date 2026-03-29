@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
+  const session = await requireAuth(req, res);
+  if (!session) return;
+
   const { method } = req;
 
   try {
@@ -15,7 +19,9 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Gamification API Error:', error);
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Internal server error', details: error.message });
   }
 }
 
@@ -35,7 +41,9 @@ async function handleGetGameData(req, res) {
       .single();
 
     if (childError) {
-      return res.status(400).json({ error: 'Child not found', details: childError.message });
+      return res
+        .status(400)
+        .json({ error: 'Child not found', details: childError.message });
     }
 
     // Calculate level progression
@@ -46,7 +54,10 @@ async function handleGetGameData(req, res) {
       .from('child_badges')
       .select('*, badges(*)')
       .eq('child_id', child_id)
-      .gte('earned_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .gte(
+        'earned_at',
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      )
       .order('earned_at', { ascending: false });
 
     // Get current streaks
@@ -65,50 +76,58 @@ async function handleGetGameData(req, res) {
         current_level: levelData.currentLevel,
         xp_to_next_level: levelData.xpToNextLevel,
         total_xp: child.xp || 0,
-        level_progress_percentage: levelData.progressPercentage
+        level_progress_percentage: levelData.progressPercentage,
       },
       recent_achievements: recentBadges || [],
       active_streaks: streaks || [],
       next_achievements: nextAchievements,
-      level_benefits: getLevelBenefits(levelData.currentLevel)
+      level_benefits: getLevelBenefits(levelData.currentLevel),
     };
 
-    return res.status(200).json({ 
-      success: true, 
-      data: gameData
+    return res.status(200).json({
+      success: true,
+      data: gameData,
     });
-
   } catch (error) {
     console.error('Error fetching gamification data:', error);
-    return res.status(500).json({ error: 'Failed to fetch game data', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Failed to fetch game data', details: error.message });
   }
 }
 
 async function handleProcessAction(req, res) {
-  const { 
-    child_id, 
-    action_type, 
-    action_data 
-  } = req.body;
+  const { child_id, action_type, action_data } = req.body;
 
   if (!child_id || !action_type) {
-    return res.status(400).json({ error: 'child_id and action_type are required' });
+    return res
+      .status(400)
+      .json({ error: 'child_id and action_type are required' });
   }
 
-  console.log('🎮 Processing gamification action:', { child_id, action_type, action_data });
+  console.log('🎮 Processing gamification action:', {
+    child_id,
+    action_type,
+    action_data,
+  });
 
   try {
-    const result = await processGamificationAction(child_id, action_type, action_data);
-    
-    return res.status(200).json({ 
-      success: true, 
-      data: result,
-      message: 'Gamification action processed successfully'
-    });
+    const result = await processGamificationAction(
+      child_id,
+      action_type,
+      action_data
+    );
 
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Gamification action processed successfully',
+    });
   } catch (error) {
     console.error('Error processing gamification action:', error);
-    return res.status(500).json({ error: 'Failed to process action', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Failed to process action', details: error.message });
   }
 }
 
@@ -124,20 +143,22 @@ function calculateLevelProgression(totalXP) {
   while (totalXP >= xpForNextLevel) {
     currentLevel++;
     xpForCurrentLevel = xpForNextLevel;
-    xpForNextLevel = xpForCurrentLevel + (currentLevel * 150);
+    xpForNextLevel = xpForCurrentLevel + currentLevel * 150;
   }
 
   const xpToNextLevel = xpForNextLevel - totalXP;
   const currentLevelXP = totalXP - xpForCurrentLevel;
   const xpNeededForLevel = xpForNextLevel - xpForCurrentLevel;
-  const progressPercentage = Math.round((currentLevelXP / xpNeededForLevel) * 100);
+  const progressPercentage = Math.round(
+    (currentLevelXP / xpNeededForLevel) * 100
+  );
 
   return {
     currentLevel,
     xpToNextLevel,
     progressPercentage,
     currentLevelXP,
-    xpNeededForLevel
+    xpNeededForLevel,
   };
 }
 
@@ -162,7 +183,7 @@ async function calculateNextAchievements(childId, child) {
       description: 'Criar sua primeira meta financeira',
       icon: '🎯',
       xp_reward: 50,
-      criteria: { type: 'goals_created', threshold: 1 }
+      criteria: { type: 'goals_created', threshold: 1 },
     },
     {
       id: 'saver_bronze',
@@ -170,7 +191,7 @@ async function calculateNextAchievements(childId, child) {
       description: 'Guardar R$ 50,00 em metas',
       icon: '🥉',
       xp_reward: 75,
-      criteria: { type: 'total_saved', threshold: 50 }
+      criteria: { type: 'total_saved', threshold: 50 },
     },
     {
       id: 'saver_silver',
@@ -178,7 +199,7 @@ async function calculateNextAchievements(childId, child) {
       description: 'Guardar R$ 200,00 em metas',
       icon: '🥈',
       xp_reward: 150,
-      criteria: { type: 'total_saved', threshold: 200 }
+      criteria: { type: 'total_saved', threshold: 200 },
     },
     {
       id: 'goal_completer',
@@ -186,7 +207,7 @@ async function calculateNextAchievements(childId, child) {
       description: 'Completar sua primeira meta',
       icon: '🏆',
       xp_reward: 200,
-      criteria: { type: 'goals_completed', threshold: 1 }
+      criteria: { type: 'goals_completed', threshold: 1 },
     },
     {
       id: 'transaction_master',
@@ -194,8 +215,8 @@ async function calculateNextAchievements(childId, child) {
       description: 'Realizar 10 transações',
       icon: '💳',
       xp_reward: 100,
-      criteria: { type: 'transactions_count', threshold: 10 }
-    }
+      criteria: { type: 'transactions_count', threshold: 10 },
+    },
   ];
 
   // Get current stats
@@ -231,7 +252,7 @@ async function calculateNextAchievements(childId, child) {
     goals_created: (goalsCreated || []).length,
     goals_completed: (goalsCompleted || []).length,
     transactions_count: (transactions || []).length,
-    total_saved: totalSaved
+    total_saved: totalSaved,
   };
 
   // Find next achievements
@@ -239,13 +260,16 @@ async function calculateNextAchievements(childId, child) {
     .filter(achievement => !earnedBadgeIds.includes(achievement.id))
     .map(achievement => {
       const currentValue = currentStats[achievement.criteria.type] || 0;
-      const progress = Math.min(currentValue / achievement.criteria.threshold, 1);
-      
+      const progress = Math.min(
+        currentValue / achievement.criteria.threshold,
+        1
+      );
+
       return {
         ...achievement,
         progress: Math.round(progress * 100),
         current_value: currentValue,
-        target_value: achievement.criteria.threshold
+        target_value: achievement.criteria.threshold,
       };
     })
     .sort((a, b) => b.progress - a.progress)
@@ -259,7 +283,7 @@ async function processGamificationAction(childId, actionType, actionData) {
     xp_gained: 0,
     new_badges: [],
     level_up: false,
-    new_level: null
+    new_level: null,
   };
 
   // Get current child data
@@ -305,10 +329,10 @@ async function processGamificationAction(childId, actionType, actionData) {
 
   const { error: updateError } = await supabase
     .from('children')
-    .update({ 
+    .update({
       xp: newXP,
       current_level: newLevelData.currentLevel,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('id', childId);
 
@@ -323,23 +347,26 @@ async function processGamificationAction(childId, actionType, actionData) {
   }
 
   // Check for new achievements
-  const nextAchievements = await calculateNextAchievements(childId, { ...child, xp: newXP });
-  
+  const nextAchievements = await calculateNextAchievements(childId, {
+    ...child,
+    xp: newXP,
+  });
+
   // Award badges for completed achievements
   for (const achievement of nextAchievements) {
     if (achievement.progress >= 100) {
       // Create badge record
-      const { error: badgeError } = await supabase
-        .from('child_badges')
-        .insert([{
+      const { error: badgeError } = await supabase.from('child_badges').insert([
+        {
           child_id: childId,
           badge_id: achievement.id,
-          earned_at: new Date().toISOString()
-        }]);
+          earned_at: new Date().toISOString(),
+        },
+      ]);
 
       if (!badgeError) {
         results.new_badges.push(achievement);
-        
+
         // Award additional XP for the badge
         const badgeXP = achievement.xp_reward;
         const finalXP = newXP + badgeXP;

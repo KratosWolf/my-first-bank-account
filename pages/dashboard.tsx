@@ -296,7 +296,6 @@ export default function DashboardPage() {
         body: JSON.stringify({
           goal_id: goalId,
           action: action,
-          parent_id: session?.user?.email || 'unknown',
         }),
       });
 

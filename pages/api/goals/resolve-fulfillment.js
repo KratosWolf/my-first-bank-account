@@ -1,12 +1,16 @@
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
+  const session = await requireAuth(req, res);
+  if (!session) return;
+
   const { method } = req;
 
   try {
     switch (method) {
       case 'POST':
-        return await handleResolveFulfillment(req, res);
+        return await handleResolveFulfillment(req, res, session);
       default:
         res.setHeader('Allow', ['POST']);
         return res.status(405).json({ error: 'Method not allowed' });
@@ -19,13 +23,15 @@ export default async function handler(req, res) {
   }
 }
 
-async function handleResolveFulfillment(req, res) {
-  const { goal_id, action, parent_id } = req.body;
+async function handleResolveFulfillment(req, res, session) {
+  const { goal_id, action } = req.body;
+  // parent_id vem da sessão autenticada (não do body — evita spoofing)
+  const parent_id = session.user.id;
 
   // Validation - campos obrigatórios
-  if (!goal_id || !action || !parent_id) {
+  if (!goal_id || !action) {
     return res.status(400).json({
-      error: 'Missing required fields: goal_id, action, parent_id',
+      error: 'Missing required fields: goal_id, action',
     });
   }
 
