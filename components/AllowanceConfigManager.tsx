@@ -6,6 +6,7 @@ import type { AllowanceConfig, Child } from '../src/lib/supabase';
 interface AllowanceConfigManagerProps {
   isOpen: boolean;
   onClose: () => void;
+  familyId: string;
 }
 
 interface ChildWithConfig {
@@ -16,6 +17,7 @@ interface ChildWithConfig {
 const AllowanceConfigManager: React.FC<AllowanceConfigManagerProps> = ({
   isOpen,
   onClose,
+  familyId,
 }) => {
   const [children, setChildren] = useState<ChildWithConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +37,7 @@ const AllowanceConfigManager: React.FC<AllowanceConfigManagerProps> = ({
     setIsLoading(true);
     try {
       // Buscar todas as crianças
-      const childrenData = await ChildrenService.getChildren();
+      const childrenData = await ChildrenService.getChildren(familyId);
 
       // Buscar configurações de mesada
       const configs = await AllowanceService.getAllConfigs();

@@ -9,11 +9,13 @@ import type { Child } from '../src/lib/supabase';
 interface InterestConfigManagerProps {
   isOpen: boolean;
   onClose: () => void;
+  familyId: string;
 }
 
 export default function InterestConfigManager({
   isOpen,
   onClose,
+  familyId,
 }: InterestConfigManagerProps) {
   const [children, setChildren] = useState<Child[]>([]);
   const [currentConfig, setCurrentConfig] =
@@ -39,7 +41,7 @@ export default function InterestConfigManager({
     setIsLoading(true);
     try {
       // Carregar crianças
-      const childrenData = await ChildrenService.getChildren();
+      const childrenData = await ChildrenService.getChildren(familyId);
       setChildren(childrenData);
 
       // Carregar configuração existente (pegamos a primeira encontrada como base)

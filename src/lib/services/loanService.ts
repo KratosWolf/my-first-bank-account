@@ -58,9 +58,6 @@ export interface LoanDetails extends Loan {
   child_name?: string;
 }
 
-// Family ID padrão para desenvolvimento
-const DEMO_FAMILY_ID = 'demo-family-001';
-
 export class LoanService {
   // Carregar todos os pedidos de empréstimo
   static async getLoanRequests(): Promise<LoanRequest[]> {

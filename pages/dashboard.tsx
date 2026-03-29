@@ -98,7 +98,12 @@ export default function DashboardPage() {
 
   const loadChildren = async () => {
     try {
-      const childrenData = await ChildrenService.getChildren();
+      const familyId = (session?.user as any)?.familyId;
+      if (!familyId) {
+        console.error('❌ familyId não encontrado na sessão');
+        return;
+      }
+      const childrenData = await ChildrenService.getChildren(familyId);
 
       // ✅ Ordenar crianças para manter ordem fixa (evita troca de posições)
       // Critério 1: Por data de nascimento (mais velho primeiro)
@@ -166,9 +171,10 @@ export default function DashboardPage() {
   const loadAnalytics = async () => {
     setLoadingAnalytics(true);
     try {
-      // Use family ID 'demo-family-001' for demo
+      const familyId = (session?.user as any)?.familyId;
+      if (!familyId) return;
       const response = await fetch(
-        `/api/analytics?family_id=demo-family-001&period=${selectedPeriod}`
+        `/api/analytics?family_id=${familyId}&period=${selectedPeriod}`
       );
       const result = await response.json();
 
@@ -554,8 +560,9 @@ export default function DashboardPage() {
 
   const handleSaveChild = async childData => {
     try {
+      const familyId = (session?.user as any)?.familyId;
       if (modalMode === 'add') {
-        const newChild = await ChildrenService.addChild(childData);
+        const newChild = await ChildrenService.addChild(childData, familyId);
         if (newChild) {
           console.log('✅ Criança adicionada:', newChild);
           await loadChildren(); // Recarregar lista
@@ -1510,12 +1517,14 @@ export default function DashboardPage() {
       <InterestConfigManager
         isOpen={isInterestModalOpen}
         onClose={() => setIsInterestModalOpen(false)}
+        familyId={(session?.user as any)?.familyId || ''}
       />
 
       {/* Allowance Config Manager Modal */}
       <AllowanceConfigManager
         isOpen={isAllowanceModalOpen}
         onClose={() => setIsAllowanceModalOpen(false)}
+        familyId={(session?.user as any)?.familyId || ''}
       />
 
       {/* Transaction Modal */}

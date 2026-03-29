@@ -18,27 +18,18 @@ export interface ChildUpdate {
 }
 
 export class FamilyService {
-  // Get current user's family ID from auth
-  static getCurrentFamilyId(): string | null {
-    // For now, we'll use a placeholder until we integrate NextAuth with Supabase
-    // In real implementation, this would come from auth session
-    return 'temp-family-id';
-  }
+  // Get all children for a family (familyId obrigatório)
+  static async getChildren(familyId: string): Promise<Child[]> {
+    if (!familyId) {
+      console.error('FamilyService.getChildren: familyId é obrigatório');
+      return [];
+    }
 
-  // Get all children for current family
-  static async getChildren(): Promise<Child[]> {
     try {
-      const familyId = this.getCurrentFamilyId();
-      if (!familyId) {
-        console.error('No family ID found');
-        return [];
-      }
-
       return await DatabaseService.getChildren(familyId);
     } catch (error) {
       console.error('Error fetching children:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.getChildrenFromLocalStorage();
+      return this.getChildrenFromLocalStorage(familyId);
     }
   }
 
@@ -147,13 +138,12 @@ export class FamilyService {
   }
 
   // FALLBACK METHODS - localStorage implementation
-  private static getChildrenFromLocalStorage(): Child[] {
+  private static getChildrenFromLocalStorage(familyId: string): Child[] {
     try {
       const saved = localStorage.getItem('banco-familia-children');
       if (!saved) return [];
 
       const allChildren = JSON.parse(saved);
-      const familyId = this.getCurrentFamilyId();
 
       return allChildren.filter(
         (c: any) => c.parentId === familyId || c.family_id === familyId
