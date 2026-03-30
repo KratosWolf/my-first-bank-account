@@ -219,6 +219,7 @@ export default function ChildView() {
         .select('*')
         .eq('child_id', childId)
         .eq('requires_approval', true)
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) {
