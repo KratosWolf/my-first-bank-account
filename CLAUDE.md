@@ -321,6 +321,14 @@ MyFirstBA2/
 | 2026-03-29 | 3 funções atômicas criadas no Supabase                                | adjust_child_balance, adjust_goal_amount, adjust_loan_paid — eliminam race conditions                      |
 | 2026-03-29 | isPinUnique() sem filtro de família                                   | Não-bloqueante — fix na Fase 3                                                                             |
 | 2026-03-29 | addToGoal() usa .update() direto sem RPC                              | Race condition teórica — fix na Fase 3                                                                     |
+| 2026-03-30 | supabaseAdmin.ts criado em src/lib/                                   | API routes precisam de service_role key para writes com RLS ativo                                          |
+| 2026-03-30 | Todas as 10 API routes usam supabaseAdmin                             | RLS bloqueia writes com anon key — service_role necessário server-side                                     |
+| 2026-03-30 | useEffect no dashboard depende de [session]                           | Sessão NextAuth carrega async — dependência [] causava familyId undefined                                  |
+| 2026-03-30 | adjust_child_balance: erro reverte status e retorna 500               | Antes engolia erro silenciosamente — 200 OK com saldo errado                                               |
+| 2026-03-30 | loanService.ts: title → item_name em purchase_requests                | Coluna 'title' não existe — coluna real é 'item_name'                                                      |
+| 2026-03-30 | demo-child-view: filtro status='pending' adicionado                   | Query sem filtro retornava spending transactions como pedidos pendentes                                    |
+| 2026-03-30 | Saldos corrigidos manualmente no banco                                | Gabriel: R$759,17 / Rafael: R$811,07                                                                       |
+| 2026-03-30 | Transações duplicadas removidas                                       | Fortnite R$78,99 (dez/25) e raquete R$394 (mar/26) do Gabriel                                              |
 
 ---
 
