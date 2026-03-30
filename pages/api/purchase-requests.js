@@ -211,12 +211,23 @@ async function handleUpdateRequest(req, res) {
 
     if (balanceError) {
       console.error('Error updating child balance:', balanceError);
-      // Don't fail the request, just log the error
+
+      // Reverter status da transação para 'pending' — não deixar aprovação sem débito
+      await supabaseAdmin
+        .from('transactions')
+        .update({
+          status: 'pending',
+          approved_by_parent: false,
+          approved_at: null,
+        })
+        .eq('id', request_id);
+
+      return res.status(500).json({
+        error: 'Failed to update child balance. Approval was reverted.',
+        details: balanceError.message,
+      });
     }
   }
-
-  // TODO: Send real-time notification to child
-  // await notifyChild(updatedRequest.child_id, updatedRequest);
 
   return res.status(200).json({
     success: true,
