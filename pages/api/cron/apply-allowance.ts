@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 /**
  * API Cron para Aplicação Automática de Mesadas
@@ -33,7 +33,7 @@ export default async function handler(
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     // Buscar todas as configurações ativas que tem pagamento hoje
-    const { data: configs, error: configError } = await supabase
+    const { data: configs, error: configError } = await supabaseAdmin
       .from('allowance_config')
       .select(
         `
@@ -81,18 +81,20 @@ export default async function handler(
         }
 
         // 1. Criar transação de mesada
-        const { error: txError } = await supabase.from('transactions').insert([
-          {
-            child_id: config.child_id,
-            type: 'allowance',
-            amount: config.amount,
-            description: `Mesada automática (${getFrequencyText(config.frequency)})`,
-            category: 'Mesada',
-            status: 'completed',
-            requires_approval: false,
-            approved_by_parent: true,
-          },
-        ]);
+        const { error: txError } = await supabaseAdmin
+          .from('transactions')
+          .insert([
+            {
+              child_id: config.child_id,
+              type: 'allowance',
+              amount: config.amount,
+              description: `Mesada automática (${getFrequencyText(config.frequency)})`,
+              category: 'Mesada',
+              status: 'completed',
+              requires_approval: false,
+              approved_by_parent: true,
+            },
+          ]);
 
         if (txError) {
           console.error(`❌ Erro ao criar transação:`, txError);
@@ -108,15 +110,13 @@ export default async function handler(
         }
 
         // 2. Atualizar saldo da criança (incremento atômico — evita race condition)
-        const { data: balanceResult, error: updateError } = await supabase.rpc(
-          'adjust_child_balance',
-          {
+        const { data: balanceResult, error: updateError } =
+          await supabaseAdmin.rpc('adjust_child_balance', {
             p_child_id: config.child_id,
             p_balance_delta: config.amount,
             p_total_earned_delta: config.amount,
             p_total_spent_delta: 0,
-          }
-        );
+          });
 
         if (updateError) {
           console.error(`❌ Erro ao atualizar saldo:`, updateError);
@@ -139,7 +139,7 @@ export default async function handler(
         const nextPaymentDate = calculateNextPaymentDate(config);
 
         // 4. Atualizar configuração (next_payment_date)
-        const { error: configUpdateError } = await supabase
+        const { error: configUpdateError } = await supabaseAdmin
           .from('allowance_config')
           .update({
             next_payment_date: nextPaymentDate,

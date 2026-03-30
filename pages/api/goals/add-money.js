@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -44,7 +44,7 @@ async function handleAddMoney(req, res) {
 
   try {
     // 1. Buscar o sonho e validar que pertence à criança
-    const { data: goal, error: goalError } = await supabase
+    const { data: goal, error: goalError } = await supabaseAdmin
       .from('goals')
       .select('*')
       .eq('id', goal_id)
@@ -79,7 +79,7 @@ async function handleAddMoney(req, res) {
     }
 
     // 4. Buscar saldo atual da criança (para validação)
-    const { data: child, error: childError } = await supabase
+    const { data: child, error: childError } = await supabaseAdmin
       .from('children')
       .select('balance, name')
       .eq('id', child_id)
@@ -106,15 +106,13 @@ async function handleAddMoney(req, res) {
     }
 
     // 6. Debitar saldo da criança (incremento atômico — evita race condition)
-    const { data: balanceResult, error: balanceError } = await supabase.rpc(
-      'adjust_child_balance',
-      {
+    const { data: balanceResult, error: balanceError } =
+      await supabaseAdmin.rpc('adjust_child_balance', {
         p_child_id: child_id,
         p_balance_delta: -depositAmount,
         p_total_earned_delta: 0,
         p_total_spent_delta: 0,
-      }
-    );
+      });
 
     if (balanceError) {
       console.error('❌ Error updating child balance:', balanceError);
@@ -128,7 +126,7 @@ async function handleAddMoney(req, res) {
       balanceResult?.[0]?.new_balance ?? currentBalance - depositAmount;
 
     // 7. Creditar saldo do sonho (incremento atômico — evita race condition)
-    const { data: goalResult, error: goalRpcError } = await supabase.rpc(
+    const { data: goalResult, error: goalRpcError } = await supabaseAdmin.rpc(
       'adjust_goal_amount',
       {
         p_goal_id: goal_id,
@@ -139,7 +137,7 @@ async function handleAddMoney(req, res) {
     if (goalRpcError) {
       console.error('❌ Error updating goal:', goalRpcError);
       // Reverter atualização de saldo da criança (atômico)
-      await supabase.rpc('adjust_child_balance', {
+      await supabaseAdmin.rpc('adjust_child_balance', {
         p_child_id: child_id,
         p_balance_delta: depositAmount,
         p_total_earned_delta: 0,
@@ -156,14 +154,14 @@ async function handleAddMoney(req, res) {
       parseFloat(goal.current_amount || 0) + depositAmount;
 
     // Buscar goal atualizado para resposta
-    const { data: updatedGoal } = await supabase
+    const { data: updatedGoal } = await supabaseAdmin
       .from('goals')
       .select()
       .eq('id', goal_id)
       .single();
 
     // 8. Criar transação de depósito no sonho (goal_deposit)
-    const { error: transactionError } = await supabase
+    const { error: transactionError } = await supabaseAdmin
       .from('transactions')
       .insert([
         {

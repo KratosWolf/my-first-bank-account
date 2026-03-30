@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -37,7 +37,7 @@ async function handleGetAnalytics(req, res) {
     ).toISOString();
 
     // Base query conditions
-    let childQuery = supabase.from('children').select('*');
+    let childQuery = supabaseAdmin.from('children').select('*');
 
     if (family_id) {
       childQuery = childQuery.eq('family_id', family_id);
@@ -48,12 +48,10 @@ async function handleGetAnalytics(req, res) {
     const { data: children, error: childrenError } = await childQuery;
 
     if (childrenError) {
-      return res
-        .status(400)
-        .json({
-          error: 'Failed to fetch children',
-          details: childrenError.message,
-        });
+      return res.status(400).json({
+        error: 'Failed to fetch children',
+        details: childrenError.message,
+      });
     }
 
     if (!children || children.length === 0) {
@@ -116,7 +114,7 @@ async function handleGetAnalytics(req, res) {
 }
 
 async function getTransactionStats(childIds, startDate, periodDays) {
-  const { data: transactions } = await supabase
+  const { data: transactions } = await supabaseAdmin
     .from('transactions')
     .select('*')
     .in('child_id', childIds)
@@ -158,12 +156,12 @@ async function getTransactionStats(childIds, startDate, periodDays) {
 }
 
 async function getGoalStats(childIds, startDate) {
-  const { data: goals } = await supabase
+  const { data: goals } = await supabaseAdmin
     .from('goals')
     .select('*')
     .in('child_id', childIds);
 
-  const { data: recentGoals } = await supabase
+  const { data: recentGoals } = await supabaseAdmin
     .from('goals')
     .select('*')
     .in('child_id', childIds)
@@ -211,7 +209,7 @@ async function getGoalStats(childIds, startDate) {
 }
 
 async function getCategorySpending(childIds, startDate) {
-  const { data: transactions } = await supabase
+  const { data: transactions } = await supabaseAdmin
     .from('transactions')
     .select('*')
     .in('child_id', childIds)
@@ -253,7 +251,7 @@ async function getCategorySpending(childIds, startDate) {
 }
 
 async function getWeeklyActivity(childIds, startDate) {
-  const { data: transactions } = await supabase
+  const { data: transactions } = await supabaseAdmin
     .from('transactions')
     .select('*')
     .in('child_id', childIds)
@@ -296,13 +294,13 @@ async function getWeeklyActivity(childIds, startDate) {
 }
 
 async function getAchievementStats(childIds, startDate) {
-  const { data: recentBadges } = await supabase
+  const { data: recentBadges } = await supabaseAdmin
     .from('child_badges')
     .select('*, badges(*)')
     .in('child_id', childIds)
     .gte('earned_at', startDate);
 
-  const { data: allBadges } = await supabase
+  const { data: allBadges } = await supabaseAdmin
     .from('child_badges')
     .select('*')
     .in('child_id', childIds);

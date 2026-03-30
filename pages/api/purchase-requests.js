@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 async function handleGetRequests(req, res) {
   const { child_id, status, limit = 20 } = req.query;
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('transactions')
     .select('*')
     .eq('requires_approval', true)
@@ -80,7 +80,7 @@ async function handleCreateRequest(req, res) {
   }
 
   // Primeiro tentar verificar se a criança existe no Supabase
-  const { data: existingChild, error: childError } = await supabase
+  const { data: existingChild, error: childError } = await supabaseAdmin
     .from('children')
     .select('id, name')
     .eq('id', child_id)
@@ -111,7 +111,7 @@ async function handleCreateRequest(req, res) {
     // TODO: Implementar storage real no localStorage do cliente
   } else {
     // Child exists in Supabase, create normally
-    const { data: supabaseRequest, error } = await supabase
+    const { data: supabaseRequest, error } = await supabaseAdmin
       .from('transactions')
       .insert([
         {
@@ -159,21 +159,32 @@ async function handleUpdateRequest(req, res) {
     });
   }
 
-  if (!['pending', 'completed', 'rejected', 'cancelled'].includes(status)) {
+  // Aceitar 'approved' do frontend e mapear para 'completed' (valor real no banco)
+  const validStatuses = [
+    'pending',
+    'completed',
+    'approved',
+    'rejected',
+    'cancelled',
+  ];
+  if (!validStatuses.includes(status)) {
     return res.status(400).json({
       error:
-        'Invalid status. Must be: pending, completed, rejected, or cancelled',
+        'Invalid status. Must be: pending, completed, approved, rejected, or cancelled',
     });
   }
 
+  // Mapear 'approved' → 'completed' (compatibilidade frontend)
+  const dbStatus = status === 'approved' ? 'completed' : status;
+
   // Update the request
-  const { data: updatedRequest, error } = await supabase
+  const { data: updatedRequest, error } = await supabaseAdmin
     .from('transactions')
     .update({
-      status,
+      status: dbStatus,
       parent_note: parent_note || null,
-      approved_by_parent: status === 'completed',
-      approved_at: status === 'completed' ? new Date().toISOString() : null,
+      approved_by_parent: dbStatus === 'completed',
+      approved_at: dbStatus === 'completed' ? new Date().toISOString() : null,
     })
     .eq('id', request_id)
     .eq('requires_approval', true)
@@ -189,16 +200,14 @@ async function handleUpdateRequest(req, res) {
   }
 
   // If approved (completed), update child's balance (incremento atômico — evita race condition)
-  if (status === 'completed') {
-    const { data: balanceResult, error: balanceError } = await supabase.rpc(
-      'adjust_child_balance',
-      {
+  if (dbStatus === 'completed') {
+    const { data: balanceResult, error: balanceError } =
+      await supabaseAdmin.rpc('adjust_child_balance', {
         p_child_id: updatedRequest.child_id,
         p_balance_delta: -updatedRequest.amount,
         p_total_earned_delta: 0,
         p_total_spent_delta: updatedRequest.amount,
-      }
-    );
+      });
 
     if (balanceError) {
       console.error('Error updating child balance:', balanceError);

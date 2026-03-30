@@ -60,12 +60,13 @@ export default function DashboardPage() {
     useState<Child | null>(null);
   const [isProcessingRequest, setIsProcessingRequest] = useState(false);
 
-  // Load children from Supabase/localStorage on component mount
+  // Load children when session is available
   useEffect(() => {
-    // Primeiro limpar dados corrompidos se existirem
-    clearCorruptedDataIfNeeded();
-    loadChildren();
-  }, []);
+    if (session?.user) {
+      clearCorruptedDataIfNeeded();
+      loadChildren();
+    }
+  }, [session]);
 
   // Função para limpar dados corrompidos automaticamente
   const clearCorruptedDataIfNeeded = () => {

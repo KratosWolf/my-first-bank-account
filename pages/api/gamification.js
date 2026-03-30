@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -34,7 +34,7 @@ async function handleGetGameData(req, res) {
 
   try {
     // Get child data with current level and XP
-    const { data: child, error: childError } = await supabase
+    const { data: child, error: childError } = await supabaseAdmin
       .from('children')
       .select('*')
       .eq('id', child_id)
@@ -50,7 +50,7 @@ async function handleGetGameData(req, res) {
     const levelData = calculateLevelProgression(child.xp || 0);
 
     // Get recent achievements (badges earned in last 30 days)
-    const { data: recentBadges } = await supabase
+    const { data: recentBadges } = await supabaseAdmin
       .from('child_badges')
       .select('*, badges(*)')
       .eq('child_id', child_id)
@@ -61,7 +61,7 @@ async function handleGetGameData(req, res) {
       .order('earned_at', { ascending: false });
 
     // Get current streaks
-    const { data: streaks } = await supabase
+    const { data: streaks } = await supabaseAdmin
       .from('child_streaks')
       .select('*')
       .eq('child_id', child_id)
@@ -214,23 +214,23 @@ async function calculateNextAchievements(childId, child) {
   ];
 
   // Get current stats
-  const { data: goalsCreated } = await supabase
+  const { data: goalsCreated } = await supabaseAdmin
     .from('goals')
     .select('*')
     .eq('child_id', childId);
 
-  const { data: goalsCompleted } = await supabase
+  const { data: goalsCompleted } = await supabaseAdmin
     .from('goals')
     .select('*')
     .eq('child_id', childId)
     .eq('is_completed', true);
 
-  const { data: transactions } = await supabase
+  const { data: transactions } = await supabaseAdmin
     .from('transactions')
     .select('*')
     .eq('child_id', childId);
 
-  const { data: earnedBadges } = await supabase
+  const { data: earnedBadges } = await supabaseAdmin
     .from('child_badges')
     .select('badge_id')
     .eq('child_id', childId);
@@ -281,7 +281,7 @@ async function processGamificationAction(childId, actionType, actionData) {
   };
 
   // Get current child data
-  const { data: child } = await supabase
+  const { data: child } = await supabaseAdmin
     .from('children')
     .select('*')
     .eq('id', childId)
@@ -321,7 +321,7 @@ async function processGamificationAction(childId, actionType, actionData) {
   const newXP = (child.xp || 0) + xpGain;
   const newLevelData = calculateLevelProgression(newXP);
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseAdmin
     .from('children')
     .update({
       xp: newXP,
@@ -350,13 +350,15 @@ async function processGamificationAction(childId, actionType, actionData) {
   for (const achievement of nextAchievements) {
     if (achievement.progress >= 100) {
       // Create badge record
-      const { error: badgeError } = await supabase.from('child_badges').insert([
-        {
-          child_id: childId,
-          badge_id: achievement.id,
-          earned_at: new Date().toISOString(),
-        },
-      ]);
+      const { error: badgeError } = await supabaseAdmin
+        .from('child_badges')
+        .insert([
+          {
+            child_id: childId,
+            badge_id: achievement.id,
+            earned_at: new Date().toISOString(),
+          },
+        ]);
 
       if (!badgeError) {
         results.new_badges.push(achievement);
@@ -366,7 +368,7 @@ async function processGamificationAction(childId, actionType, actionData) {
         const finalXP = newXP + badgeXP;
         results.xp_gained += badgeXP;
 
-        await supabase
+        await supabaseAdmin
           .from('children')
           .update({ xp: finalXP })
           .eq('id', childId);

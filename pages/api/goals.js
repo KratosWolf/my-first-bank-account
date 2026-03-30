@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 async function handleGetGoals(req, res) {
   const { child_id, is_completed, limit = 50 } = req.query;
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('goals')
     .select('*')
     .order('created_at', { ascending: false })
@@ -90,7 +90,7 @@ async function handleCreateGoal(req, res) {
       ? category.toLowerCase()
       : 'other';
 
-  const { data: goal, error } = await supabase
+  const { data: goal, error } = await supabaseAdmin
     .from('goals')
     .insert([
       {
@@ -158,7 +158,7 @@ async function handleUpdateGoal(req, res) {
 
   updateData.updated_at = new Date().toISOString();
 
-  const { data: updatedGoal, error } = await supabase
+  const { data: updatedGoal, error } = await supabaseAdmin
     .from('goals')
     .update(updateData)
     .eq('id', goal_id)
@@ -189,7 +189,7 @@ async function handleDeleteGoal(req, res) {
     });
   }
 
-  const { data: deletedGoal, error } = await supabase
+  const { data: deletedGoal, error } = await supabaseAdmin
     .from('goals')
     .delete()
     .eq('id', goal_id)

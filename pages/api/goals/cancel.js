@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -35,7 +35,7 @@ async function handleCancelGoal(req, res) {
 
   try {
     // 1. Buscar o sonho e validar que pertence à criança
-    const { data: goal, error: goalError } = await supabase
+    const { data: goal, error: goalError } = await supabaseAdmin
       .from('goals')
       .select('*')
       .eq('id', goal_id)
@@ -70,7 +70,7 @@ async function handleCancelGoal(req, res) {
     }
 
     // 4. Buscar nome da criança (para resposta)
-    const { data: child, error: childError } = await supabase
+    const { data: child, error: childError } = await supabaseAdmin
       .from('children')
       .select('balance, name')
       .eq('id', child_id)
@@ -87,15 +87,13 @@ async function handleCancelGoal(req, res) {
     const goalAmount = parseFloat(goal.current_amount || 0);
 
     // 5. Devolver dinheiro do sonho para a criança (incremento atômico — evita race condition)
-    const { data: balanceResult, error: balanceError } = await supabase.rpc(
-      'adjust_child_balance',
-      {
+    const { data: balanceResult, error: balanceError } =
+      await supabaseAdmin.rpc('adjust_child_balance', {
         p_child_id: child_id,
         p_balance_delta: goalAmount,
         p_total_earned_delta: 0,
         p_total_spent_delta: 0,
-      }
-    );
+      });
 
     if (balanceError) {
       console.error('❌ Error updating child balance:', balanceError);
@@ -110,7 +108,7 @@ async function handleCancelGoal(req, res) {
       parseFloat(child.balance || 0) + goalAmount;
 
     // 6. Marcar sonho como inativo (cancelado)
-    const { data: updatedGoal, error: updateError } = await supabase
+    const { data: updatedGoal, error: updateError } = await supabaseAdmin
       .from('goals')
       .update({
         is_active: false,
@@ -124,7 +122,7 @@ async function handleCancelGoal(req, res) {
     if (updateError) {
       console.error('❌ Error updating goal:', updateError);
       // Reverter atualização de saldo (atômico)
-      await supabase.rpc('adjust_child_balance', {
+      await supabaseAdmin.rpc('adjust_child_balance', {
         p_child_id: child_id,
         p_balance_delta: -goalAmount,
         p_total_earned_delta: 0,
@@ -138,7 +136,7 @@ async function handleCancelGoal(req, res) {
 
     // 7. Criar transação de devolução (goal_withdrawal)
     if (goalAmount > 0) {
-      const { error: transactionError } = await supabase
+      const { error: transactionError } = await supabaseAdmin
         .from('transactions')
         .insert([
           {

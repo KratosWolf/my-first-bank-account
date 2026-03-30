@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -30,7 +30,7 @@ async function handleGetContributions(req, res) {
 
   // ✅ BUG FIX #7: Não podemos filtrar por 'goal_deposit' ou 'related_goal_id' (não existem no schema básico)
   // Filtrar por categoria 'Sonhos' e type 'spending' para pegar contribuições para metas
-  let query = supabase
+  let query = supabaseAdmin
     .from('transactions')
     .select('*')
     .eq('type', 'spending')
@@ -79,7 +79,7 @@ async function handleCreateContribution(req, res) {
 
   try {
     // Start transaction - buscar balance E total_spent
-    const { data: child, error: childError } = await supabase
+    const { data: child, error: childError } = await supabaseAdmin
       .from('children')
       .select('balance, total_spent')
       .eq('id', child_id)
@@ -101,7 +101,7 @@ async function handleCreateContribution(req, res) {
     }
 
     // Get current goal data
-    const { data: goal, error: goalError } = await supabase
+    const { data: goal, error: goalError } = await supabaseAdmin
       .from('goals')
       .select('*')
       .eq('id', goal_id)
@@ -123,7 +123,7 @@ async function handleCreateContribution(req, res) {
     // ✅ BUG FIX #7: Schema básico só tem: child_id, type, amount, description, category
     // Campos removidos (não existem no schema básico): status, requires_approval, approved_by_parent, related_goal_id
     // Type alterado: 'goal_deposit' → 'spending' (goal_deposit não está no CHECK constraint)
-    const { data: contribution, error: transactionError } = await supabase
+    const { data: contribution, error: transactionError } = await supabaseAdmin
       .from('transactions')
       .insert([
         {
@@ -145,15 +145,13 @@ async function handleCreateContribution(req, res) {
     }
 
     // Update child balance and total_spent (incremento atômico — evita race condition)
-    const { data: balanceResult, error: balanceError } = await supabase.rpc(
-      'adjust_child_balance',
-      {
+    const { data: balanceResult, error: balanceError } =
+      await supabaseAdmin.rpc('adjust_child_balance', {
         p_child_id: child_id,
         p_balance_delta: -parseFloat(amount),
         p_total_earned_delta: 0,
         p_total_spent_delta: parseFloat(amount),
-      }
-    );
+      });
 
     if (balanceError) {
       console.error('Error updating child balance:', balanceError);
@@ -164,7 +162,7 @@ async function handleCreateContribution(req, res) {
       balanceResult?.[0]?.new_balance ?? child.balance - amount;
 
     // Update goal current amount (incremento atômico — evita race condition)
-    const { data: goalResult, error: goalRpcError } = await supabase.rpc(
+    const { data: goalResult, error: goalRpcError } = await supabaseAdmin.rpc(
       'adjust_goal_amount',
       {
         p_goal_id: goal_id,
@@ -179,7 +177,7 @@ async function handleCreateContribution(req, res) {
     // Se completou, atualizar flag is_completed
     let updatedGoal = null;
     if (isCompleted || goalRpcError) {
-      const { data: goalData, error: goalUpdateError } = await supabase
+      const { data: goalData, error: goalUpdateError } = await supabaseAdmin
         .from('goals')
         .update({
           is_completed: isCompleted,
@@ -195,7 +193,7 @@ async function handleCreateContribution(req, res) {
       updatedGoal = goalData;
     } else {
       // Buscar goal atualizado para resposta
-      const { data: goalData } = await supabase
+      const { data: goalData } = await supabaseAdmin
         .from('goals')
         .select()
         .eq('id', goal_id)

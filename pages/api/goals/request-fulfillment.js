@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -35,7 +35,7 @@ async function handleRequestFulfillment(req, res) {
 
   try {
     // 1. Buscar o sonho e validar que pertence à criança
-    const { data: goal, error: goalError } = await supabase
+    const { data: goal, error: goalError } = await supabaseAdmin
       .from('goals')
       .select('*')
       .eq('id', goal_id)
@@ -86,7 +86,7 @@ async function handleRequestFulfillment(req, res) {
     }
 
     // 4. Atualizar o sonho com status 'pending'
-    const { data: updatedGoal, error: updateError } = await supabase
+    const { data: updatedGoal, error: updateError } = await supabaseAdmin
       .from('goals')
       .update({
         fulfillment_status: 'pending',
@@ -106,7 +106,7 @@ async function handleRequestFulfillment(req, res) {
     }
 
     // 5. Buscar informações da criança para a resposta
-    const { data: child, error: childError } = await supabase
+    const { data: child, error: childError } = await supabaseAdmin
       .from('children')
       .select('name')
       .eq('id', child_id)

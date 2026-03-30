@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -44,7 +44,7 @@ async function handleResolveFulfillment(req, res, session) {
 
   try {
     // 1. Buscar o sonho
-    const { data: goal, error: goalError } = await supabase
+    const { data: goal, error: goalError } = await supabaseAdmin
       .from('goals')
       .select('*')
       .eq('id', goal_id)
@@ -79,7 +79,7 @@ async function handleResolveFulfillment(req, res, session) {
     let newChildBalance = null;
     if (action === 'approve') {
       // Buscar saldo atual da criança
-      const { data: child, error: childError } = await supabase
+      const { data: child, error: childError } = await supabaseAdmin
         .from('children')
         .select('balance, name')
         .eq('id', goal.child_id)
@@ -96,7 +96,7 @@ async function handleResolveFulfillment(req, res, session) {
       const goalAmount = parseFloat(goal.current_amount || 0);
 
       // Criar transação de realização do sonho (goal_purchase)
-      const { error: transactionError } = await supabase
+      const { error: transactionError } = await supabaseAdmin
         .from('transactions')
         .insert([
           {
@@ -137,7 +137,7 @@ async function handleResolveFulfillment(req, res, session) {
     }
 
     // 5. Atualizar o sonho
-    const { data: updatedGoal, error: updateError } = await supabase
+    const { data: updatedGoal, error: updateError } = await supabaseAdmin
       .from('goals')
       .update(updateData)
       .eq('id', goal_id)
@@ -153,7 +153,7 @@ async function handleResolveFulfillment(req, res, session) {
     }
 
     // 5. Buscar informações da criança para a resposta
-    const { data: child, error: childError } = await supabase
+    const { data: child, error: childError } = await supabaseAdmin
       .from('children')
       .select('name')
       .eq('id', goal.child_id)
