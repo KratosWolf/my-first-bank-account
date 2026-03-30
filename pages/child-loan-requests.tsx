@@ -42,20 +42,14 @@ export default function ChildLoanRequestsPage() {
     }
 
     if (status === 'authenticated' && session?.user) {
-      const user = session.user as any;
-
-      // Aceitar criança ou pai
-      if (user?.role === 'child' || user?.role === 'parent') {
-        setIsAuthorized(true);
-      } else {
-        router.push('/acesso-negado');
-      }
+      setIsAuthorized(true);
     }
   }, [status, session, router]);
 
   // Carregar pedidos ao montar componente
   useEffect(() => {
     if (!isAuthorized) return;
+    if (!router.isReady) return;
 
     // Obter childId de três fontes possíveis (em ordem de prioridade):
     const getChildId = async () => {
@@ -70,8 +64,8 @@ export default function ChildLoanRequestsPage() {
         return user.childId;
       }
 
-      // 3. Primeiro filho da família (pai visualizando)
-      if (user?.role === 'parent' && user?.familyId) {
+      // 3. Primeiro filho da família (pai visualizando) — via sessão
+      if (user?.familyId) {
         const { data: children } = await supabase
           .from('children')
           .select('id')
@@ -81,6 +75,30 @@ export default function ChildLoanRequestsPage() {
 
         if (children && children.length > 0) {
           return children[0].id;
+        }
+      }
+
+      // 4. Fallback: buscar familyId via email da sessão
+      if (user?.email) {
+        const { data: userLink } = await supabase
+          .from('user_links')
+          .select('family_id, child_id, role')
+          .eq('email', user.email)
+          .single();
+
+        if (userLink?.child_id) return userLink.child_id;
+
+        if (userLink?.family_id) {
+          const { data: children } = await supabase
+            .from('children')
+            .select('id')
+            .eq('family_id', userLink.family_id)
+            .order('created_at', { ascending: true })
+            .limit(1);
+
+          if (children && children.length > 0) {
+            return children[0].id;
+          }
         }
       }
 
@@ -100,7 +118,7 @@ export default function ChildLoanRequestsPage() {
         );
       }
     });
-  }, [isAuthorized, status, router.query.childId, session]);
+  }, [isAuthorized, router.isReady, router.query.childId, session]);
 
   const loadRequests = async (id: string) => {
     try {

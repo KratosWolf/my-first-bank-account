@@ -85,25 +85,23 @@ export default function ChildView() {
   // useEffect para carregar dados reais do Supabase
   useEffect(() => {
     if (!isAuthorized) return;
+    if (!router.isReady) return;
 
     // Obter childId de três fontes possíveis (em ordem de prioridade):
-    // 1. Query param (navegação explícita)
-    // 2. Sessão do usuário (criança logada)
-    // 3. Primeiro filho da família (pai visualizando)
     const getChildId = async () => {
-      // 1. Tentar query param primeiro
+      // 1. Query param (navegação explícita)
       if (router.query.childId && typeof router.query.childId === 'string') {
         return router.query.childId;
       }
 
-      // 2. Se usuário é criança, usar seu próprio ID
+      // 2. Sessão (criança logada)
       const user = session?.user as any;
       if (user?.role === 'child' && user?.childId) {
         return user.childId;
       }
 
-      // 3. Se é pai, buscar primeiro filho da família
-      if (user?.role === 'parent' && user?.familyId) {
+      // 3. Primeiro filho da família (pai visualizando) — via sessão
+      if (user?.familyId) {
         const { data: children } = await supabase
           .from('children')
           .select('id')
@@ -113,6 +111,30 @@ export default function ChildView() {
 
         if (children && children.length > 0) {
           return children[0].id;
+        }
+      }
+
+      // 4. Fallback: buscar familyId via email da sessão
+      if (user?.email) {
+        const { data: userLink } = await supabase
+          .from('user_links')
+          .select('family_id, child_id, role')
+          .eq('email', user.email)
+          .single();
+
+        if (userLink?.child_id) return userLink.child_id;
+
+        if (userLink?.family_id) {
+          const { data: children } = await supabase
+            .from('children')
+            .select('id')
+            .eq('family_id', userLink.family_id)
+            .order('created_at', { ascending: true })
+            .limit(1);
+
+          if (children && children.length > 0) {
+            return children[0].id;
+          }
         }
       }
 
@@ -131,7 +153,7 @@ export default function ChildView() {
         router.push('/dashboard');
       }
     });
-  }, [isAuthorized, router.query.childId, session]);
+  }, [isAuthorized, router.isReady, router.query.childId, session]);
 
   const loadChildData = async (childId: string) => {
     setLoading(true);
