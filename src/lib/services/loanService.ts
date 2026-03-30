@@ -69,7 +69,7 @@ export class LoanService {
           `
           id,
           child_id,
-          title,
+          item_name,
           description,
           amount,
           category,
@@ -98,7 +98,7 @@ export class LoanService {
           child_id: purchase.child_id,
           child_name:
             (purchase.children as any)?.name || 'Criança Desconhecida',
-          reason: purchase.title,
+          reason: purchase.item_name,
           category: 'Empréstimo',
           categoryIcon: '💰',
           amount: purchase.amount,
@@ -143,7 +143,7 @@ export class LoanService {
         .insert([
           {
             child_id: loanData.child_id,
-            title: loanData.reason,
+            item_name: loanData.reason,
             description: `Empréstimo solicitado: ${loanData.reason}`,
             amount: loanData.amount,
             category: 'Empréstimo',
@@ -154,7 +154,7 @@ export class LoanService {
           `
           id,
           child_id,
-          title,
+          item_name,
           description,
           amount,
           category,
@@ -178,7 +178,7 @@ export class LoanService {
         type: 'loan',
         child_id: purchase.child_id,
         child_name: (purchase.children as any)?.name || loanData.child_name,
-        reason: purchase.title,
+        reason: purchase.item_name,
         category: 'Empréstimo',
         categoryIcon: '💰',
         amount: purchase.amount,
@@ -211,8 +211,10 @@ export class LoanService {
         .from('purchase_requests')
         .update({
           status,
-          parent_note: parentNote,
           updated_at: new Date().toISOString(),
+          ...(status === 'completed' && {
+            approved_at: new Date().toISOString(),
+          }),
         })
         .eq('id', id);
 
