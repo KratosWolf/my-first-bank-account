@@ -82,6 +82,21 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - Cada subtask deve ter seus próprios critérios de done e poder ser commitada independentemente.
 - Na dúvida: se ao começar você pensa "isso vai ser longo", PARE e quebre.
 
+### Regra 8: CLAUDE.md Enxuto
+
+- Este arquivo existe para contexto de **NEGÓCIO** e **COMPORTAMENTO** — não para documentar código.
+- Antes de adicionar qualquer regra aqui, pergunte: "O Claude consegue deduzir isso lendo o código?" Se SIM, não adiciona aqui. Se NÃO, pode adicionar.
+- Regras situacionais pertencem a Skills ou Hooks, não aqui.
+- **Exemplos do que NÃO pertence aqui:** estrutura de pastas (está no código), nomes de variáveis, convenções óbvias da tech stack.
+- **Exemplos do que PERTENCE aqui:** fase atual, decisões de negócio, estado do banco, quem é o Tiago.
+
+### Regra 9: Regra das Duas Correções
+
+- Se corrigiu o mesmo problema duas vezes e ele ainda persiste, **PARE**.
+- O problema não é o código — é o contexto ou a instrução.
+- **Ação obrigatória:** `/clear` + reescrever o HANDOFF do zero com contexto mais preciso.
+- Nunca entre em loop de correção. Duas tentativas = repensar a abordagem.
+
 ---
 
 ## 📋 FASES DO PROJETO (resumo)
@@ -329,6 +344,9 @@ MyFirstBA2/
 | 2026-03-30 | demo-child-view: filtro status='pending' adicionado                   | Query sem filtro retornava spending transactions como pedidos pendentes                                    |
 | 2026-03-30 | Saldos corrigidos manualmente no banco                                | Gabriel: R$759,17 / Rafael: R$811,07                                                                       |
 | 2026-03-30 | Transações duplicadas removidas                                       | Fortnite R$78,99 (dez/25) e raquete R$394 (mar/26) do Gabriel                                              |
+| 2026-03-30 | router.isReady guard nas 3 páginas child                              | Em produção (SSG), router.query começa vazio — useEffect precisa esperar router.isReady                    |
+| 2026-03-30 | Path 4 fallback: busca familyId via user_links                        | Se session.user não tem role/familyId, busca pelo email na tabela user_links                               |
+| 2026-03-30 | Auth guard simplificado nas páginas child                             | Aceita qualquer usuário autenticado — check de role === 'parent' bloqueava tokens sem role enriquecido     |
 
 ---
 
@@ -339,6 +357,7 @@ MyFirstBA2/
 3. **MOSTRE** o erro exato e o que significa.
 4. **PROPONHA** 1-2 soluções com prós e contras.
 5. **AGUARDE** aprovação antes de implementar.
+6. Se for a segunda tentativa no mesmo problema → aplicar **Regra 9**.
 
 ---
 
@@ -348,12 +367,13 @@ MyFirstBA2/
 2. Avaliar tamanho: cabe em ~50% do contexto? Se não, quebrar (Regra 7)
 3. **Plan Mode** (Shift+Tab 2x) → planejar antes de codar
 4. Implementar a tarefa
-5. Verificar critérios de "done" da task
-6. Testar
-7. Secret scan → commit → push (para develop)
-8. Atualizar status no `PROJECT_PLAN.md`
-9. Atualizar ESTADO DO BANCO se houve mudança no banco
-10. Se contexto ficar grande → `/clear` e retomar
+5. Auto-verificação: avaliar o próprio output antes de entregar ("o que poderia estar errado aqui?")
+6. Verificar critérios de "done" da task
+7. Testar
+8. Secret scan → commit → push (para develop)
+9. Atualizar status no `PROJECT_PLAN.md`
+10. Atualizar ESTADO DO BANCO se houve mudança no banco
+11. Se contexto ficar grande → `/clear` e retomar
 
 ## 📦 Skills Disponíveis
 
