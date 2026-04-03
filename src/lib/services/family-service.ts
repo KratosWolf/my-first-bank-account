@@ -121,13 +121,14 @@ export class FamilyService {
     }
   }
 
-  // Validate PIN uniqueness
+  // Validate PIN uniqueness within the family
   static async isPinUnique(
     pin: string,
+    familyId: string,
     excludeChildId?: string
   ): Promise<boolean> {
     try {
-      const children = await this.getChildren();
+      const children = await this.getChildren(familyId);
       return !children.some(
         child => child.pin === pin && child.id !== excludeChildId
       );
