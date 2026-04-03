@@ -846,15 +846,19 @@ export default function ChildView() {
     }
   };
 
+  // Calcula XP a partir das transações reais
+  const calculatedXP =
+    GamificationService.calculateXPFromTransactions(realTransactions);
+
   // Dados híbridos - usa Supabase quando disponível, fallback para mock
   const childData = {
     name: currentChild?.name || 'Criança',
     avatar: currentChild?.avatar || '👧',
     age: currentChild?.age || 8,
     balance: currentChild?.balance || 0,
-    level: currentChild?.level || 1,
-    xp: currentChild?.xp || 0,
-    xpToNext: 100, // Próximo nível em 100 XP para iniciante
+    level: GamificationService.getLevelInfo(calculatedXP).level,
+    xp: calculatedXP,
+    xpToNext: GamificationService.getXpToNextLevel(calculatedXP).needed,
     currentStreak: currentChild?.streak_count || 0,
     weeklyAllowance: allowanceInfo.amount,
     nextAllowanceDate: allowanceInfo.description,
@@ -890,9 +894,8 @@ export default function ChildView() {
         : recentTransactions,
   };
 
-  const completionPercentage = Math.round(
-    (childData.xp / (childData.xp + childData.xpToNext)) * 100
-  );
+  const completionPercentage =
+    GamificationService.getXpToNextLevel(calculatedXP).percentage;
 
   const TabButton = ({ id, icon, label, isActive, onClick }: any) => (
     <button
@@ -1027,7 +1030,7 @@ export default function ChildView() {
                 Nível {childData.level}
               </Badge>
               <span className="text-sm text-white font-semibold">
-                {childData.xp} / {childData.xp + childData.xpToNext} XP
+                {childData.xp} XP
               </span>
             </div>
             <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">

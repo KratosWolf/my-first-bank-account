@@ -4,6 +4,7 @@ import { StatementsService } from './statements';
 import { AnalyticsService } from './analytics';
 import { GoalsService } from './goals';
 import { NotificationService } from './notifications';
+import { GamificationService } from './gamification';
 import type { Child } from '@/lib/supabase';
 
 export interface ParentalOverview {
@@ -30,7 +31,12 @@ export interface ParentalOverview {
   }>;
   recent_activity: Array<{
     id: string;
-    type: 'transaction' | 'goal_achieved' | 'level_up' | 'task_completed' | 'spending_alert';
+    type:
+      | 'transaction'
+      | 'goal_achieved'
+      | 'level_up'
+      | 'task_completed'
+      | 'spending_alert';
     child_name: string;
     child_avatar: string;
     title: string;
@@ -53,7 +59,11 @@ export interface ParentalOverview {
   }>;
   alerts_and_insights: Array<{
     id: string;
-    type: 'spending_pattern' | 'savings_milestone' | 'educational_opportunity' | 'behavior_change';
+    type:
+      | 'spending_pattern'
+      | 'savings_milestone'
+      | 'educational_opportunity'
+      | 'behavior_change';
     severity: 'info' | 'warning' | 'success' | 'urgent';
     title: string;
     message: string;
@@ -162,9 +172,10 @@ export interface ParentalReport {
 }
 
 export class ParentalDashboardService {
-
   // Get comprehensive dashboard overview
-  static async getDashboardOverview(familyId: string): Promise<ParentalOverview> {
+  static async getDashboardOverview(
+    familyId: string
+  ): Promise<ParentalOverview> {
     try {
       // Get all family children
       const children = await StorageAdapter.getChildren(familyId);
@@ -173,7 +184,10 @@ export class ParentalDashboardService {
       }
 
       // Calculate family summary
-      const totalBalance = children.reduce((sum, child) => sum + child.balance, 0);
+      const totalBalance = children.reduce(
+        (sum, child) => sum + child.balance,
+        0
+      );
       const activeGoals = await this.getActiveGoalsCount(children);
       const weeklyTasks = await this.getWeeklyTasksCount(children);
       const pendingCount = await this.getPendingApprovalsCount(familyId);
@@ -200,14 +214,13 @@ export class ParentalDashboardService {
           active_goals_count: activeGoals,
           completed_tasks_this_week: weeklyTasks,
           pending_approvals: pendingCount,
-          family_financial_health: this.calculateFamilyHealthScore(children)
+          family_financial_health: this.calculateFamilyHealthScore(children),
         },
         children_summary: childrenSummary,
         recent_activity: recentActivity,
         pending_approvals: pendingApprovals,
-        alerts_and_insights: alerts
+        alerts_and_insights: alerts,
       };
-
     } catch (error) {
       console.error('Error getting dashboard overview:', error);
       return this.getEmptyDashboardOverview();
@@ -232,7 +245,6 @@ export class ParentalDashboardService {
 
       // Fallback to localStorage or default settings
       return this.getDefaultChildControls(childId);
-
     } catch (error) {
       console.error('Error getting child controls:', error);
       return this.getDefaultChildControls(childId);
@@ -240,13 +252,19 @@ export class ParentalDashboardService {
   }
 
   // Update child controls
-  static async updateChildControls(childId: string, controls: Partial<ChildControls>): Promise<boolean> {
+  static async updateChildControls(
+    childId: string,
+    controls: Partial<ChildControls>
+  ): Promise<boolean> {
     try {
       // Try Supabase first
       if (await this.isSupabaseAvailable()) {
         const { error } = await supabase
           .from('child_controls')
-          .upsert({ child_id: childId, ...controls }, { onConflict: 'child_id' });
+          .upsert(
+            { child_id: childId, ...controls },
+            { onConflict: 'child_id' }
+          );
 
         if (!error) {
           // Create notification for settings update
@@ -255,9 +273,10 @@ export class ParentalDashboardService {
             recipient_type: 'child',
             type: 'info',
             title: '⚙️ Configurações Atualizadas',
-            message: 'Seus pais atualizaram algumas configurações da sua conta.',
+            message:
+              'Seus pais atualizaram algumas configurações da sua conta.',
             data: { controls_updated: true },
-            priority: 'low'
+            priority: 'low',
           });
 
           return true;
@@ -268,7 +287,6 @@ export class ParentalDashboardService {
       const storageKey = `child-controls-${childId}`;
       localStorage.setItem(storageKey, JSON.stringify(controls));
       return true;
-
     } catch (error) {
       console.error('Error updating child controls:', error);
       return false;
@@ -291,7 +309,6 @@ export class ParentalDashboardService {
       }
 
       return this.getDefaultFamilySettings(familyId);
-
     } catch (error) {
       console.error('Error getting family settings:', error);
       return this.getDefaultFamilySettings(familyId);
@@ -299,20 +316,28 @@ export class ParentalDashboardService {
   }
 
   // Update family settings
-  static async updateFamilySettings(familyId: string, settings: Partial<FamilySettings>): Promise<boolean> {
+  static async updateFamilySettings(
+    familyId: string,
+    settings: Partial<FamilySettings>
+  ): Promise<boolean> {
     try {
       if (await this.isSupabaseAvailable()) {
         const { error } = await supabase
           .from('family_settings')
-          .upsert({ family_id: familyId, ...settings }, { onConflict: 'family_id' });
+          .upsert(
+            { family_id: familyId, ...settings },
+            { onConflict: 'family_id' }
+          );
 
         return !error;
       }
 
       // Fallback to localStorage
-      localStorage.setItem(`family-settings-${familyId}`, JSON.stringify(settings));
+      localStorage.setItem(
+        `family-settings-${familyId}`,
+        JSON.stringify(settings)
+      );
       return true;
-
     } catch (error) {
       console.error('Error updating family settings:', error);
       return false;
@@ -341,13 +366,13 @@ export class ParentalDashboardService {
           type: 'success',
           title: '✅ Solicitação Aprovada!',
           message: `Sua solicitação "${request.title}" foi aprovada pelos pais.`,
-          data: { 
+          data: {
             request_id: requestId,
             amount: request.amount,
             approved: true,
-            parent_note: parentNote 
+            parent_note: parentNote,
           },
-          priority: 'high'
+          priority: 'high',
         });
       } else {
         // Create rejection notification for child
@@ -357,20 +382,24 @@ export class ParentalDashboardService {
           type: 'info',
           title: '❌ Solicitação Rejeitada',
           message: `Sua solicitação "${request.title}" não foi aprovada.`,
-          data: { 
+          data: {
             request_id: requestId,
             approved: false,
-            parent_note: parentNote || 'Converse com seus pais para entender o motivo.' 
+            parent_note:
+              parentNote || 'Converse com seus pais para entender o motivo.',
           },
-          priority: 'medium'
+          priority: 'medium',
         });
       }
 
       // Update request status
-      await this.updateApprovalRequestStatus(requestId, approved ? 'approved' : 'rejected', parentNote);
+      await this.updateApprovalRequestStatus(
+        requestId,
+        approved ? 'approved' : 'rejected',
+        parentNote
+      );
 
       return true;
-
     } catch (error) {
       console.error('Error handling approval request:', error);
       return false;
@@ -387,7 +416,8 @@ export class ParentalDashboardService {
       const dateRange = this.getDateRangeForPeriod(period);
 
       // Get family performance data
-      const familyAnalytics = await AnalyticsService.getFamilyAnalytics(familyId);
+      const familyAnalytics =
+        await AnalyticsService.getFamilyAnalytics(familyId);
 
       // Get individual child reports
       const childReports = await Promise.all(
@@ -395,10 +425,16 @@ export class ParentalDashboardService {
       );
 
       // Calculate educational progress
-      const educationalProgress = await this.calculateEducationalProgress(familyId, dateRange);
+      const educationalProgress = await this.calculateEducationalProgress(
+        familyId,
+        dateRange
+      );
 
       // Generate alerts summary
-      const alertsSummary = await this.generateAlertsSummary(familyId, dateRange);
+      const alertsSummary = await this.generateAlertsSummary(
+        familyId,
+        dateRange
+      );
 
       return {
         period: this.formatPeriodName(period),
@@ -407,13 +443,14 @@ export class ParentalDashboardService {
           total_earnings: familyAnalytics.overview.total_earned || 0,
           total_spending: familyAnalytics.overview.total_spent || 0,
           savings_rate: familyAnalytics.overview.family_savings_rate || 0,
-          financial_health_trend: this.determineTrend(familyAnalytics.weekly_trends)
+          financial_health_trend: this.determineTrend(
+            familyAnalytics.weekly_trends
+          ),
         },
         child_reports: childReports,
         educational_progress: educationalProgress,
-        alerts_summary: alertsSummary
+        alerts_summary: alertsSummary,
       };
-
     } catch (error) {
       console.error('Error generating parental report:', error);
       return this.getEmptyParentalReport(period);
@@ -421,14 +458,20 @@ export class ParentalDashboardService {
   }
 
   // Get spending alerts for parents
-  static async getSpendingAlerts(familyId: string): Promise<Array<{
-    child: Child;
-    alert_type: 'over_limit' | 'unusual_pattern' | 'large_purchase' | 'category_concern';
-    severity: 'low' | 'medium' | 'high';
-    message: string;
-    amount?: number;
-    suggestions: string[];
-  }>> {
+  static async getSpendingAlerts(familyId: string): Promise<
+    Array<{
+      child: Child;
+      alert_type:
+        | 'over_limit'
+        | 'unusual_pattern'
+        | 'large_purchase'
+        | 'category_concern';
+      severity: 'low' | 'medium' | 'high';
+      message: string;
+      amount?: number;
+      suggestions: string[];
+    }>
+  > {
     try {
       const children = await StorageAdapter.getChildren(familyId);
       const alerts: Array<any> = [];
@@ -449,8 +492,8 @@ export class ParentalDashboardService {
             suggestions: [
               'Revise os limites diários',
               'Converse sobre planejamento de gastos',
-              'Considere pausar gastos hoje'
-            ]
+              'Considere pausar gastos hoje',
+            ],
           });
         }
 
@@ -465,14 +508,13 @@ export class ParentalDashboardService {
             suggestions: [
               'Verifique as últimas transações',
               'Converse sobre os gastos recentes',
-              'Ajuste limites se necessário'
-            ]
+              'Ajuste limites se necessário',
+            ],
           });
         }
       }
 
       return alerts;
-
     } catch (error) {
       console.error('Error getting spending alerts:', error);
       return [];
@@ -485,7 +527,22 @@ export class ParentalDashboardService {
     const weeklySpending = await this.getWeeklySpending(child.id);
     const activeGoals = await this.getChildActiveGoals(child.id);
     const completedTasks = await this.getWeeklyTasksForChild(child.id);
-    const healthScore = this.calculateChildHealthScore(child, weeklyEarnings, weeklySpending);
+    const healthScore = this.calculateChildHealthScore(
+      child,
+      weeklyEarnings,
+      weeklySpending
+    );
+
+    // Calcula XP a partir das transações reais
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('type, amount')
+      .eq('child_id', child.id);
+    const calculatedXP = GamificationService.calculateXPFromTransactions(
+      transactions || []
+    );
+    const calculatedLevel =
+      GamificationService.getLevelInfo(calculatedXP).level;
 
     return {
       child,
@@ -494,14 +551,18 @@ export class ParentalDashboardService {
       weekly_spending: weeklySpending,
       active_goals: activeGoals,
       completed_tasks: completedTasks,
-      current_level: child.level,
+      current_level: calculatedLevel,
       health_score: healthScore,
       status: this.determineChildStatus(healthScore, child),
-      last_activity: await this.getLastActivity(child.id)
+      last_activity: await this.getLastActivity(child.id),
     };
   }
 
-  private static calculateChildHealthScore(child: Child, earnings: number, spending: number): number {
+  private static calculateChildHealthScore(
+    child: Child,
+    earnings: number,
+    spending: number
+  ): number {
     let score = 70; // Base score
 
     // Savings ratio
@@ -519,7 +580,7 @@ export class ParentalDashboardService {
   }
 
   private static determineChildStatus(
-    healthScore: number, 
+    healthScore: number,
     child: Child
   ): 'excellent' | 'good' | 'needs_attention' | 'concerning' {
     if (healthScore >= 85) return 'excellent';
@@ -539,8 +600,8 @@ export class ParentalDashboardService {
         title: 'Subiu de nível!',
         description: 'João alcançou o nível 5 completando tarefas',
         timestamp: new Date().toISOString(),
-        requires_attention: false
-      }
+        requires_attention: false,
+      },
     ];
   }
 
@@ -549,7 +610,10 @@ export class ParentalDashboardService {
     return [];
   }
 
-  private static async generateAlertsAndInsights(familyId: string, children: Child[]) {
+  private static async generateAlertsAndInsights(
+    familyId: string,
+    children: Child[]
+  ) {
     const alerts: ParentalOverview['alerts_and_insights'] = [];
 
     // Analyze each child for patterns
@@ -566,9 +630,9 @@ export class ParentalDashboardService {
           suggested_actions: [
             'Revisar últimas transações',
             'Conversar sobre economia',
-            'Ajustar mesada se necessário'
+            'Ajustar mesada se necessário',
           ],
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
       }
 
@@ -584,9 +648,9 @@ export class ParentalDashboardService {
           suggested_actions: [
             'Parabenizar o progresso',
             'Discutir próximas metas',
-            'Considerar recompensa especial'
+            'Considerar recompensa especial',
           ],
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
       }
     }
@@ -602,35 +666,37 @@ export class ParentalDashboardService {
         weekly_limit: 200,
         monthly_limit: 500,
         category_limits: {
-          'toys': 100,
-          'snacks': 30,
-          'games': 80,
-          'books': 50
-        }
+          toys: 100,
+          snacks: 30,
+          games: 80,
+          books: 50,
+        },
       },
       approval_requirements: {
         require_approval_above: 25,
         auto_approve_categories: ['books', 'school'],
         blocked_categories: [],
-        restricted_times: []
+        restricted_times: [],
       },
       allowance_config: {
         base_allowance: 50,
         frequency: 'weekly',
         bonus_multipliers: {
-          'excellent_grades': 1.2,
-          'extra_chores': 1.1,
-          'good_behavior': 1.05
+          excellent_grades: 1.2,
+          extra_chores: 1.1,
+          good_behavior: 1.05,
         },
         automatic_distribution: true,
-        next_allowance_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        next_allowance_date: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
       educational_settings: {
         age_appropriate_content: true,
         financial_lessons_enabled: true,
         goal_setting_guidance: true,
-        spending_insights_enabled: true
-      }
+        spending_insights_enabled: true,
+      },
     };
   }
 
@@ -646,21 +712,21 @@ export class ParentalDashboardService {
           email_notifications: true,
           push_notifications: true,
           weekly_reports: true,
-          achievement_alerts: true
-        }
+          achievement_alerts: true,
+        },
       },
       financial_education: {
         savings_rate_target: 20,
         interest_rate_simulation: 0.5,
         financial_goals_encouraged: true,
-        spending_tracking_mandatory: true
+        spending_tracking_mandatory: true,
       },
       parental_controls: {
         require_parent_approval_above: 30,
         blocked_websites: [],
         restricted_spending_times: [],
-        maximum_daily_screen_rewards: 120
-      }
+        maximum_daily_screen_rewards: 120,
+      },
     };
   }
 
@@ -674,18 +740,21 @@ export class ParentalDashboardService {
         active_goals_count: 0,
         completed_tasks_this_week: 0,
         pending_approvals: 0,
-        family_financial_health: 0
+        family_financial_health: 0,
       },
       children_summary: [],
       recent_activity: [],
       pending_approvals: [],
-      alerts_and_insights: []
+      alerts_and_insights: [],
     };
   }
 
   private static async isSupabaseAvailable(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.from('children').select('count').limit(1);
+      const { data, error } = await supabase
+        .from('children')
+        .select('count')
+        .limit(1);
       return !error;
     } catch {
       return false;
@@ -707,7 +776,9 @@ export class ParentalDashboardService {
     return children.length * Math.floor(Math.random() * 10) + 5;
   }
 
-  private static async getPendingApprovalsCount(familyId: string): Promise<number> {
+  private static async getPendingApprovalsCount(
+    familyId: string
+  ): Promise<number> {
     // Mock implementation
     return Math.floor(Math.random() * 5);
   }
@@ -719,9 +790,16 @@ export class ParentalDashboardService {
   private static calculateFamilyHealthScore(children: Child[]): number {
     if (children.length === 0) return 0;
 
-    const totalBalance = children.reduce((sum, child) => sum + child.balance, 0);
-    const totalEarned = children.reduce((sum, child) => sum + child.total_earned, 0);
-    const savingsRate = totalEarned > 0 ? (totalBalance / totalEarned) * 100 : 0;
+    const totalBalance = children.reduce(
+      (sum, child) => sum + child.balance,
+      0
+    );
+    const totalEarned = children.reduce(
+      (sum, child) => sum + child.total_earned,
+      0
+    );
+    const savingsRate =
+      totalEarned > 0 ? (totalBalance / totalEarned) * 100 : 0;
 
     let healthScore = 60; // Base score
     healthScore += Math.min(savingsRate, 40); // Up to 40 points for savings rate
@@ -744,7 +822,9 @@ export class ParentalDashboardService {
     return goals.filter(g => g.is_active && !g.is_completed).length;
   }
 
-  private static async getWeeklyTasksForChild(childId: string): Promise<number> {
+  private static async getWeeklyTasksForChild(
+    childId: string
+  ): Promise<number> {
     // Mock implementation
     return Math.floor(Math.random() * 15) + 5;
   }
@@ -765,10 +845,13 @@ export class ParentalDashboardService {
     return data; // Would properly map from database structure
   }
 
-  private static getDateRangeForPeriod(period: 'week' | 'month' | 'quarter'): { from: string; to: string } {
+  private static getDateRangeForPeriod(period: 'week' | 'month' | 'quarter'): {
+    from: string;
+    to: string;
+  } {
     const now = new Date();
     const to = now.toISOString().split('T')[0];
-    
+
     switch (period) {
       case 'week':
         now.setDate(now.getDate() - 7);
@@ -780,15 +863,17 @@ export class ParentalDashboardService {
         now.setMonth(now.getMonth() - 3);
         break;
     }
-    
+
     return { from: now.toISOString().split('T')[0], to };
   }
 
-  private static formatPeriodName(period: 'week' | 'month' | 'quarter'): string {
+  private static formatPeriodName(
+    period: 'week' | 'month' | 'quarter'
+  ): string {
     const names = {
       week: 'Última Semana',
-      month: 'Último Mês', 
-      quarter: 'Últimos 3 Meses'
+      month: 'Último Mês',
+      quarter: 'Últimos 3 Meses',
     };
     return names[period];
   }
@@ -801,20 +886,20 @@ export class ParentalDashboardService {
         total_earnings: 0,
         total_spending: 0,
         savings_rate: 0,
-        financial_health_trend: 'stable'
+        financial_health_trend: 'stable',
       },
       child_reports: [],
       educational_progress: {
         lessons_completed: 0,
         skills_developed: [],
-        areas_for_improvement: []
+        areas_for_improvement: [],
       },
       alerts_summary: {
         spending_alerts: 0,
         goal_alerts: 0,
         behavioral_alerts: 0,
-        positive_highlights: 0
-      }
+        positive_highlights: 0,
+      },
     };
   }
 
@@ -828,11 +913,18 @@ export class ParentalDashboardService {
     // Would execute the approved transaction
   }
 
-  private static async updateApprovalRequestStatus(requestId: string, status: string, note?: string): Promise<void> {
+  private static async updateApprovalRequestStatus(
+    requestId: string,
+    status: string,
+    note?: string
+  ): Promise<void> {
     // Would update the request status
   }
 
-  private static async generateChildReport(child: Child, dateRange: any): Promise<any> {
+  private static async generateChildReport(
+    child: Child,
+    dateRange: any
+  ): Promise<any> {
     // Would generate detailed child report
     return {
       child,
@@ -842,33 +934,44 @@ export class ParentalDashboardService {
         savings_amount: child.balance,
         spending_patterns: {},
         behavioral_insights: [],
-        recommendations: []
-      }
+        recommendations: [],
+      },
     };
   }
 
-  private static async calculateEducationalProgress(familyId: string, dateRange: any): Promise<any> {
+  private static async calculateEducationalProgress(
+    familyId: string,
+    dateRange: any
+  ): Promise<any> {
     return {
       lessons_completed: 0,
       skills_developed: [],
-      areas_for_improvement: []
+      areas_for_improvement: [],
     };
   }
 
-  private static async generateAlertsSummary(familyId: string, dateRange: any): Promise<any> {
+  private static async generateAlertsSummary(
+    familyId: string,
+    dateRange: any
+  ): Promise<any> {
     return {
       spending_alerts: 0,
       goal_alerts: 0,
       behavioral_alerts: 0,
-      positive_highlights: 0
+      positive_highlights: 0,
     };
   }
 
-  private static determineTrend(weeklyTrends: any): 'improving' | 'stable' | 'declining' {
+  private static determineTrend(
+    weeklyTrends: any
+  ): 'improving' | 'stable' | 'declining' {
     return 'stable'; // Would calculate based on trends
   }
 
-  private static async getRecentSpending(childId: string, days: number): Promise<any> {
+  private static async getRecentSpending(
+    childId: string,
+    days: number
+  ): Promise<any> {
     return { daily_total: 0, weekly_total: 0 };
   }
 
@@ -877,7 +980,7 @@ export class ParentalDashboardService {
   }
 
   // ============ INTEREST CONFIGURATION MANAGEMENT ============
-  
+
   static async getInterestConfig(childId: string): Promise<any> {
     try {
       const { data, error } = await supabase
@@ -886,7 +989,8 @@ export class ParentalDashboardService {
         .eq('child_id', childId)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // Not found error
+      if (error && error.code !== 'PGRST116') {
+        // Not found error
         console.error('Error fetching interest config:', error);
         return null;
       }
@@ -896,10 +1000,10 @@ export class ParentalDashboardService {
         return {
           child_id: childId,
           monthly_rate: 0.01, // 1% ao mês
-          annual_rate: 0.01,  // Deprecated
-          minimum_balance: 10.00,
+          annual_rate: 0.01, // Deprecated
+          minimum_balance: 10.0,
           is_active: true,
-          compound_frequency: 'monthly'
+          compound_frequency: 'monthly',
         };
       }
 
@@ -910,11 +1014,14 @@ export class ParentalDashboardService {
     }
   }
 
-  static async updateInterestConfig(childId: string, config: {
-    monthly_rate?: number;
-    minimum_balance?: number;
-    is_active?: boolean;
-  }): Promise<boolean> {
+  static async updateInterestConfig(
+    childId: string,
+    config: {
+      monthly_rate?: number;
+      minimum_balance?: number;
+      is_active?: boolean;
+    }
+  ): Promise<boolean> {
     try {
       // Primeiro, tentar buscar configuração existente
       const { data: existingConfig } = await supabase
@@ -922,19 +1029,19 @@ export class ParentalDashboardService {
         .select('*')
         .eq('child_id', childId)
         .single();
-      
+
       if (!existingConfig) {
         // Criar nova configuração
-        const { error } = await supabase
-          .from('interest_config')
-          .insert([{
+        const { error } = await supabase.from('interest_config').insert([
+          {
             child_id: childId,
             monthly_rate: config.monthly_rate || 0.01,
             annual_rate: config.monthly_rate || 0.01, // Manter compatibilidade
-            minimum_balance: config.minimum_balance || 10.00,
+            minimum_balance: config.minimum_balance || 10.0,
             is_active: config.is_active !== undefined ? config.is_active : true,
-            compound_frequency: 'monthly'
-          }]);
+            compound_frequency: 'monthly',
+          },
+        ]);
 
         if (error) {
           console.error('Error creating interest config:', error);
@@ -973,7 +1080,7 @@ export class ParentalDashboardService {
   }
 
   // ============ ALLOWANCE CONFIGURATION MANAGEMENT ============
-  
+
   static async getAllowanceConfig(childId: string): Promise<any> {
     try {
       const { data, error } = await supabase
@@ -982,7 +1089,8 @@ export class ParentalDashboardService {
         .eq('child_id', childId)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // Not found error
+      if (error && error.code !== 'PGRST116') {
+        // Not found error
         console.error('Error fetching allowance config:', error);
         return null;
       }
@@ -991,12 +1099,14 @@ export class ParentalDashboardService {
       if (!data) {
         return {
           child_id: childId,
-          amount: 25.00,
+          amount: 25.0,
           frequency: 'weekly',
           day_of_week: 1, // Monday
           day_of_month: 1,
           is_active: true,
-          next_payment_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          next_payment_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
         };
       }
 
@@ -1007,13 +1117,16 @@ export class ParentalDashboardService {
     }
   }
 
-  static async updateAllowanceConfig(childId: string, config: {
-    amount?: number;
-    frequency?: 'daily' | 'weekly' | 'monthly';
-    day_of_week?: number;
-    day_of_month?: number;
-    is_active?: boolean;
-  }): Promise<boolean> {
+  static async updateAllowanceConfig(
+    childId: string,
+    config: {
+      amount?: number;
+      frequency?: 'daily' | 'weekly' | 'monthly';
+      day_of_week?: number;
+      day_of_month?: number;
+      is_active?: boolean;
+    }
+  ): Promise<boolean> {
     try {
       // Primeiro, tentar buscar configuração existente
       const { data: existingConfig } = await supabase
@@ -1021,7 +1134,7 @@ export class ParentalDashboardService {
         .select('*')
         .eq('child_id', childId)
         .single();
-      
+
       if (!existingConfig) {
         // Criar nova configuração
         const nextPaymentDate = this.calculateNextPaymentDate(
@@ -1030,17 +1143,17 @@ export class ParentalDashboardService {
           config.day_of_month || 1
         );
 
-        const { error } = await supabase
-          .from('allowance_config')
-          .insert([{
+        const { error } = await supabase.from('allowance_config').insert([
+          {
             child_id: childId,
-            amount: config.amount || 25.00,
+            amount: config.amount || 25.0,
             frequency: config.frequency || 'weekly',
             day_of_week: config.day_of_week || 1,
             day_of_month: config.day_of_month || 1,
             is_active: config.is_active !== undefined ? config.is_active : true,
-            next_payment_date: nextPaymentDate
-          }]);
+            next_payment_date: nextPaymentDate,
+          },
+        ]);
 
         if (error) {
           console.error('Error creating allowance config:', error);
@@ -1050,17 +1163,25 @@ export class ParentalDashboardService {
         // Atualizar configuração existente
         const updateData: any = {};
         if (config.amount !== undefined) updateData.amount = config.amount;
-        if (config.frequency !== undefined) updateData.frequency = config.frequency;
-        if (config.day_of_week !== undefined) updateData.day_of_week = config.day_of_week;
-        if (config.day_of_month !== undefined) updateData.day_of_month = config.day_of_month;
-        if (config.is_active !== undefined) updateData.is_active = config.is_active;
+        if (config.frequency !== undefined)
+          updateData.frequency = config.frequency;
+        if (config.day_of_week !== undefined)
+          updateData.day_of_week = config.day_of_week;
+        if (config.day_of_month !== undefined)
+          updateData.day_of_month = config.day_of_month;
+        if (config.is_active !== undefined)
+          updateData.is_active = config.is_active;
 
         // Recalcular próxima data de pagamento se necessário
         if (config.frequency || config.day_of_week || config.day_of_month) {
           updateData.next_payment_date = this.calculateNextPaymentDate(
             config.frequency || existingConfig.frequency,
-            config.day_of_week !== undefined ? config.day_of_week : existingConfig.day_of_week,
-            config.day_of_month !== undefined ? config.day_of_month : existingConfig.day_of_month
+            config.day_of_week !== undefined
+              ? config.day_of_week
+              : existingConfig.day_of_week,
+            config.day_of_month !== undefined
+              ? config.day_of_month
+              : existingConfig.day_of_month
           );
         }
 
@@ -1088,7 +1209,7 @@ export class ParentalDashboardService {
     dayOfMonth: number
   ): string {
     const now = new Date();
-    let nextDate = new Date(now);
+    const nextDate = new Date(now);
 
     switch (frequency) {
       case 'daily':
@@ -1103,7 +1224,16 @@ export class ParentalDashboardService {
       case 'monthly':
         // Set to next occurrence of dayOfMonth
         nextDate.setMonth(nextDate.getMonth() + 1);
-        nextDate.setDate(Math.min(dayOfMonth, new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate()));
+        nextDate.setDate(
+          Math.min(
+            dayOfMonth,
+            new Date(
+              nextDate.getFullYear(),
+              nextDate.getMonth() + 1,
+              0
+            ).getDate()
+          )
+        );
         break;
     }
 
