@@ -12,6 +12,7 @@ import { GamificationService } from '@/lib/services/gamification';
 import { CategoriesService } from '@/lib/services/categoriesService';
 import { AllowanceService } from '@/lib/services/allowanceService';
 import TransactionHistory from '../src/components/TransactionHistory';
+import NotificationBell from '@/components/NotificationBell';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -986,29 +987,32 @@ export default function ChildView() {
                 <p className="text-sm text-primary">Seu banco pessoal</p>
               </div>
             </div>
-            <div className="text-right">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    await signOut({
-                      callbackUrl: '/auth/signin',
-                      redirect: true,
-                    });
-                  } catch (error) {
-                    console.error('❌ Erro ao fazer logout:', error);
-                    window.location.href = '/auth/signin';
-                  }
-                }}
-                className="text-white/70 hover:text-primary mb-2"
-              >
-                🚪 Sair
-              </Button>
-              <div className="text-2xl sm:text-3xl font-bold text-primary">
-                R$ {childData.balance.toFixed(2)}
+            <div className="flex items-center gap-2">
+              <NotificationBell childId={currentChild?.id || null} />
+              <div className="text-right">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await signOut({
+                        callbackUrl: '/auth/signin',
+                        redirect: true,
+                      });
+                    } catch (error) {
+                      console.error('❌ Erro ao fazer logout:', error);
+                      window.location.href = '/auth/signin';
+                    }
+                  }}
+                  className="text-white/70 hover:text-primary mb-2"
+                >
+                  🚪 Sair
+                </Button>
+                <div className="text-2xl sm:text-3xl font-bold text-primary">
+                  R$ {childData.balance.toFixed(2)}
+                </div>
+                <div className="text-xs text-white/60">Meu saldo</div>
               </div>
-              <div className="text-xs text-white/60">Meu saldo</div>
             </div>
           </div>
 
