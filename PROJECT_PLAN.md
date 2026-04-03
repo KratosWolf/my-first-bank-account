@@ -21,11 +21,12 @@ App educacional de finanças pessoais para crianças. Os pais criam contas banc�
 
 App funcional com bugs corrigidos, visual redesenhado (verde escuro + amarelo/dourado + branco), sistema de empréstimos educativos completo, e fluxo de onboarding profissional para futura comercialização.
 
-### Situação Atual (Mar 2026)
+### Situação Atual (Abr 2026)
 
 - ✅ Fase 1 completa — bugs corrigidos, app estável
 - ✅ Fase 2 completa — redesign visual + empréstimos
 - ✅ Fase 2.5 completa — segurança e limpeza
+- 🔄 Fase 3 em progresso — 5/7 tasks completas
 - App funcional com tabelas no Supabase (BWS removidas)
 - Login com Google OAuth via NextAuth
 - Dashboard de pais + visão de crianças
@@ -206,27 +207,27 @@ typescript
 | 2.22 | Remover Leaderboard duplicado          | ✅     | Apenas src/components/leaderboard/ mantido                       |
 | 2.23 | Smoke test completo pós-fixes          | ✅     | Build limpo, 401 em todas as routes, fluxos funcionando          |
 
-**Pendentes para Fase 3 (não-bloqueantes):**
+**Resolvidos na Fase 3 (Task 3.1):**
 
-- isPinUnique() em family-service.ts sem filtro de família
-- addToGoal() em goals.ts usa .update() direto em vez de RPC atômico
+- ✅ isPinUnique() agora filtra por family_id
+- ✅ addToGoal() agora usa RPC atômico adjust_goal_amount
 
 ---
 
-### FASE 3 — Melhorias para Uso Real ⬅️ PRÓXIMA FASE
+### FASE 3 — Melhorias para Uso Real ⬅️ EM PROGRESSO
 
 **Objetivo:** Resolver pendências técnicas da Fase 2.5 e adicionar funcionalidades para uso real do app.
-**Status:** 🔒 Bloqueada — só inicia após aprovação do Tiago.
+**Status:** 🔄 Em progresso — 5/7 tasks completas (3.1, 3.2, 3.3a, 3.5, 3.6).
 
-| #    | Funcionalidade                                | Status | Critérios de Done                                                                                                                                                                           |
-| ---- | --------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.1  | Fix isPinUnique() + addToGoal() atômico       | ✅     | isPinUnique() filtra por family_id. addToGoal() usa RPC atômico (adjust_goal_amount). Testes manuais OK.                                                                                    |
-| 3.2  | Notificações in-app                           | 🔒     | Sistema de notificações visível no app: rendimentos, metas atingidas, parcelas vencendo. Sem push/email.                                                                                    |
-| 3.3a | XP e nível calculados a partir de transações  | ✅     | XP calculado a partir de transações reais (goal_deposit, loan_payment, interest, earning, allowance). 10 níveis com títulos em PT-BR. Visão criança e dashboard pais atualizados. Build OK. |
-| 3.3b | Conquistas, streaks, badges                   | 🔒     | Sistema de conquistas com badges visuais. Streaks de economia. Exibição no perfil da criança.                                                                                               |
-| 3.4  | Smoke tests automatizados dos fluxos críticos | 🔒     | Testes automatizados cobrindo: login, transações, juros, empréstimos, sonhos. Rodam no CI.                                                                                                  |
-| 3.5  | Extrato com saldo acumulado                   | 🔒     | Cada transação no histórico exibe saldo antes e depois (extrato bancário); cálculo correto em todos os tipos; sem impacto no saldo real do banco; testes manuais OK; commit feito.          |
-| 3.6  | Fix exibição de goal_withdrawal no histórico  | ✅     | goal_withdrawal exibe +R$ em verde (entrada); goal_deposit continua -R$ em vermelho; saldo no banco não alterado (já correto); build OK; commit feito.                                      |
+| #    | Funcionalidade                                | Status | Critérios de Done                                                                                                                                                                                                                                      |
+| ---- | --------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 3.1  | Fix isPinUnique() + addToGoal() atômico       | ✅     | isPinUnique() filtra por family_id. addToGoal() usa RPC atômico (adjust_goal_amount). Testes manuais OK.                                                                                                                                               |
+| 3.2  | Notificações in-app                           | ✅     | useNotifications.ts calcula on-the-fly. NotificationBell.tsx com badge e dropdown. Eventos: rendimentos, metas completas, parcelas vencendo/em atraso. Zero tabelas novas — localStorage para estado de lido (expiração 30 dias). IDs determinísticos. |
+| 3.3a | XP e nível calculados a partir de transações  | ✅     | XP calculado a partir de transações reais (goal_deposit, loan_payment, interest, earning, allowance). 10 níveis com títulos em PT-BR. Visão criança e dashboard pais atualizados. Build OK.                                                            |
+| 3.3b | Conquistas, badges + fixes visuais            | 🔒     | Sistema de conquistas com badges visuais. Corrigir LevelWidget/LevelProgress fora do demo-child-view (usam child.xp=0 do DB). Investigar espaço em branco na página inicial da visão criança.                                                          |
+| 3.4  | Smoke tests automatizados dos fluxos críticos | 🔒     | Testes automatizados cobrindo: login, transações, juros, empréstimos, sonhos. Rodam no CI.                                                                                                                                                             |
+| 3.5  | Extrato com saldo acumulado                   | ✅     | Saldo acumulado exibido no histórico (página 1, sem filtros). Cálculo 100% no frontend a partir do balance atual. Saldo oculto em páginas > 1 e com filtros ativos (decisão consciente). Build OK, commit feito.                                       |
+| 3.6  | Fix exibição de goal_withdrawal no histórico  | ✅     | goal_withdrawal exibe +R$ em verde (entrada); goal_deposit continua -R$ em vermelho; saldo no banco não alterado (já correto); build OK; commit feito.                                                                                                 |
 
 ---
 
