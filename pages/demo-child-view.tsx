@@ -1969,7 +1969,10 @@ export default function ChildView() {
             <h2 className="text-2xl font-bold text-text-primary mb-4">
               Meu Histórico 📋
             </h2>
-            <TransactionHistory childId={currentChild.id} />
+            <TransactionHistory
+              childId={currentChild.id}
+              currentBalance={currentChild.balance || 0}
+            />
           </div>
         )}
       </div>

@@ -6,11 +6,13 @@ import type { Transaction } from '@/lib/supabase';
 
 interface TransactionHistoryProps {
   childId: string;
+  currentBalance?: number;
   className?: string;
 }
 
 export default function TransactionHistory({
   childId,
+  currentBalance,
   className = '',
 }: TransactionHistoryProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -139,8 +141,34 @@ export default function TransactionHistory({
       'interest',
       'goal_interest',
       'goal_withdrawal',
+      'deposit',
+      'gift',
     ].includes(type);
   };
+
+  // Calculate running balance for each transaction (retroactive from current balance)
+  // Only on first page with no filters — otherwise the anchor balance doesn't match
+  const balanceMap = new Map<string, number>();
+  if (
+    currentBalance !== undefined &&
+    currentPage === 1 &&
+    selectedPeriod === 'all' &&
+    selectedType === 'all' &&
+    selectedCategory === 'all'
+  ) {
+    let runningBalance = currentBalance;
+    for (let i = 0; i < transactions.length; i++) {
+      const tx = transactions[i];
+      balanceMap.set(tx.id, runningBalance);
+      // Walk backwards: subtract income, add expenses to get previous balance
+      const amount = Math.abs(tx.amount);
+      if (isIncome(tx.type)) {
+        runningBalance -= amount;
+      } else {
+        runningBalance += amount;
+      }
+    }
+  }
 
   return (
     <div className={`${className}`}>
@@ -271,6 +299,7 @@ export default function TransactionHistory({
         ) : (
           transactions.map(transaction => {
             const display = getTransactionDisplay(transaction.type);
+            const balanceAfter = balanceMap.get(transaction.id);
             return (
               <div
                 key={transaction.id}
@@ -303,14 +332,21 @@ export default function TransactionHistory({
                   )}
                 </div>
 
-                {/* Amount */}
-                <div
-                  className={`font-bold text-xl ${
-                    isIncome(transaction.type) ? 'text-success' : 'text-error'
-                  }`}
-                >
-                  {isIncome(transaction.type) ? '+' : '-'}R${' '}
-                  {Math.abs(transaction.amount).toFixed(2)}
+                {/* Amount + Balance */}
+                <div className="text-right flex-shrink-0">
+                  <div
+                    className={`font-bold text-xl ${
+                      isIncome(transaction.type) ? 'text-success' : 'text-error'
+                    }`}
+                  >
+                    {isIncome(transaction.type) ? '+' : '-'}R${' '}
+                    {Math.abs(transaction.amount).toFixed(2)}
+                  </div>
+                  {balanceAfter !== undefined && (
+                    <div className="text-xs text-white/50 mt-0.5">
+                      Saldo: R$ {balanceAfter.toFixed(2)}
+                    </div>
+                  )}
                 </div>
               </div>
             );
