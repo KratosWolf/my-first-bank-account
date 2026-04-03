@@ -213,10 +213,24 @@ typescript
 
 ---
 
-### FASE 3 — Onboarding Profissional
+### FASE 3 — Melhorias para Uso Real ⬅️ PRÓXIMA FASE
+
+**Objetivo:** Resolver pendências técnicas da Fase 2.5 e adicionar funcionalidades para uso real do app.
+**Status:** 🔒 Bloqueada — só inicia após aprovação do Tiago.
+
+| #   | Funcionalidade                                | Status | Critérios de Done                                                                                        |
+| --- | --------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------- |
+| 3.1 | Fix isPinUnique() + addToGoal() atômico       | 🔒     | isPinUnique() filtra por family_id. addToGoal() usa RPC atômico (adjust_goal_amount). Testes manuais OK. |
+| 3.2 | Notificações in-app                           | 🔒     | Sistema de notificações visível no app: rendimentos, metas atingidas, parcelas vencendo. Sem push/email. |
+| 3.3 | Gamificação: conquistas, streaks, badges      | 🔒     | Sistema de conquistas com badges visuais. Streaks de economia. Exibição no perfil da criança.            |
+| 3.4 | Smoke tests automatizados dos fluxos críticos | 🔒     | Testes automatizados cobrindo: login, transações, juros, empréstimos, sonhos. Rodam no CI.               |
+
+---
+
+### FASE 4 — Onboarding Profissional | 🔒 Bloqueada
 
 **Objetivo:** Criar fluxo completo de cadastro e configuração inicial, pensando em comercialização futura.
-**Status:** 🔒 Bloqueada — só inicia após Fase 2 completa e aprovada.
+**Status:** 🔒 Bloqueada — só inicia após Fase 3 completa e aprovada.
 
 #### Fluxo do Onboarding
 
@@ -234,32 +248,29 @@ typescript
 
 | #   | Funcionalidade                  | Status | Critérios de Done                                                             |
 | --- | ------------------------------- | ------ | ----------------------------------------------------------------------------- |
-| 3.1 | Schema do banco para onboarding | 🔒     | Tabelas: families, guardians, guardian_invites. Ajustes em children/accounts. |
-| 3.2 | Tela de boas-vindas             | 🔒     | Branding, animação, CTA                                                       |
-| 3.3 | Signup do responsável           | 🔒     | Google OAuth + email/senha                                                    |
-| 3.4 | Perfil do responsável           | 🔒     | Nome, relação, foto                                                           |
-| 3.5 | Convite do segundo responsável  | 🔒     | Envio por email, aceitação                                                    |
-| 3.6 | Cadastro de filho(a)            | 🔒     | Nome, nascimento, avatar, apelido                                             |
-| 3.7 | Configuração inicial            | 🔒     | Taxa de juros, saldo inicial                                                  |
-| 3.8 | Tour/tutorial interativo        | 🔒     | Highlights das funcionalidades                                                |
-| 3.9 | Testes do fluxo completo        | 🔒     | Testar todos os caminhos do onboarding                                        |
+| 4.1 | Schema do banco para onboarding | 🔒     | Tabelas: families, guardians, guardian_invites. Ajustes em children/accounts. |
+| 4.2 | Tela de boas-vindas             | 🔒     | Branding, animação, CTA                                                       |
+| 4.3 | Signup do responsável           | 🔒     | Google OAuth + email/senha                                                    |
+| 4.4 | Perfil do responsável           | 🔒     | Nome, relação, foto                                                           |
+| 4.5 | Convite do segundo responsável  | 🔒     | Envio por email, aceitação                                                    |
+| 4.6 | Cadastro de filho(a)            | 🔒     | Nome, nascimento, avatar, apelido                                             |
+| 4.7 | Configuração inicial            | 🔒     | Taxa de juros, saldo inicial                                                  |
+| 4.8 | Tour/tutorial interativo        | 🔒     | Highlights das funcionalidades                                                |
+| 4.9 | Testes do fluxo completo        | 🔒     | Testar todos os caminhos do onboarding                                        |
 
 ---
 
-### FASE 4 — Melhorias Futuras
+### FASE 5 — Escala e Monetização | 🔒 Bloqueada
 
-**Objetivo:** Features adicionais identificadas durante o uso.
+**Objetivo:** Features adicionais para escala e monetização.
 **Status:** 🔒 Bloqueada
 
 | #   | Funcionalidade       | Status | Notas                                          |
 | --- | -------------------- | ------ | ---------------------------------------------- |
-| 4.1 | Testes automatizados | 🔒     | Coverage mínima para fluxos críticos           |
-| 4.2 | Notificações         | 🔒     | Push/email para rendimentos, metas atingidas   |
-| 4.3 | Gamificação          | 🔒     | Conquistas, streaks de economia, badges        |
-| 4.4 | Multi-idioma         | 🔒     | PT-BR (padrão) + EN                            |
-| 4.5 | PWA / App mobile     | 🔒     | Progressive Web App para instalar no celular   |
-| 4.6 | Monetização          | 🔒     | Plano premium, famílias adicionais, etc.       |
-| 4.7 | Outros bugs/features | 🔒     | Itens identificados durante uso (lista aberta) |
+| 5.1 | Multi-idioma         | 🔒     | PT-BR (padrão) + EN                            |
+| 5.2 | PWA / App mobile     | 🔒     | Progressive Web App para instalar no celular   |
+| 5.3 | Monetização          | 🔒     | Plano premium, famílias adicionais, etc.       |
+| 5.4 | Outros bugs/features | 🔒     | Itens identificados durante uso (lista aberta) |
 
 ---
 
@@ -288,13 +299,13 @@ typescript
 | allowance_config              | Config de mesada automática (valor, frequência, next_payment_date) | 2026-02-21       |
 | [+ outras tabelas a detalhar] | Mapeamento completo pendente                                       | —                |
 
-### Tabelas Planejadas (Fase 3 — Onboarding)
+### Tabelas Planejadas (Fase 4 — Onboarding)
 
 | Tabela           | Fase   | Dependências         | Descrição    |
 | ---------------- | ------ | -------------------- | ------------ |
-| families         | Fase 3 | —                    | Famílias     |
-| guardians        | Fase 3 | families, auth.users | Responsáveis |
-| guardian_invites | Fase 3 | families, guardians  | Convites     |
+| families         | Fase 4 | —                    | Famílias     |
+| guardians        | Fase 4 | families, auth.users | Responsáveis |
+| guardian_invites | Fase 4 | families, guardians  | Convites     |
 
 ### Schema — Empréstimos (Fase 2, task 2.10)
 
@@ -337,10 +348,10 @@ CREATE INDEX idx_installments_loan_id ON loan_installments(loan_id);
 CREATE INDEX idx_installments_status ON loan_installments(status);
 ```
 
-### Schema — Onboarding (Fase 3)
+### Schema — Onboarding (Fase 4)
 
 ```sql
--- Ver detalhamento completo na seção da Fase 3
+-- Ver detalhamento completo na seção da Fase 4
 -- families, guardians, guardian_invites
 -- SQL será definido quando a Fase 3 iniciar
 ```

@@ -143,7 +143,7 @@ Só prossiga quando TODOS os itens estiverem ✅.
 
 **Branch:** develop → main (merged 2026-02-21)
 
-**NÃO inclui (fases futuras):** Onboarding (Fase 3), Notificações, Gamificação, PWA, Monetização (Fase 4).
+**NÃO inclui (fases futuras):** Melhorias para Uso Real (Fase 3), Onboarding (Fase 4), Escala e Monetização (Fase 5).
 
 ### FASE 2.5 — Segurança e Limpeza ✅ COMPLETA (2026-03-29)
 
@@ -163,9 +163,16 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - isPinUnique() em family-service.ts sem filtro de família
 - addToGoal() em goals.ts usa .update() direto em vez de RPC atômico
 
-### FASE 3 — Onboarding Profissional ⬅️ PRÓXIMA FASE | 🔒 Bloqueada
+### FASE 3 — Melhorias para Uso Real ⬅️ PRÓXIMA FASE | 🔒 Bloqueada
 
-### FASE 4 — Melhorias Futuras | 🔒 Bloqueada
+- 3.1 Fix isPinUnique() + addToGoal() atômico (pendentes da Fase 2.5)
+- 3.2 Notificações in-app
+- 3.3 Gamificação: conquistas, streaks, badges
+- 3.4 Smoke tests automatizados dos fluxos críticos
+
+### FASE 4 — Onboarding Profissional | 🔒 Bloqueada
+
+### FASE 5 — Escala e Monetização | 🔒 Bloqueada
 
 ---
 
