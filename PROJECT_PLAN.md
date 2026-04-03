@@ -220,12 +220,12 @@ typescript
 
 | #   | Funcionalidade                                | Status | Critérios de Done                                                                                                                                                                  |
 | --- | --------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.1 | Fix isPinUnique() + addToGoal() atômico       | 🔒     | isPinUnique() filtra por family_id. addToGoal() usa RPC atômico (adjust_goal_amount). Testes manuais OK.                                                                           |
+| 3.1 | Fix isPinUnique() + addToGoal() atômico       | ✅     | isPinUnique() filtra por family_id. addToGoal() usa RPC atômico (adjust_goal_amount). Testes manuais OK.                                                                           |
 | 3.2 | Notificações in-app                           | 🔒     | Sistema de notificações visível no app: rendimentos, metas atingidas, parcelas vencendo. Sem push/email.                                                                           |
 | 3.3 | Gamificação: conquistas, streaks, badges      | 🔒     | Sistema de conquistas com badges visuais. Streaks de economia. Exibição no perfil da criança.                                                                                      |
 | 3.4 | Smoke tests automatizados dos fluxos críticos | 🔒     | Testes automatizados cobrindo: login, transações, juros, empréstimos, sonhos. Rodam no CI.                                                                                         |
 | 3.5 | Extrato com saldo acumulado                   | 🔒     | Cada transação no histórico exibe saldo antes e depois (extrato bancário); cálculo correto em todos os tipos; sem impacto no saldo real do banco; testes manuais OK; commit feito. |
-| 3.6 | Fix exibição de goal_withdrawal no histórico  | 🔒     | goal_withdrawal exibe +R$ em verde (entrada); goal_deposit continua -R$ em vermelho; saldo no banco não alterado (já correto); build OK; commit feito.                             |
+| 3.6 | Fix exibição de goal_withdrawal no histórico  | ✅     | goal_withdrawal exibe +R$ em verde (entrada); goal_deposit continua -R$ em vermelho; saldo no banco não alterado (já correto); build OK; commit feito.                             |
 
 ---
 

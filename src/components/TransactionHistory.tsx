@@ -121,6 +121,7 @@ export default function TransactionHistory({
       allowance: { icon: '📅', color: '#F5B731', bg: '#F5B73120' },
       interest: { icon: '📈', color: '#22C55E', bg: '#22C55E20' },
       goal_deposit: { icon: '🎯', color: '#F5B731', bg: '#F5B73120' },
+      goal_withdrawal: { icon: '↩️', color: '#22C55E', bg: '#22C55E20' },
       goal_interest: { icon: '🌟', color: '#FFD966', bg: '#FFD96620' },
       transfer: { icon: '↔️', color: '#FFFFFF', bg: '#FFFFFF20' },
       deposit: { icon: '💵', color: '#22C55E', bg: '#22C55E20' },
@@ -132,7 +133,13 @@ export default function TransactionHistory({
 
   // Check if transaction is income
   const isIncome = (type: string) => {
-    return ['earning', 'allowance', 'interest', 'goal_interest'].includes(type);
+    return [
+      'earning',
+      'allowance',
+      'interest',
+      'goal_interest',
+      'goal_withdrawal',
+    ].includes(type);
   };
 
   return (
@@ -196,6 +203,7 @@ export default function TransactionHistory({
               <option value="interest">📈 Rendimentos</option>
               <option value="goal_deposit">🎯 Depósito em sonho</option>
               <option value="goal_interest">🌟 Rendimento de sonho</option>
+              <option value="goal_withdrawal">↩️ Sonho cancelado</option>
               <option value="transfer">↔️ Transferências</option>
             </select>
           </div>
