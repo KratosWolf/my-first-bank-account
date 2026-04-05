@@ -222,6 +222,7 @@ export default function ChildView() {
       .from('transactions')
       .select('*')
       .eq('child_id', childId)
+      .eq('status', 'completed')
       .order('created_at', { ascending: false });
 
     if (error) {

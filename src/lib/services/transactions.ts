@@ -25,7 +25,8 @@ export class TransactionService {
     let query = supabase
       .from('transactions')
       .select('*')
-      .eq('child_id', childId);
+      .eq('child_id', childId)
+      .eq('status', 'completed');
 
     // Apply date filters
     if (options?.startDate) {
@@ -80,7 +81,8 @@ export class TransactionService {
     let query = supabase
       .from('transactions')
       .select('*', { count: 'exact', head: true })
-      .eq('child_id', childId);
+      .eq('child_id', childId)
+      .eq('status', 'completed');
 
     // Apply same filters as getChildTransactions
     if (options?.startDate) {
