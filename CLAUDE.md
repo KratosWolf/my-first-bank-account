@@ -172,6 +172,8 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - 🔒 3.4 Smoke tests automatizados dos fluxos críticos
 - ✅ 3.5 Extrato com saldo acumulado
 - ✅ 3.6 Fix exibição de goal_withdrawal no histórico
+- ✅ 3.7 Simulação de saldo após aprovação no card de pedido
+- 🔒 3.8 Fix texto ilegível no modal de depósito
 
 ### FASE 4 — Onboarding Profissional | 🔒 Bloqueada
 
@@ -367,6 +369,13 @@ MyFirstBA2/
 | 2026-04-05 | adjust_child_balance recriada sem updated_at                                 | Coluna não existe na tabela children — causava falha em toda aprovação de pedido. Adicionado IF NOT FOUND e search_path = public |
 | 2026-04-05 | Aviso saldo insuficiente: text-white em dashboard.tsx:1282-1283              | Texto vermelho em fundo vermelho era ilegível                                                                                    |
 | 2026-04-05 | purchase_requests tem RLS sem policy de SELECT                               | Dados só acessíveis via service_role. Débito técnico — adicionar policy na Fase 4                                                |
+| 2026-04-05 | adjust_child_balance RPC substituída por UPDATE directo                      | RPC tinha zero GRANTs de EXECUTE — permission denied mesmo com supabaseAdmin                                                     |
+| 2026-04-05 | /api/transactions/manual criada com supabaseAdmin + UPDATE directo           | Substitui escrita directa com anon key que era bloqueada pelo RLS                                                                |
+| 2026-04-05 | Dashboard usa saldo retornado pela API (não calculado localmente)            | Evita sucesso falso na UI quando API falha                                                                                       |
+| 2026-04-05 | Caixa verde no modal de depósito tem texto ilegível                          | Texto branco sobre verde claro — fix pendente na 3.3b (mudar para texto preto)                                                   |
+| 2026-04-05 | child-loan-requests busca pedidos via /api/purchase-requests                 | purchase_requests tem RLS sem policy SELECT — anon key retornava vazio                                                           |
+| 2026-04-05 | Release Pipeline ainda a falhar — CI passa, deploy Vercel funciona           | Provavelmente semantic-release sem .releaserc — investigar na 3.3b                                                               |
+| 2026-04-05 | Task 3.7 confirmada correcta apenas no dashboard dos pais                    | Simulação de saldo não faz sentido na visão criança                                                                              |
 
 ---
 
