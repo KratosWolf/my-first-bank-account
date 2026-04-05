@@ -15,7 +15,6 @@ import {
   PurchaseRequestCard,
   PurchaseRequest,
 } from '../src/components/PurchaseRequestCard';
-import { LoanService } from '../src/lib/services/loanService';
 
 export default function ChildLoanRequestsPage() {
   const router = useRouter();
@@ -123,7 +122,20 @@ export default function ChildLoanRequestsPage() {
   const loadRequests = async (id: string) => {
     try {
       setIsLoading(true);
-      const data = await LoanService.getLoanRequests(id);
+      const res = await fetch(`/api/purchase-requests?child_id=${id}`);
+      if (!res.ok) throw new Error('Erro ao buscar pedidos');
+      const json = await res.json();
+      const data: PurchaseRequest[] = (json.data || []).map((tx: any) => ({
+        id: tx.id,
+        itemName:
+          tx.description?.replace('Pedido: ', '') || tx.description || '',
+        amount: Math.abs(tx.amount),
+        reason: tx.parent_note || '',
+        category: tx.category || 'Outros',
+        status: tx.status === 'completed' ? 'approved' : tx.status,
+        created_at: tx.created_at,
+        response_message: tx.parent_note,
+      }));
       // Ordenar: pendentes primeiro, depois por data decrescente
       const sorted = data.sort((a, b) => {
         if (a.status === 'pending' && b.status !== 'pending') return -1;
@@ -163,13 +175,19 @@ export default function ChildLoanRequestsPage() {
 
     try {
       setIsSubmitting(true);
-      await LoanService.createLoanRequest(
-        childId,
-        data.itemName,
-        data.amount,
-        data.reason,
-        data.category
-      );
+      const res = await fetch('/api/purchase-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          child_id: childId,
+          item_name: data.itemName,
+          description: data.reason,
+          amount: data.amount,
+          category: data.category,
+          type: 'spending',
+        }),
+      });
+      if (!res.ok) throw new Error('Erro ao criar pedido');
 
       // Recarregar lista
       await loadRequests(childId);
