@@ -228,8 +228,10 @@ typescript
 | 3.3a | XP e nível calculados a partir de transações  | ✅     | XP calculado a partir de transações reais (goal_deposit, loan_payment, interest, earning, allowance). 10 níveis com títulos em PT-BR. Visão criança e dashboard pais atualizados. Build OK.                                                            |
 | 3.3b | Conquistas, badges + fixes visuais            | 🔒     | Sistema de conquistas com badges visuais. Corrigir LevelWidget/LevelProgress fora do demo-child-view (usam child.xp=0 do DB). Investigar espaço em branco na página inicial da visão criança.                                                          |
 | 3.4  | Smoke tests automatizados dos fluxos críticos | 🔒     | Testes automatizados cobrindo: login, transações, juros, empréstimos, sonhos. Rodam no CI.                                                                                                                                                             |
-| 3.5  | Extrato com saldo acumulado                   | ✅     | Saldo acumulado exibido no histórico (página 1, sem filtros). Cálculo 100% no frontend a partir do balance atual. Saldo oculto em páginas > 1 e com filtros ativos (decisão consciente). Build OK, commit feito.                                       |
-| 3.6  | Fix exibição de goal_withdrawal no histórico  | ✅     | goal_withdrawal exibe +R$ em verde (entrada); goal_deposit continua -R$ em vermelho; saldo no banco não alterado (já correto); build OK; commit feito.                                                                                                 |
+
+> ⚠️ Bug detectado em 2026-04-05: CI Pipeline e Release Pipeline falharam no GitHub Actions após push de 12 commits para o main. Deploy na Vercel funcionou normalmente. Investigar o que está a falhar nos workflows (.github/workflows/) — provavelmente TypeScript check ou ESLint.
+> | 3.5 | Extrato com saldo acumulado | ✅ | Saldo acumulado exibido no histórico (página 1, sem filtros). Cálculo 100% no frontend a partir do balance atual. Saldo oculto em páginas > 1 e com filtros ativos (decisão consciente). Build OK, commit feito. |
+> | 3.6 | Fix exibição de goal_withdrawal no histórico | ✅ | goal_withdrawal exibe +R$ em verde (entrada); goal_deposit continua -R$ em vermelho; saldo no banco não alterado (já correto); build OK; commit feito. |
 
 ---
 
