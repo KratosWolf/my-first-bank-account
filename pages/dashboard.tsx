@@ -1279,8 +1279,8 @@ export default function DashboardPage() {
                               {/* Balance Check - apenas para compras */}
                               {request.type !== 'loan' &&
                                 child.balance < request.amount && (
-                                  <div className="bg-error bg-opacity-10 border border-error rounded p-2 mb-3">
-                                    <p className="text-error text-sm">
+                                  <div className="bg-error rounded p-2 mb-3">
+                                    <p className="text-white text-sm">
                                       ⚠️ Saldo insuficiente! Faltam R${' '}
                                       {(request.amount - child.balance).toFixed(
                                         2
