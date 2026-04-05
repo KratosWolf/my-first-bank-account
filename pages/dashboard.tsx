@@ -595,16 +595,6 @@ export default function DashboardPage() {
     }
 
     try {
-      const newBalance =
-        transactionType === 'add'
-          ? selectedChild.balance + amount
-          : selectedChild.balance - amount;
-
-      if (newBalance < 0) {
-        alert('Saldo insuficiente para remover este valor');
-        return;
-      }
-
       // Call API route (uses supabaseAdmin to bypass RLS)
       const response = await fetch('/api/transactions/manual', {
         method: 'POST',
@@ -629,13 +619,13 @@ export default function DashboardPage() {
       // Update local state (analytics will auto-reload via useEffect)
       await loadChildren();
 
-      // 4. Close modal and show success
+      // Close modal and show success with balance from API
       setShowTransactionModal(false);
       alert(
         `✅ ${transactionType === 'add' ? 'Depósito' : 'Retirada'} realizado com sucesso!\n` +
           `Valor: R$ ${amount.toFixed(2)}\n` +
           `Descrição: ${transactionDescription}\n` +
-          `Novo saldo de ${selectedChild.name}: R$ ${newBalance.toFixed(2)}`
+          `Novo saldo de ${selectedChild.name}: R$ ${Number(result.newBalance).toFixed(2)}`
       );
     } catch (error) {
       console.error('❌ Erro ao processar transação:', error);

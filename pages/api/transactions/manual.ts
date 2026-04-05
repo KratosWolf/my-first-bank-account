@@ -51,27 +51,30 @@ export default async function handler(
 
     const newBalance =
       type === 'earning'
-        ? child.balance + parsedAmount
-        : child.balance - parsedAmount;
+        ? Number(child.balance) + parsedAmount
+        : Number(child.balance) - parsedAmount;
+    const newTotalEarned =
+      type === 'earning'
+        ? Number(child.total_earned || 0) + parsedAmount
+        : Number(child.total_earned || 0);
+    const newTotalSpent =
+      type === 'spending'
+        ? Number(child.total_spent || 0) + parsedAmount
+        : Number(child.total_spent || 0);
 
     if (newBalance < 0) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
 
-    // 2. Update balance atomically via RPC
-    const balanceDelta = type === 'earning' ? parsedAmount : -parsedAmount;
-    const earnedDelta = type === 'earning' ? parsedAmount : 0;
-    const spentDelta = type === 'spending' ? parsedAmount : 0;
-
-    const { error: balanceError } = await supabaseAdmin.rpc(
-      'adjust_child_balance',
-      {
-        p_child_id: child_id,
-        p_balance_delta: balanceDelta,
-        p_total_earned_delta: earnedDelta,
-        p_total_spent_delta: spentDelta,
-      }
-    );
+    // 2. Update balance directly (RPC has no EXECUTE permission)
+    const { error: balanceError } = await supabaseAdmin
+      .from('children')
+      .update({
+        balance: newBalance,
+        total_earned: newTotalEarned,
+        total_spent: newTotalSpent,
+      })
+      .eq('id', child_id);
 
     if (balanceError) {
       console.error('❌ Error updating balance:', balanceError);
@@ -102,12 +105,14 @@ export default async function handler(
     if (txError) {
       console.error('❌ Error creating transaction:', txError);
       // Rollback balance
-      await supabaseAdmin.rpc('adjust_child_balance', {
-        p_child_id: child_id,
-        p_balance_delta: -balanceDelta,
-        p_total_earned_delta: -earnedDelta,
-        p_total_spent_delta: -spentDelta,
-      });
+      await supabaseAdmin
+        .from('children')
+        .update({
+          balance: Number(child.balance),
+          total_earned: Number(child.total_earned || 0),
+          total_spent: Number(child.total_spent || 0),
+        })
+        .eq('id', child_id);
       return res.status(500).json({
         error: 'Failed to create transaction. Balance reverted.',
         details: txError.message,
@@ -117,7 +122,7 @@ export default async function handler(
     return res.status(201).json({
       success: true,
       data: transaction,
-      newBalance: child.balance + balanceDelta,
+      newBalance,
     });
   } catch (error: any) {
     console.error('❌ Unexpected error:', error);
