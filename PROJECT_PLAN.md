@@ -212,6 +212,8 @@ typescript
 - ✅ isPinUnique() agora filtra por family_id
 - ✅ addToGoal() agora usa RPC atômico adjust_goal_amount
 
+⚠️ Bug pós-deploy descoberto em 2026-04-05: adjust_child_balance tinha updated_at inexistente — corrigido via migration em produção.
+
 ---
 
 ### FASE 3 — Melhorias para Uso Real ⬅️ EM PROGRESSO
@@ -460,3 +462,5 @@ MyFirstBA2/
 | 2026-03-29 | Banco      | Postgres 17.4 → 17.6, tabelas BWS removidas, 3 funções atômicas             | Security Advisor zerado. RLS habilitado em todas as tabelas. search_path fixado em 6 funções. ✅                                                                                                                                                                                                                           |
 | 2026-03-30 | Pós-deploy | 5 bugs corrigidos pós Fase 2.5                                              | supabaseAdmin, useEffect [session], adjust_child_balance rollback, title→item_name, filtro pending ✅                                                                                                                                                                                                                      |
 | 2026-03-30 | Banco      | Saldos corrigidos + transações duplicadas removidas                         | Gabriel: R$759,17 / Rafael: R$811,07. Duplicados removidos: Fortnite R$78,99 e raquete R$394 ✅                                                                                                                                                                                                                            |
+| 2026-04-05 | Pós-deploy | Bug crítico: adjust_child_balance falhava em toda aprovação de pedido       | Função tinha updated_at = NOW() mas coluna não existe na tabela children. Recriada sem updated_at, com IF NOT FOUND e search_path = public. ✅                                                                                                                                                                             |
+| 2026-04-05 | Fase 3     | Fix visual: aviso saldo insuficiente ilegível no dashboard dos pais         | Texto vermelho em fundo vermelho. Corrigido para text-white em dashboard.tsx:1282-1283. ✅                                                                                                                                                                                                                                 |
