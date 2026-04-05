@@ -1286,6 +1286,18 @@ export default function DashboardPage() {
                                         2
                                       )}
                                     </p>
+                                    <p className="text-white text-sm mt-1 opacity-90">
+                                      Saldo após aprovação:{' '}
+                                      <span className="font-semibold">
+                                        {child.balance - request.amount < 0
+                                          ? '-'
+                                          : ''}
+                                        R${' '}
+                                        {Math.abs(
+                                          child.balance - request.amount
+                                        ).toFixed(2)}
+                                      </span>
+                                    </p>
                                   </div>
                                 )}
                             </div>
