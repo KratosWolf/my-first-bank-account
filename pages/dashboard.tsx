@@ -605,50 +605,28 @@ export default function DashboardPage() {
         return;
       }
 
-      // Import supabase at the top of the file if needed
-      const { supabase } = await import('../src/lib/supabase');
+      // Call API route (uses supabaseAdmin to bypass RLS)
+      const response = await fetch('/api/transactions/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          child_id: selectedChild.id,
+          type: transactionType === 'add' ? 'earning' : 'spending',
+          amount: amount,
+          description: transactionDescription,
+          category: transactionType === 'add' ? 'Depósito' : 'Retirada',
+        }),
+      });
 
-      // 1. Update child balance in Supabase
-      const { error: updateError } = await supabase
-        .from('children')
-        .update({
-          balance: newBalance,
-          total_earned:
-            transactionType === 'add'
-              ? (selectedChild.total_earned || 0) + amount
-              : selectedChild.total_earned,
-          total_spent:
-            transactionType === 'remove'
-              ? (selectedChild.total_spent || 0) + amount
-              : selectedChild.total_spent,
-        })
-        .eq('id', selectedChild.id);
+      const result = await response.json();
 
-      if (updateError) {
-        console.error('❌ Erro ao atualizar saldo:', updateError);
-        alert('Erro ao atualizar saldo. Tente novamente.');
+      if (!response.ok) {
+        console.error('❌ Erro na API:', result.error);
+        alert(`Erro ao processar transação: ${result.error}`);
         return;
       }
 
-      // 2. Save transaction in Supabase
-      const transactionData = {
-        child_id: selectedChild.id,
-        type: transactionType === 'add' ? 'earning' : 'spending',
-        amount: amount,
-        description: transactionDescription,
-        category: transactionType === 'add' ? 'Depósito' : 'Retirada',
-      };
-
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert([transactionData]);
-
-      if (transactionError) {
-        console.error('❌ Erro ao salvar transação:', transactionError);
-        // Não bloqueamos aqui pois o saldo já foi atualizado
-      }
-
-      // 3. Update local state (analytics will auto-reload via useEffect)
+      // Update local state (analytics will auto-reload via useEffect)
       await loadChildren();
 
       // 4. Close modal and show success
