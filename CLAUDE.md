@@ -411,26 +411,32 @@ Para ver todas: listar a pasta `.claude/skills/`.
 
 ### Skills Configuradas neste Projeto
 
-| Skill              | Função                           | Quando usar                      |
-| ------------------ | -------------------------------- | -------------------------------- |
-| secret-scan        | Detecta secrets antes de commits | Antes de git commit              |
-| code-review        | Checklist de qualidade           | Antes de finalizar task          |
-| code-cleanup       | Limpeza sistemática              | Refatoração                      |
-| git-workflow       | Convenções de branch e commit    | Todo commit                      |
-| supabase-setup     | Padrões de banco                 | Setup e migrations               |
-| database-migration | Processo seguro de migration     | Mudanças no schema               |
-| project-setup      | Inicialização de projeto         | Só no início                     |
-| project-audit      | Diagnóstico completo             | Auditoria                        |
-| pre-launch         | Checklist de publicação          | Antes de deploy                  |
-| dependency-update  | Atualização de pacotes           | Manutenção                       |
-| troubleshooting    | Árvore de decisão p/ problemas   | Quando algo quebra               |
-| session-workflow   | Gerencia sessão e contexto       | Início/fim de sessão             |
-| handoff-sync       | Padroniza HANDOFFs e sync        | Comunicação com Projeto Dedicado |
-| mcp-setup          | Configuração de MCPs             | Setup de ferramentas             |
+| Skill              | Função                                                         | Quando usar                                                |
+| ------------------ | -------------------------------------------------------------- | ---------------------------------------------------------- |
+| secret-scan        | Detecta secrets antes de commits                               | Antes de git commit                                        |
+| code-review        | Checklist de qualidade                                         | Antes de finalizar task                                    |
+| code-cleanup       | Limpeza sistemática                                            | Refatoração                                                |
+| git-workflow       | Convenções de branch e commit                                  | Todo commit                                                |
+| supabase-setup     | Padrões de banco                                               | Setup e migrations                                         |
+| database-migration | Processo seguro de migration                                   | Mudanças no schema                                         |
+| project-setup      | Inicialização de projeto                                       | Só no início                                               |
+| project-audit      | Diagnóstico completo                                           | Auditoria                                                  |
+| pre-launch         | Checklist de publicação                                        | Antes de deploy                                            |
+| dependency-update  | Atualização de pacotes                                         | Manutenção                                                 |
+| troubleshooting    | Árvore de decisão p/ problemas                                 | Quando algo quebra                                         |
+| session-workflow   | Gerencia sessão e contexto                                     | Início/fim de sessão                                       |
+| handoff-sync       | Padroniza HANDOFFs e sync                                      | Comunicação com Projeto Dedicado                           |
+| mcp-setup          | Configuração de MCPs                                           | Setup de ferramentas                                       |
+| dream              | Higiene de Auto-Memory — consolida e limpa memórias acumuladas | Ao perceber contradições ou quando /memory mostrar acúmulo |
 
 ---
 
 ## 🪝 Hooks Configurados
 
 > Hooks em `.claude/settings.json` — executam automaticamente.
-> Nenhum hook configurado ainda. Será adicionado conforme necessidade.
+> | Evento | Condição (matcher) | O que faz |
+> | ------ | ------------------ | --------- |
+> | PreToolUse | Bash(git commit\*) | Roda secret-scan antes de commits |
+> | UserPromptSubmit | (sempre) | Exibe projeto, branch e data no início da sessão |
+
+Arquivo: `.claude/settings.json` (versionado em main, commit 3aa34c5)
