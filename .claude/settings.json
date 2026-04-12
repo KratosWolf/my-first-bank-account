@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/skills/secret-scan/secret-scan.md 2>/dev/null || echo 'secret-scan skill não encontrada — verificar .claude/skills/'"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📁 Projeto: MyFirstBA2 | Branch: '$(git branch --show-current 2>/dev/null || echo 'N/A')' | Data: '$(date '+%d/%m/%Y')' | Fase: 3 (3.3b próxima)'"
+          }
+        ]
+      }
+    ]
+  }
+}
