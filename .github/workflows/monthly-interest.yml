@@ -3,7 +3,6 @@ name: Monthly Interest Application
 on:
   schedule:
     # Executa no dia 1º de cada mês às 00:00 UTC (21:00 do dia anterior em Brasília)
-    # Ajuste o horário conforme necessário
     - cron: '0 0 1 * *'
   workflow_dispatch: # Permite execução manual para testes
 
@@ -13,12 +12,92 @@ jobs:
 
     steps:
       - name: Apply Monthly Interest
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ENDPOINT: https://my-first-bank-account.vercel.app/api/cron/apply-interest
         run: |
-          curl -X POST https://my-first-bank-account.vercel.app/api/cron/apply-interest \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+          set -uo pipefail
+
+          # --fail-with-body: exit != 0 em HTTP >= 400, mas preserva o corpo da resposta
+          HTTP_CODE=$(curl -X POST "$ENDPOINT" \
+            -H "Authorization: Bearer $CRON_SECRET" \
             -H "Content-Type: application/json" \
-            -w "\nHTTP Status: %{http_code}\n" \
-            -s -S
+            --fail-with-body -sS \
+            -o response.json -w "%{http_code}")
+          CURL_EXIT=$?
+
+          echo "HTTP Status: $HTTP_CODE (curl exit: $CURL_EXIT)"
+          echo "--- Resposta ---"
+          jq . response.json 2>/dev/null || cat response.json
+          echo "----------------"
+
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::error::Chamada falhou — HTTP $HTTP_CODE (curl exit $CURL_EXIT)"
+            exit 1
+          fi
+
+          # ---- Validações de conteúdo -------------------------------------
+          # O check verde escondeu 5 meses de falha silenciosa (abr-set/2026).
+          # Daqui em diante, 200 OK não basta: o corpo tem de provar que gravou.
+
+          SUCCESS=$(jq -r '.success // false' response.json)
+          DRY_RUN=$(jq -r '.dry_run // false' response.json)
+          TOTAL_CHILDREN=$(jq -r '.summary.total_children // 0' response.json)
+          TOTAL_APPLIED=$(jq -r '.summary.total_interest_applied // 0' response.json)
+          ERROS=$(jq -r '[.summary.results[]? | select(.status == "erro")] | length' response.json)
+
+          FALHOU=0
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "::error::API devolveu success=false"
+            FALHOU=1
+          fi
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "::error::O cron rodou em modo dry_run — nada foi gravado"
+            FALHOU=1
+          fi
+
+          if [ "$ERROS" -ne 0 ]; then
+            echo "::error::$ERROS criança(s) com status 'erro':"
+            jq -r '.summary.results[]? | select(.status == "erro") | "  - \(.child_name): \(.error)"' response.json
+            FALHOU=1
+          fi
+
+          # Guarda de versão: o endpoint ANTIGO também devolvia 200/success:true
+          # com total_children=2 e results 'skipped' — passaria em todas as
+          # checagens acima. O campo `months` só existe na versão da Task 3.9.
+          # Sem isto, um deploy que não chegou à Vercel dá check verde de novo.
+          COM_MONTHS=$(jq -r '[.summary.results[]? | select(has("months"))] | length' response.json)
+          if [ "$COM_MONTHS" -eq 0 ]; then
+            echo "::error::Resposta em formato antigo (sem 'months') — o deploy da correção não chegou a produção"
+            FALHOU=1
+          fi
+
+          # Zero crianças processadas = banco inacessível ou config sumida.
+          # Foi exatamente este o sintoma da run de 01/09 (Supabase pausado).
+          if [ "$TOTAL_CHILDREN" -eq 0 ]; then
+            echo "::error::Nenhuma criança processada — banco inacessível ou interest_config vazia"
+            FALHOU=1
+          fi
+
+          if [ "$FALHOU" -ne 0 ]; then
+            exit 1
+          fi
+
+          # ---- Resumo legível no GitHub -----------------------------------
+          {
+            echo "### 💰 Juros mensais aplicados"
+            echo ""
+            echo "- Crianças processadas: **$TOTAL_CHILDREN**"
+            echo "- Total distribuído: **R\$ $TOTAL_APPLIED**"
+            echo ""
+            echo "| Criança | Mês | Saldo elegível | Juro | Ação |"
+            echo "|---|---|---|---|---|"
+            jq -r '.summary.results[]? as $c | ($c.months[]? | "| \($c.child_name) | \(.mes) | R$ \(.saldo_elegivel) | R$ \(.juro_calculado) | \(.acao)\(if .motivo then " (" + .motivo + ")" else "" end) |")' response.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "OK — $TOTAL_CHILDREN criança(s), R\$ $TOTAL_APPLIED distribuídos."
 
       - name: Log Execution
         if: always()

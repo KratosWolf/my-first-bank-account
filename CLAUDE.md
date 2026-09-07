@@ -173,6 +173,7 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - ✅ 3.5 Extrato com saldo acumulado
 - ✅ 3.6 Fix exibição de goal_withdrawal no histórico
 - ✅ 3.7 Simulação de saldo após aprovação no card de pedido
+- 🟡 3.9 Fix Monthly Interest — código pronto, aguarda aprovação para creditar retroativos
 - 🔒 3.8 Fix texto ilegível no modal de depósito
 
 ### FASE 4 — Onboarding Profissional | 🔒 Bloqueada
@@ -379,6 +380,12 @@ MyFirstBA2/
 | 2026-06-05 | apply-allowance refactorado: `.lte`, loop while, idempotência por mês          | Cron de 05/04 falhou no RPC bugado e congelou next_payment_date em 2026-04-05. Query `.eq` não recupera atrasos — sistema agora faz catch-up automático                                                                                                                                        |
 | 2026-06-05 | Mesada: rollback automático da transação se `adjust_child_balance` falhar      | Evita estado inconsistente (tx criada + saldo não atualizado). Erro parcial agora retorna HTTP 500 (em vez de 200 silencioso)                                                                                                                                                                  |
 | 2026-06-05 | Mesadas retroativas maio+junho 2026 creditadas via endpoint corrigido (Fase C) | Disparado via `gh workflow run daily-allowance.yml` (run #27023529421). 4 tx criadas (R$400 total). Backdate: maio em 2026-05-05, junho em 2026-06-05. Saldos finais: Gabriel R$201,17 (total_earned R$1.675); Rafael R$262,07 (total_earned R$1.425). next_payment_date dos dois = 2026-07-05 |
+| 2026-09-07 | apply-interest.ts reescrito auto-contido com supabaseAdmin (Task 3.9)          | Escrevia com anon key; a policy RLS `write_authenticated` bloqueava o INSERT desde 2026-03-29. O erro virava `null` e era reportado como "saldo insuficiente" com HTTP 200                                                                                                                     |
+| 2026-09-07 | Juros passam a ajustar `children.balance` via `adjust_child_balance`           | Bug secundário: não existe trigger em `transactions`, o saldo nunca subia. RPC escolhida por ser atómica e ser o padrão do apply-allowance (validado em produção)                                                                                                                              |
+| 2026-09-07 | Juros passam a somar em `total_earned`                                         | Alinhamento com o apply-allowance. Mudança de comportamento face ao original (que não mexia em nada) — sinalizada ao Tiago                                                                                                                                                                     |
+| 2026-09-07 | Janela dos 30 dias ancorada na data do mês alvo (`asOf`), não em `new Date()`  | Sem âncora temporal o catch-up de abril contaria entradas de agosto. A fórmula do juro ficou inalterada                                                                                                                                                                                        |
+| 2026-09-07 | Catch-up usa o saldo ATUAL como base do primeiro mês em atraso                 | O saldo histórico não é reconstruível: o replay das transações diverge do saldo real em R$1.052,65 (Gabriel) e R$700,00 (Rafael), por causa das correções manuais de 2026-03-30 e da Fase C. Isto infla os juros retroativos — decisão pendente do Tiago                                       |
+| 2026-09-07 | monthly-interest.yml valida o corpo da resposta e falha o job                  | `curl --fail-with-body` + checagem de `success`, `dry_run`, status 'erro' e `total_children==0`. O check verde escondeu 5 meses de falha silenciosa                                                                                                                                            |
 
 ---
 
