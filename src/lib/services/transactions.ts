@@ -240,58 +240,6 @@ export class TransactionService {
     return data;
   }
 
-  // ============ EARNINGS HELPERS ============
-
-  // Add earning (allowance, chores, gifts)
-  static async addEarning(
-    childId: string,
-    amount: number,
-    description: string,
-    category = 'other'
-  ): Promise<Transaction | null> {
-    return this.createTransaction({
-      child_id: childId,
-      type: 'earning',
-      amount,
-      description,
-      category,
-    });
-  }
-
-  // Add allowance payment
-  static async addAllowance(
-    childId: string,
-    amount: number,
-    period: string
-  ): Promise<Transaction | null> {
-    return this.createTransaction({
-      child_id: childId,
-      type: 'allowance',
-      amount,
-      description: `${period} allowance payment`,
-      category: 'allowance',
-    });
-  }
-
-  // ============ SPENDING HELPERS ============
-
-  // Request spending (may require approval)
-  static async requestSpending(
-    childId: string,
-    amount: number,
-    description: string,
-    category: string,
-    requiresApproval = true
-  ): Promise<Transaction | null> {
-    return this.createTransaction({
-      child_id: childId,
-      type: 'spending',
-      amount,
-      description,
-      category,
-    });
-  }
-
   // ============ TRANSFER HELPERS ============
 
   // Transfer money between children

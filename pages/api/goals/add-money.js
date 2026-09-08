@@ -170,6 +170,7 @@ async function handleAddMoney(req, res) {
           amount: -depositAmount, // Negativo porque saiu da conta
           description: `Depósito no sonho: ${goal.title}`,
           category: goal.category || 'other',
+          status: 'completed',
           created_at: new Date().toISOString(),
         },
       ]);

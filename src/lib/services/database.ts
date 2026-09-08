@@ -166,15 +166,25 @@ export class DatabaseService {
       return null;
     }
 
-    // Update child balance
-    if (
-      transaction.type === 'earning' ||
-      transaction.type === 'allowance' ||
-      transaction.type === 'interest'
-    ) {
-      await this.updateChildBalance(transaction.child_id, transaction.amount);
-    } else if (transaction.type === 'spending') {
-      await this.updateChildBalance(transaction.child_id, -transaction.amount);
+    // Update child balance — SÓ para transações confirmadas (Task 3.14).
+    // Antes, o saldo era mexido sem olhar ao status: uma transação criada como
+    // 'pending' movia o dinheiro na mesma. Era essa a origem do desalinhamento
+    // "saldo certo, ficha por assinar" das 17 transações pendentes no banco.
+    // O tipo já exige `status` explícito (Omit<Transaction, ...>), portanto o
+    // chamador tem de declarar a sua intenção.
+    if (transaction.status === 'completed') {
+      if (
+        transaction.type === 'earning' ||
+        transaction.type === 'allowance' ||
+        transaction.type === 'interest'
+      ) {
+        await this.updateChildBalance(transaction.child_id, transaction.amount);
+      } else if (transaction.type === 'spending') {
+        await this.updateChildBalance(
+          transaction.child_id,
+          -transaction.amount
+        );
+      }
     }
 
     return data;

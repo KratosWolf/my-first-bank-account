@@ -132,6 +132,7 @@ async function handleCreateContribution(req, res) {
           amount: parseFloat(amount),
           description: description || `Contribuição para ${goal.title}`,
           category: 'Sonhos',
+          status: 'completed',
         },
       ])
       .select()

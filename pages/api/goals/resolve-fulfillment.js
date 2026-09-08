@@ -105,6 +105,7 @@ async function handleResolveFulfillment(req, res, session) {
             amount: -goalAmount, // Negativo porque é débito (saiu do sonho)
             description: `Sonho realizado: ${goal.title}`,
             category: goal.category || 'other',
+            status: 'completed',
             created_at: new Date().toISOString(),
           },
         ]);

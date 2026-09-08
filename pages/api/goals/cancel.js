@@ -145,6 +145,7 @@ async function handleCancelGoal(req, res) {
             amount: goalAmount,
             description: `Sonho cancelado: ${goal.title}`,
             category: goal.category || 'other',
+            status: 'completed',
             created_at: new Date().toISOString(),
           },
         ]);
