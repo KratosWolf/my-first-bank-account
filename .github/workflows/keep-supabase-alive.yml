@@ -1,9 +1,19 @@
+# ⚠️ AGENDAMENTO DESLIGADO — Task 3.11 (2026-09-08)
+#
+# O agendamento passou para o Vercel Cron (ver `crons` no vercel.json).
+# Motivo: o GitHub desativa cada workflow agendado INDIVIDUALMENTE, no seu
+# próprio disparo seguinte, após 60 dias sem atividade no repo — e a última
+# execução antes do silêncio é sempre verde. Foi assim que a mesada de agosto
+# e 5 meses de juros falharam sem ninguém dar por nada.
+#
+# Este ficheiro fica como FERRAMENTA MANUAL (workflow_dispatch), que é como se
+# correu o backfill da Fase C em junho. Sem `schedule:`, a regra dos 60 dias
+# não se aplica.
+
 name: Keep Supabase Alive
 
 on:
-  schedule:
-    - cron: '0 9 * * 0,3'  # Domingo e Quarta às 9h UTC (12h Brasil horário padrão)
-  workflow_dispatch:  # Permitir execução manual no GitHub Actions
+  workflow_dispatch: # Disparo manual — ver /api/cron/keep-alive
 
 jobs:
   ping-supabase:

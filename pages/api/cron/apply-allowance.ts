@@ -1,10 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { pingHealthcheck } from '@/lib/healthcheck';
 
 /**
  * API Cron para Aplicação Automática de Mesadas
  *
- * Chamada todo dia às 08:00 UTC pelo GitHub Actions (daily-allowance.yml).
+ * Chamada todo dia às 08:00 UTC pelo Vercel Cron (ver vercel.json).
+ * O agendamento no GitHub Actions foi desligado na Task 3.11 — o workflow
+ * daily-allowance.yml ficou como ferramenta de disparo manual.
  *
  * Robustez:
  * - Query `.lte` em vez de `.eq` — captura configs com data vencida (catch-up).
@@ -14,6 +17,9 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
  * - Backdate do created_at — transações atrasadas ficam datadas correctamente.
  * - Falha do adjust_child_balance é fatal para aquela criança (rollback da
  *   transação criada) e gera HTTP 500 ao final se algum config falhou.
+ * - Ping no healthchecks.io no fim (Task 3.11): normal quando corre limpo,
+ *   /fail quando algo correu mal. A AUSÊNCIA de ping é que deteta o cron
+ *   que nunca correu — o modo de falha que nos custou agosto.
  */
 export default async function handler(
   req: NextApiRequest,
@@ -29,9 +35,16 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  if (req.method !== 'POST') {
+  // O Vercel Cron invoca por GET; POST fica para chamada manual e para o
+  // workflow_dispatch do GitHub, que continua a usar -X POST.
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Auth e método falhados NÃO pingam: um probe externo não pode disparar
+  // alarme falso. Se o endpoint estiver partido a esse nível, o watchdog
+  // apanha-o pela ausência de ping, que é justamente o que ele existe para ver.
+  const hcUrl = process.env.HC_PING_ALLOWANCE;
 
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD UTC
@@ -49,7 +62,9 @@ export default async function handler(
     }
 
     if (!configs || configs.length === 0) {
-      return res.status(200).json({
+      // Caso comum: em qualquer dia que não seja o do pagamento não há nada
+      // vencido. É sucesso normal, leva ping normal.
+      const payload = {
         success: true,
         message: 'Nenhuma mesada programada para hoje',
         summary: {
@@ -59,7 +74,9 @@ export default async function handler(
           total_amount_paid: 0,
           results: [],
         },
-      });
+      };
+      await pingHealthcheck(hcUrl, { body: payload });
+      return res.status(200).json(payload);
     }
 
     let totalAmountPaid = 0;
@@ -216,27 +233,36 @@ export default async function handler(
     };
 
     if (hasErrors) {
-      return res.status(500).json({
+      const payload = {
         success: false,
         message: 'Mesadas processadas com erros — ver results',
         summary,
-      });
+      };
+      await pingHealthcheck(hcUrl, { fail: true, body: payload });
+      return res.status(500).json(payload);
     }
 
-    return res.status(200).json({
+    const payload = {
       success: true,
       message: `Mesadas aplicadas: ${totalPaymentsCreated} pagamento(s), R$ ${totalAmountPaid.toFixed(2)} total.`,
       summary,
-    });
+    };
+    await pingHealthcheck(hcUrl, { body: payload });
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('Erro crítico na aplicação de mesadas:', error);
 
-    return res.status(500).json({
+    const payload = {
       success: false,
       error: 'Erro interno na aplicação de mesadas',
       details: (error as Error).message,
       timestamp: new Date().toISOString(),
+    };
+    await pingHealthcheck(process.env.HC_PING_ALLOWANCE, {
+      fail: true,
+      body: payload,
     });
+    return res.status(500).json(payload);
   }
 }
 

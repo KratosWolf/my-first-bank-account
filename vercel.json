@@ -8,8 +8,21 @@
   "functions": {
     "app/**/*.tsx": {
       "maxDuration": 30
+    },
+    "pages/api/cron/*.ts": {
+      "maxDuration": 60
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/apply-allowance",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/apply-interest",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "env": {
     "NODE_ENV": "production"
   }

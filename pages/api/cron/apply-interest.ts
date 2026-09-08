@@ -1,10 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { pingHealthcheck } from '@/lib/healthcheck';
 
 /**
  * API Cron para Aplicação Automática de Juros
  *
- * Chamada todo dia 1º às 00:00 UTC pelo GitHub Actions (monthly-interest.yml).
+ * Chamada TODOS OS DIAS às 03:00 UTC pelo Vercel Cron (ver vercel.json).
+ *
+ * Sim, todos os dias — e não no dia 1. Decisão da Task 3.11: o endpoint já é
+ * idempotente por mês (hasInterestInMonth) e já faz catch-up a partir de
+ * last_interest_date, portanto correr 30x num mês credita uma vez só. Ganho:
+ * se o dia 1 falhar, o dia 2 recupera sozinho em vez de se perder o mês
+ * inteiro. É o mesmo mecanismo que salvou a mesada de setembro em 08/09.
+ *
+ * O agendamento no GitHub Actions foi desligado na Task 3.11 — o workflow
+ * monthly-interest.yml ficou como ferramenta de disparo manual.
  *
  * Histórico: entre 2026-04 e 2026-09 este endpoint devolveu 200/success:true
  * todos os meses sem gravar nada. Escrevia com a chave `anon`, que o RLS
@@ -22,6 +32,9 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
  * - Catch-up cronológico dos meses em atraso, compondo mês a mês.
  * - Motivos de skip distintos; 'erro' nunca é skip e força HTTP 500.
  * - ?dry_run=true calcula tudo e NÃO grava nada.
+ * - Ping no healthchecks.io no fim (Task 3.11), excepto em dry_run: um
+ *   dry-run não prova que o cron real correu. A AUSÊNCIA de ping é que
+ *   deteta o cron que nunca correu.
  *
  * A fórmula de juros e a regra do "saldo elegível de 30 dias" foram
  * transportadas sem alteração de TransactionService.calculateInterest().
@@ -84,10 +97,16 @@ export default async function handler(
 
   const dryRun = req.query.dry_run === 'true';
 
-  // Escrita exige POST. Dry-run é read-only, aceita GET para facilitar auditoria.
-  if (req.method !== 'POST' && !(dryRun && req.method === 'GET')) {
+  // O Vercel Cron invoca por GET; POST fica para chamada manual e para o
+  // workflow_dispatch do GitHub, que continua a usar -X POST.
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Dry-run não pinga (não prova nada sobre o cron real). Auth e método
+  // falhados também não: um probe externo não pode disparar alarme falso —
+  // esses casos aparecem no watchdog como AUSÊNCIA de ping.
+  const hcUrl = dryRun ? undefined : process.env.HC_PING_INTEREST;
 
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD UTC
@@ -103,8 +122,12 @@ export default async function handler(
     }
 
     if (!configs || configs.length === 0) {
-      // Zero configs é anomalia, não sucesso: o workflow trata total_children=0 como falha.
-      return res.status(200).json({
+      // Zero configs é anomalia, não sucesso — significa banco inacessível ou
+      // interest_config vazia. O monthly-interest.yml tratava total_children=0
+      // como falha; ao tirar-lhe o agendamento, essa guarda passa para aqui:
+      // ping em /fail, apesar do HTTP 200 (a forma da resposta não muda, para
+      // não partir quem já a consome).
+      const payload = {
         success: true,
         dry_run: dryRun,
         message: 'Nenhuma configuração de juros encontrada',
@@ -115,7 +138,9 @@ export default async function handler(
           total_interest_applied: 0,
           results: [],
         },
-      });
+      };
+      await pingHealthcheck(hcUrl, { fail: true, body: payload });
+      return res.status(200).json(payload);
     }
 
     let totalInterestApplied = 0;
@@ -418,32 +443,38 @@ export default async function handler(
     };
 
     if (hasErrors) {
-      return res.status(500).json({
+      const payload = {
         success: false,
         dry_run: dryRun,
         message: 'Juros processados com erros — ver results',
         summary,
-      });
+      };
+      await pingHealthcheck(hcUrl, { fail: true, body: payload });
+      return res.status(500).json(payload);
     }
 
-    return res.status(200).json({
+    const payload = {
       success: true,
       dry_run: dryRun,
       message: dryRun
         ? `SIMULAÇÃO (nada gravado): ${configs.length} criança(s), R$ ${totalInterestApplied.toFixed(2)} seriam distribuídos.`
         : `Juros aplicados: ${configs.length} criança(s), R$ ${totalInterestApplied.toFixed(2)} distribuídos.`,
       summary,
-    });
+    };
+    await pingHealthcheck(hcUrl, { body: payload });
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('Erro crítico na aplicação de juros:', error);
 
-    return res.status(500).json({
+    const payload = {
       success: false,
       dry_run: dryRun,
       error: 'Erro interno na aplicação de juros',
       details: (error as Error).message,
       timestamp: new Date().toISOString(),
-    });
+    };
+    await pingHealthcheck(hcUrl, { fail: true, body: payload });
+    return res.status(500).json(payload);
   }
 }
 

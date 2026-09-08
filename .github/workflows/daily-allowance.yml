@@ -1,11 +1,19 @@
+# ⚠️ AGENDAMENTO DESLIGADO — Task 3.11 (2026-09-08)
+#
+# O agendamento passou para o Vercel Cron (ver `crons` no vercel.json).
+# Motivo: o GitHub desativa cada workflow agendado INDIVIDUALMENTE, no seu
+# próprio disparo seguinte, após 60 dias sem atividade no repo — e a última
+# execução antes do silêncio é sempre verde. Foi assim que a mesada de agosto
+# e 5 meses de juros falharam sem ninguém dar por nada.
+#
+# Este ficheiro fica como FERRAMENTA MANUAL (workflow_dispatch), que é como se
+# correu o backfill da Fase C em junho. Sem `schedule:`, a regra dos 60 dias
+# não se aplica.
+
 name: Daily Allowance Application
 
 on:
-  schedule:
-    # Executa todo dia às 8:00 AM UTC (5:00 AM Brasília)
-    # Ajuste o horário conforme necessário
-    - cron: '0 8 * * *'
-  workflow_dispatch: # Permite execução manual para testes
+  workflow_dispatch: # Disparo manual — o agendamento vive no Vercel Cron
 
 jobs:
   apply-allowance:
@@ -14,11 +22,27 @@ jobs:
     steps:
       - name: Apply Daily Allowance
         run: |
-          curl -X POST https://my-first-bank-account.vercel.app/api/cron/apply-allowance \
+          set -uo pipefail
+
+          # --fail-with-body: exit != 0 em HTTP >= 400, preservando o corpo.
+          # Fecha a assimetria face ao monthly-interest.yml — antes, um HTTP 500
+          # produzia job verde.
+          HTTP_CODE=$(curl -X POST https://my-first-bank-account.vercel.app/api/cron/apply-allowance \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
-            -w "\nHTTP Status: %{http_code}\n" \
-            -s -S
+            --fail-with-body -sS \
+            -o response.json -w "%{http_code}")
+          CURL_EXIT=$?
+
+          echo "HTTP Status: $HTTP_CODE (curl exit: $CURL_EXIT)"
+          echo "--- Resposta ---"
+          jq . response.json 2>/dev/null || cat response.json
+          echo "----------------"
+
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::error::Chamada falhou — HTTP $HTTP_CODE (curl exit $CURL_EXIT)"
+            exit 1
+          fi
 
       - name: Log Execution
         if: always()
