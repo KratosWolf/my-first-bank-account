@@ -180,6 +180,7 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - 🔴 3.13 Release Pipeline falhando desde sempre (alarme falso anulou os avisos reais do GitHub)
 - 🔒 3.14 Regra dos 30 dias conta transações pending como entrada
 - 🔒 3.15 Endurecer apply-allowance (3 defeitos latentes achados no diagnóstico da 3.12)
+- 🔒 3.16 Formato da data no extrato de mesada (backdate vs. data real — decisão de produto)
 - 🔒 3.8 Fix texto ilegível no modal de depósito
 
 ### FASE 4 — Onboarding Profissional | 🔒 Bloqueada
@@ -406,7 +407,6 @@ MyFirstBA2/
 | 2026-09-08 | A run de 01/09 do monthly-interest foi o seu último suspiro                                | Processou 0 famílias, 0 crianças, R$0,00, HTTP 200 verde, contra um Supabase pausado. Confirma que a transação de juros de setembro veio do backfill de 07/09, não desta run                                                                                                                                                                                                                                                 |
 | 2026-09-08 | 3.12 não era bug de código                                                                 | Julho e agosto foram pagos normalmente (05/07 e 05/08). `next_payment_date`=2026-09-05 era o estado CORRECTO após pagar agosto. Setembro falhou por ausência de execução, não por falha lógica. Hipóteses de contaminação da idempotência pelos juros e de skip-sem-avanço foram testadas e DESCARTADAS                                                                                                                      |
 | 2026-09-08 | Run falhada do daily-allowance a 2026-06-13 nunca investigada                              | Anomalia em aberto, anterior à desativação                                                                                                                                                                                                                                                                                                                                                                                   |
-| 2026-09-08 | Marcar 3.15 e a decisão de produto sobre o backdate                                        | Decidir se o extrato deve mostrar a data devida, a data real, ou ambas                                                                                                                                                                                                                                                                                                                                                       |
 
 ---
 
