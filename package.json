@@ -55,18 +55,6 @@
     "typescript": "^5.9.3",
     "vercel": "^44.7.0"
   },
-  "release": {
-    "branches": [
-      "main"
-    ],
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      "@semantic-release/changelog",
-      "@semantic-release/npm",
-      "@semantic-release/git"
-    ]
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
