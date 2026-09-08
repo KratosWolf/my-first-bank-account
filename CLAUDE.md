@@ -177,11 +177,12 @@ Só prossiga quando TODOS os itens estiverem ✅.
 - ✅ 3.10 Merge e deploy da correção — versão nova confirmada em produção pelo corpo da resposta
 - ✅ 3.11 Crons migrados para Vercel Cron + watchdog de não-execução (healthchecks.io)
 - ✅ 3.12 Mesada de setembro — resolvida sem intervenção pelo catch-up do cron em 08/09
-- 🔴 3.15 Endurecer apply-allowance (o defeito (a) faz o watchdog pingar verde numa perda de mesada)
+- ✅ 3.15 Endurecer apply-allowance — idempotência devolve erro a sério, guarda mensal-only, `biweekly` removido, `default` lança, rollback verificado
 - 🔴 3.13 Release Pipeline falhando desde sempre (alarme falso anulou os avisos reais do GitHub)
 - 🔒 3.14 Regra dos 30 dias conta transações pending como entrada
 - 🔒 3.16 Formato da data no extrato de mesada (backdate vs. data real — decisão de produto)
 - 🔒 3.8 Fix texto ilegível no modal de depósito
+- 🔒 3.17 Idempotência acompanha a frequência (mesada semanal a sério)
 
 ### FASE 4 — Onboarding Profissional | 🔒 Bloqueada
 
@@ -422,6 +423,10 @@ MyFirstBA2/
 | 2026-09-08 | Validação `total_children == 0` migrou do workflow para o endpoint                         | Vivia no `monthly-interest.yml`; ao tirar-lhe o agendamento ia perder-se. Passou para dentro do `apply-interest`, que pinga `/fail` nesse caso (mantendo HTTP 200 para não partir quem consome a resposta)                                                                                                                                                                                                                   |
 | 2026-09-08 | PONTO CEGO ASSUMIDO do watchdog: `is_active = false`                                       | Se as `allowance_config` ficarem inativas, o endpoint responde "nada programado" e **pinga verde** para sempre. O watchdog deteta ausência de execução, não ausência de trabalho. Nenhum alerta cobre este caso hoje                                                                                                                                                                                                         |
 | 2026-09-08 | 3.15 sobe acima da 3.13                                                                    | O defeito (a) — `hasAllowanceInMonth` devolve `true` em caso de ERRO na query — agora faz o watchdog pingar **VERDE** num caminho que avança `next_payment_date` e perde um mês de mesada. Até ser corrigido, o watchdog dá **falsa cobertura** nesse caminho                                                                                                                                                                |
+| 2026-09-08 | App fechada a mesada MENSAL-ONLY (Opção A)                                                 | O dropdown oferecia 4 opções e só `monthly` pagava como anunciado: a idempotência é por mês, logo daily/weekly/biweekly pagam uma vez por mês em silêncio, com 200 e ping verde. Menu que promete "Semanal" e paga mensalmente é pior do que menu sem opção — a app existe para ensinar que o dinheiro chega na data combinada                                                                                               |
+| 2026-09-08 | `biweekly` era uma feature morta E partida                                                 | Estava no dropdown, no `allowanceService` e no cron, mas o CHECK de `allowance_config` só aceita daily/weekly/monthly — gravar "Quinzenal" dava erro. Removido do código; o CHECK não foi tocado                                                                                                                                                                                                                             |
+| 2026-09-08 | `frequency` é NULLABLE e o CHECK do Postgres NÃO rejeita NULL                              | Um CHECK que avalia NULL devolve NULL, que passa. Portanto `frequency=NULL` é gravável hoje e caía no `default: return fromDate` → loop infinito até ao `maxDuration` de 60s, **sem pingar**. O `default` passou a lançar erro                                                                                                                                                                                               |
+| 2026-09-08 | Existem TRÊS declarações de tipo da `frequency`, todas diferentes                          | `src/lib/supabase.ts:85` (daily/weekly/monthly), `parental-dashboard.ts:96` (weekly/biweekly/monthly) e um cast inline no `AllowanceConfigManager.tsx` que contornava o tipo partilhado para oferecer "Quinzenal". A UI mentia ao próprio TypeScript                                                                                                                                                                         |
 
 ---
 

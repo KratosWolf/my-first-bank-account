@@ -61,8 +61,7 @@ const AllowanceConfigManager: React.FC<AllowanceConfigManagerProps> = ({
     setEditConfig(
       childWithConfig.config || {
         amount: 20.0,
-        frequency: 'weekly',
-        day_of_week: 1, // Segunda-feira
+        frequency: 'monthly',
         day_of_month: 1,
         is_active: true,
       }
@@ -306,54 +305,19 @@ const AllowanceConfigManager: React.FC<AllowanceConfigManagerProps> = ({
                             📅 Periodicidade
                           </label>
                           <select
-                            value={editConfig.frequency || 'weekly'}
+                            value={editConfig.frequency || 'monthly'}
                             onChange={e =>
                               setEditConfig(prev => ({
                                 ...prev,
-                                frequency: e.target.value as
-                                  | 'daily'
-                                  | 'weekly'
-                                  | 'biweekly'
-                                  | 'monthly',
+                                frequency: e.target
+                                  .value as AllowanceConfig['frequency'],
                               }))
                             }
                             className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-900"
                           >
-                            <option value="daily">Todo dia</option>
-                            <option value="weekly">Semanal</option>
-                            <option value="biweekly">
-                              Quinzenal (dias 1 e 15)
-                            </option>
                             <option value="monthly">Mensal</option>
                           </select>
                         </div>
-
-                        {/* Dia da semana (se semanal) */}
-                        {editConfig.frequency === 'weekly' && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              🗓️ Dia da Semana
-                            </label>
-                            <select
-                              value={editConfig.day_of_week || 1}
-                              onChange={e =>
-                                setEditConfig(prev => ({
-                                  ...prev,
-                                  day_of_week: parseInt(e.target.value),
-                                }))
-                              }
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-900"
-                            >
-                              <option value="0">Domingo</option>
-                              <option value="1">Segunda-feira</option>
-                              <option value="2">Terça-feira</option>
-                              <option value="3">Quarta-feira</option>
-                              <option value="4">Quinta-feira</option>
-                              <option value="5">Sexta-feira</option>
-                              <option value="6">Sábado</option>
-                            </select>
-                          </div>
-                        )}
 
                         {/* Dia do mês (se mensal) */}
                         {editConfig.frequency === 'monthly' && (

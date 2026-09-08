@@ -93,7 +93,7 @@ export interface ChildControls {
   };
   allowance_config: {
     base_allowance: number;
-    frequency: 'weekly' | 'biweekly' | 'monthly';
+    frequency: 'weekly' | 'monthly';
     bonus_multipliers: Record<string, number>;
     automatic_distribution: boolean;
     next_allowance_date: string;

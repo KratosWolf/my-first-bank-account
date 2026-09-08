@@ -13,7 +13,10 @@ import { pingHealthcheck } from '@/lib/healthcheck';
  * - Query `.lte` em vez de `.eq` — captura configs com data vencida (catch-up).
  * - Loop `while` — processa todos os meses atrasados em uma única execução.
  * - Idempotência por mês — se já existe transação 'allowance' no mês alvo,
- *   só avança a data sem creditar de novo.
+ *   só avança a data sem creditar de novo. FALHA na checagem aborta a criança
+ *   e NÃO avança a data (Task 3.15).
+ * - Guarda mensal-only — configs com frequency != 'monthly' são recusadas com
+ *   erro, porque a janela de idempotência é mensal (ver Task 3.17).
  * - Backdate do created_at — transações atrasadas ficam datadas correctamente.
  * - Falha do adjust_child_balance é fatal para aquela criança (rollback da
  *   transação criada) e gera HTTP 500 ao final se algum config falhou.
@@ -97,6 +100,24 @@ export default async function handler(
         continue;
       }
 
+      // Guarda mensal-only (Task 3.15): a idempotência é por MÊS, logo
+      // qualquer outra frequência pagaria uma vez por mês em silêncio. Enquanto
+      // a Task 3.17 não alinhar a janela com a frequência, só 'monthly' corre.
+      // `continue` salta também o update de next_payment_date lá em baixo.
+      if (config.frequency !== 'monthly') {
+        hasErrors = true;
+        results.push({
+          config_id: config.id,
+          child_id: config.child_id,
+          child_name: child.name,
+          payments: [],
+          next_payment_date: config.next_payment_date,
+          error: `Frequência não suportada nesta versão: ${config.frequency ?? 'null'}. Apenas 'monthly'.`,
+          status: 'error',
+        });
+        continue;
+      }
+
       const paymentsForThisChild: Array<{
         payment_date: string;
         amount: number;
@@ -115,7 +136,14 @@ export default async function handler(
           paymentDate
         );
 
-        if (alreadyPaid) {
+        // Erro na checagem aborta ESTA criança antes de avançar a data.
+        // hasErrors -> HTTP 500 -> ping /fail pelo caminho já existente.
+        if (alreadyPaid.error) {
+          configError = `Falha na checagem de idempotência (${paymentDate}): ${alreadyPaid.error}`;
+          break;
+        }
+
+        if (alreadyPaid.exists) {
           paymentsForThisChild.push({
             payment_date: paymentDate,
             amount: Number(config.amount),
@@ -164,13 +192,22 @@ export default async function handler(
           if (updateError) {
             console.error('Erro ao ajustar saldo, revertendo tx:', updateError);
             // Rollback da transação para evitar inconsistência
+            let rollbackNote = '';
             if (txData?.id) {
-              await supabaseAdmin
+              const { error: deleteError } = await supabaseAdmin
                 .from('transactions')
                 .delete()
                 .eq('id', txData.id);
+
+              if (deleteError) {
+                console.error(
+                  'Rollback falhou — transação órfã no extracto:',
+                  deleteError
+                );
+                rollbackNote = ` | ATENÇÃO: rollback falhou, transação órfã id=${txData.id} (${deleteError.message}) — limpar à mão`;
+              }
             }
-            configError = `Falha ao ajustar saldo (${paymentDate}): ${updateError.message}`;
+            configError = `Falha ao ajustar saldo (${paymentDate}): ${updateError.message}${rollbackNote}`;
             break;
           }
 
@@ -273,7 +310,7 @@ export default async function handler(
 async function hasAllowanceInMonth(
   childId: string,
   paymentDate: string
-): Promise<boolean> {
+): Promise<{ exists: boolean; error: string | null }> {
   const [yearStr, monthStr] = paymentDate.split('-');
   const year = parseInt(yearStr, 10);
   const month = parseInt(monthStr, 10);
@@ -294,11 +331,12 @@ async function hasAllowanceInMonth(
 
   if (error) {
     console.error('Erro na checagem de idempotência:', error);
-    // Em caso de falha, ser conservador: assumir que já pagou (evita duplicar)
-    return true;
+    // NUNCA assumir "já pagou" em caso de erro: isso avançaria a data e
+    // queimaria um mês de mesada com HTTP 200 e ping VERDE no watchdog.
+    return { exists: false, error: error.message };
   }
 
-  return (data?.length ?? 0) > 0;
+  return { exists: (data?.length ?? 0) > 0, error: null };
 }
 
 /**
@@ -321,17 +359,6 @@ function calculateNextPaymentDateFrom(fromDate: string, config: any): string {
       return base.toISOString().split('T')[0];
     }
 
-    case 'biweekly': {
-      const currentDay = base.getUTCDate();
-      if (currentDay === 1) {
-        base.setUTCDate(15);
-      } else {
-        base.setUTCMonth(base.getUTCMonth() + 1);
-        base.setUTCDate(1);
-      }
-      return base.toISOString().split('T')[0];
-    }
-
     case 'monthly': {
       const dayOfMonth = config.day_of_month || 1;
       // Avança 1 mês a partir do dia 1 (evita "stickiness" de dias inválidos)
@@ -349,7 +376,10 @@ function calculateNextPaymentDateFrom(fromDate: string, config: any): string {
     }
 
     default:
-      return fromDate;
+      // Nunca deve disparar: a guarda de frequência no handler já bloqueia
+      // tudo o que não é 'monthly'. Devolver `fromDate` faria o while da
+      // L109 nunca terminar, morrendo no maxDuration de 60s SEM pingar.
+      throw new Error(`Frequência não suportada: ${config.frequency}`);
   }
 }
 
@@ -359,8 +389,6 @@ function getFrequencyText(frequency: string): string {
       return 'diária';
     case 'weekly':
       return 'semanal';
-    case 'biweekly':
-      return 'quinzenal';
     case 'monthly':
       return 'mensal';
     default:

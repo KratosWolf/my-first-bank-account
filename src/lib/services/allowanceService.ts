@@ -240,23 +240,6 @@ export class AllowanceService {
         nextWeekly.setDate(nextWeekly.getDate() + daysUntilNext);
         return nextWeekly.toISOString().split('T')[0];
 
-      case 'biweekly':
-        // Quinzenal: dias 1 e 15
-        const currentDay = today.getDate();
-        const nextBiweekly = new Date(today);
-
-        if (currentDay < 1) {
-          nextBiweekly.setDate(1);
-        } else if (currentDay < 15) {
-          nextBiweekly.setDate(15);
-        } else {
-          // Próximo mês, dia 1
-          nextBiweekly.setMonth(nextBiweekly.getMonth() + 1);
-          nextBiweekly.setDate(1);
-        }
-
-        return nextBiweekly.toISOString().split('T')[0];
-
       case 'monthly':
         // Próximo dia do mês
         const dayOfMonth = config.day_of_month || 1;
@@ -300,9 +283,6 @@ export class AllowanceService {
           'Sábado',
         ];
         return `Toda ${daysOfWeek[config.day_of_week || 0]}`;
-
-      case 'biweekly':
-        return 'Quinzenal (dias 1 e 15)';
 
       case 'monthly':
         return `Todo dia ${config.day_of_month || 1} do mês`;
@@ -366,11 +346,8 @@ export class AllowanceService {
     }
 
     // Validar frequência
-    if (
-      config.frequency &&
-      !['daily', 'weekly', 'biweekly', 'monthly'].includes(config.frequency)
-    ) {
-      errors.push('Frequência inválida');
+    if (config.frequency && !['monthly'].includes(config.frequency)) {
+      errors.push('Frequência inválida — apenas mensal é suportada');
     }
 
     // Validar dia da semana
