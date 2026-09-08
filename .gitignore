@@ -42,3 +42,4 @@ next-env.d.ts
 
 # Log de auditoria do backfill de juros (Task 3.9) — contém ids de transação
 backfill-interest-2026.audit.log
+.env*.local
