@@ -125,6 +125,7 @@ export default function TransactionHistory({
       goal_deposit: { icon: '🎯', color: '#F5B731', bg: '#F5B73120' },
       goal_withdrawal: { icon: '↩️', color: '#22C55E', bg: '#22C55E20' },
       goal_interest: { icon: '🌟', color: '#FFD966', bg: '#FFD96620' },
+      goal_purchase: { icon: '🛍️', color: '#F5B731', bg: '#F5B73120' },
       transfer: { icon: '↔️', color: '#FFFFFF', bg: '#FFFFFF20' },
       deposit: { icon: '💵', color: '#22C55E', bg: '#22C55E20' },
       gift: { icon: '🎁', color: '#F5B731', bg: '#F5B73120' },
@@ -146,6 +147,14 @@ export default function TransactionHistory({
     ].includes(type);
   };
 
+  // Tipos que APARECEM no extracto mas NÃO movem children.balance.
+  // O walk-back do saldo tem de os ignorar, senão desfaz um passo que
+  // nunca foi dado e inflaciona todas as linhas mais antigas.
+  // - goal_purchase: resolve-fulfillment.js mantém o saldo de propósito
+  // - goal_interest: apply-interest.ts só chama adjust_goal_amount
+  const NON_BALANCE_TYPES = ['goal_purchase', 'goal_interest'];
+  const movesBalance = (type: string) => !NON_BALANCE_TYPES.includes(type);
+
   // Calculate running balance for each transaction (retroactive from current balance)
   // Only on first page with no filters — otherwise the anchor balance doesn't match
   const balanceMap = new Map<string, number>();
@@ -160,6 +169,8 @@ export default function TransactionHistory({
     for (let i = 0; i < transactions.length; i++) {
       const tx = transactions[i];
       balanceMap.set(tx.id, runningBalance);
+      // A linha mostra o saldo (igual ao da anterior) mas não o faz andar.
+      if (!movesBalance(tx.type)) continue;
       // Walk backwards: subtract income, add expenses to get previous balance
       const amount = Math.abs(tx.amount);
       if (isIncome(tx.type)) {
@@ -343,9 +354,16 @@ export default function TransactionHistory({
                     {Math.abs(transaction.amount).toFixed(2)}
                   </div>
                   {balanceAfter !== undefined && (
-                    <div className="text-xs text-white/50 mt-0.5">
-                      Saldo: R$ {balanceAfter.toFixed(2)}
-                    </div>
+                    <>
+                      <div className="text-xs text-white/50 mt-0.5">
+                        Saldo: R$ {balanceAfter.toFixed(2)}
+                      </div>
+                      {!movesBalance(transaction.type) && (
+                        <div className="text-[10px] text-white/40 mt-0.5">
+                          não altera o saldo da conta
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
